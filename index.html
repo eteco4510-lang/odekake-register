@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>おでかけサポート 利用者登録</title>
+  <!-- LINE Front-end Framework (LIFF) SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --primary: #e65100;
+      --primary-dark: #bf360c;
+      --success: #1e8e3e;
+      --text: #202124;
+      --sub-text: #5f6368;
+      --border: #dadce0;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --danger: #d93025;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 40px;
+    }
+    header {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 { font-size: 1.15rem; font-weight: bold; }
+    .container { max-width: 500px; margin: 0 auto; padding: 16px; }
+
+    .line-status-bar {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      background: #e8f0fe;
+      color: #1a73e8;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .form-group .hint {
+      font-size: 0.8rem;
+      color: var(--sub-text);
+      margin-bottom: 6px;
+    }
+    .badge-req {
+      background-color: var(--danger);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    input[type="text"], input[type="tel"] {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1.05rem;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .radio-label {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .radio-label input { margin-right: 10px; transform: scale(1.2); }
+
+    .status-error-box {
+      display: none;
+      background-color: #fce8e6;
+      border: 1px solid #fad2cf;
+      color: var(--danger);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit {
+      background-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 3px 6px rgba(230,81,0,0.3);
+    }
+    .btn-submit:disabled {
+      background: #b0bec5 !important;
+      box-shadow: none !important;
+      cursor: not-allowed;
+    }
+
+    /* 完了画面 */
+    #completeScreen { display: none; text-align: center; }
+    .complete-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 18px;
+      border: 2px solid var(--success);
+    }
+    .number-display-box {
+      background: #e6f4ea;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+      border: 2px dashed var(--success);
+    }
+    .number-display {
+      font-size: 2.4rem;
+      font-weight: bold;
+      color: var(--success);
+      letter-spacing: 3px;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>おでかけサポート 利用者登録</h1>
+</header>
+
+<div class="container" id="formScreen">
+  <div class="card">
+    <p style="font-size:0.9rem; margin-bottom:16px; color:var(--sub-text);">
+      送迎サービスをご利用いただくための初期登録です。
+    </p>
+
+    <!-- エラー表示枠 -->
+    <div id="errorBox" class="status-error-box"></div>
+
+    <!-- 申請区分 -->
+    <div class="form-group">
+      <label>申請区分 <span class="badge-req">必須</span></label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="userType" value="本人申請" checked>
+          <span>ご本人（または同居ご家族）</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="userType" value="ケアマネ代理">
+          <span>ケアマネジャー・専門職（代理申請）</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- お名前 -->
+    <div class="form-group">
+      <label for="userName">ご利用者のお名前 <span class="badge-req">必須</span></label>
+      <div class="hint">送迎を受けるご本人のお名前を入力してください</div>
+      <input type="text" id="userName" placeholder="例: 相模 花子">
+    </div>
+
+    <!-- 電話番号 -->
+    <div class="form-group">
+      <label for="userPhone">連絡先電話番号 <span class="badge-req">必須</span></label>
+      <div class="hint">日中に連絡が取れる電話番号（半角数字）</div>
+      <input type="tel" id="userPhone" placeholder="例: 09012345678" inputmode="tel">
+    </div>
+
+    <!-- LINEアカウント状態バー -->
+    <div id="liffStatus" class="line-status-bar">
+      🔄 LINEアカウント確認中...
+    </div>
+
+    <!-- 送信ボタン -->
+    <button type="button" class="btn btn-submit" id="btnRegister" onclick="handleSubmit()">
+      利用登録を完了する
+    </button>
+  </div>
+</div>
+
+<!-- 完了画面 -->
+<div class="container" id="completeScreen">
+  <div class="complete-card">
+    <h2 style="color:var(--success); font-size:1.4rem; margin-bottom:6px;">🎉 登録が完了しました</h2>
+    <p style="font-size:0.9rem; color:var(--sub-text);">あなたの登録番号です：</p>
+    
+    <div class="number-display-box">
+      <div style="font-size:0.85rem; color:var(--sub-text); margin-bottom:2px;">利用者登録番号</div>
+      <div class="number-display" id="dispUserNumber">-----</div>
+    </div>
+
+    <p style="font-size:0.95rem; color:var(--success); font-weight:bold; margin-bottom:16px;">
+      ✓ LINEアカウントとの連携が完了しました！<br>
+      トーク画面にも完了通知をお送りしました。
+    </p>
+
+    <div style="font-size:0.85rem; text-align:left; background:#fff3e0; padding:12px; border-radius:8px; margin-bottom:20px;">
+      ⚠️ <strong>お願い</strong><br>
+      この5桁の番号は、<strong>送迎のご予約時に毎回必要</strong>となります。メモを取るか、画面のスクリーンショットを保存してください。
+    </div>
+
+    <button type="button" class="btn btn-submit" onclick="closeLiff()">
+      LINEの画面に戻る
+    </button>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // 設定項目
+  // ==========================================
+  const LIFF_ID = "2011784961-LZ6p8VqP";
+  
+  // ★ここにGASのウェブアプリURLを貼り付けてください
+  const GAS_API_URL = "https://script.google.com/macros/s/【あなたのデプロイID】/exec";
+
+  let detectedLineUserId = '';
+  let isSending = false;
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearError() {
+    const box = document.getElementById('errorBox');
+    box.textContent = '';
+    box.style.display = 'none';
+  }
+
+  // 画面起動時にLIFF初期化
+  window.addEventListener('DOMContentLoaded', async () => {
+    const statusDiv = document.getElementById('liffStatus');
+    try {
+      await liff.init({ liffId: LIFF_ID });
+
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        detectedLineUserId = profile.userId;
+        statusDiv.style.background = '#e6f4ea';
+        statusDiv.style.color = 'var(--success)';
+        statusDiv.textContent = `✓ LINE連携完了 (${profile.displayName} 様)`;
+
+        const nameInput = document.getElementById('userName');
+        if (!nameInput.value) nameInput.placeholder = `例: ${profile.displayName}`;
+      } else {
+        statusDiv.style.background = '#fff3cd';
+        statusDiv.style.color = '#856404';
+        statusDiv.textContent = 'ℹ️ 通常登録モード';
+      }
+    } catch (err) {
+      console.warn('LIFF init warning:', err);
+      statusDiv.style.background = '#fff3cd';
+      statusDiv.style.color = '#856404';
+      statusDiv.textContent = 'ℹ️ 通常登録モード';
+    }
+  });
+
+  // 登録送信処理
+  async function handleSubmit() {
+    if (isSending) return;
+    clearError();
+
+    const name = document.getElementById('userName').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    const typeEl = document.querySelector('input[name="userType"]:checked');
+    const type = typeEl ? typeEl.value : '本人申請';
+
+    if (!name) {
+      showError('ご利用者のお名前を入力してください。');
+      return;
+    }
+    if (!phone) {
+      showError('電話番号を入力してください。');
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 7) {
+      showError('電話番号を正しく入力してください（数字7桁以上）。');
+      return;
+    }
+
+    isSending = true;
+    const btn = document.getElementById('btnRegister');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span> 登録処理中...';
+
+    const payload = {
+      action: 'registerUser',
+      payload: {
+        name: name,
+        phone: cleanPhone,
+        type: type,
+        lineUserId: detectedLineUserId
+      }
+    };
+
+    try {
+      const response = await fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+
+      if (data && data.success) {
+        document.getElementById('formScreen').style.display = 'none';
+        document.getElementById('completeScreen').style.display = 'block';
+        document.getElementById('dispUserNumber').textContent = data.userNumber;
+        window.scrollTo(0, 0);
+      } else {
+        throw new Error(data.message || '登録処理中にエラーが発生しました。');
+      }
+    } catch (err) {
+      showError('登録エラー: ' + (err.message || 'サーバーとの通信に失敗しました。'));
+      isSending = false;
+      btn.disabled = false;
+      btn.innerHTML = '利用登録を完了する';
+    }
+  }
+
+  function closeLiff() {
+    if (typeof liff !== 'undefined' && liff.isInClient()) {
+      liff.closeWindow();
+    } else {
+      window.close();
+    }
+  }
+</script>
+</body>
+</html>
