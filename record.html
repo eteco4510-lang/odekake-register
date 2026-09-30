@@ -73,6 +73,39 @@
     }
     textarea { height: 80px; resize: vertical; }
 
+    /* 距離自動計算エリア */
+    .distance-calc-box {
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .calc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .btn-calc {
+      background: #558b2f;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .round-trip-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     .btn {
       display: block;
       width: 100%;
@@ -91,7 +124,6 @@
     }
     .btn-submit:disabled { background: #b0bec5; cursor: not-allowed; }
 
-    /* 完了画面 */
     #completeView { display: none; text-align: center; }
   </style>
 </head>
@@ -104,7 +136,7 @@
 <div class="container" id="formView">
   <div class="card">
     <div id="questSummary" class="quest-summary">
-      <strong>運行案件情報：</strong><span id="dispQuestInfo">確認中...</span>
+      <strong>運行案件：</strong><span id="dispQuestInfo">案件情報を読み込み中...</span>
     </div>
 
     <!-- ドライバーID -->
@@ -113,18 +145,39 @@
       <input type="text" id="driverId" placeholder="例: 10101" inputmode="numeric">
     </div>
 
+    <!-- ★出発地と到着地の記録 -->
+    <div class="form-group">
+      <label>出発地（お迎え場所） <span class="badge-req">必須</span></label>
+      <input type="text" id="origin" placeholder="例: 相模原市緑区中野xxx">
+    </div>
+
+    <div class="form-group">
+      <label>到着地（目的地） <span class="badge-req">必須</span></label>
+      <input type="text" id="destination" placeholder="例: 相模原協同病院">
+    </div>
+
+    <!-- ★Google Maps 距離自動計算エリア -->
+    <div class="distance-calc-box">
+      <div style="font-size:0.85rem; color:#33691e; font-weight:bold;">📍 Google Maps ルート自動計測</div>
+      <div class="calc-row">
+        <label class="round-trip-check">
+          <input type="checkbox" id="checkRoundTrip" onchange="applyRoundTrip()">
+          <span>往復運行（距離×2）</span>
+        </label>
+        <button type="button" class="btn-calc" onclick="triggerCalcDistance()">🔄 距離を再計算</button>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:0.9rem; font-weight:bold;">走行距離（km） <span class="badge-req">必須</span></label>
+        <div class="hint">Maps自動計算値（必要に応じて手動補正も可能）</div>
+        <input type="number" id="distance" placeholder="自動計算中..." step="0.1" inputmode="decimal">
+      </div>
+    </div>
+
     <!-- 実車時間 -->
     <div class="form-group">
       <label>実車・支援時間（分） <span class="badge-req">必須</span></label>
       <div class="hint">送迎・付き添いにかかった実時間を分単位で入力</div>
       <input type="number" id="duration" placeholder="例: 45" inputmode="numeric">
-    </div>
-
-    <!-- 走行距離 -->
-    <div class="form-group">
-      <label>実走行距離（km） <span class="badge-req">必須</span></label>
-      <div class="hint">メーター差分または概算km（小数可）</div>
-      <input type="number" id="distance" placeholder="例: 5.2" step="0.1" inputmode="decimal">
     </div>
 
     <!-- 受領金額 -->
@@ -145,7 +198,7 @@
     <div class="form-group">
       <label>特記事項・申し送り</label>
       <div class="hint">運行中の様子や次回への引継ぎなど</div>
-      <textarea id="notes" placeholder="例: 特に問題なくスムーズに病院へ到着しました。"></textarea>
+      <textarea id="notes" placeholder="例: スムーズに送迎完了しました。"></textarea>
     </div>
 
     <button class="btn btn-submit" id="btnSubmit" onclick="submitRecord()">
@@ -160,7 +213,7 @@
     <h2 style="color:var(--success); margin-bottom:12px;">🎉 記録を保存しました</h2>
     <p style="font-size:0.95rem; color:var(--sub-text); margin-bottom:20px;">
       本日のボランティア運行お疲れさまでした！<br>
-      実績は活動記録シート（ファイルB）へ正常に反映されました。
+      出発地・到着地・走行距離は活動記録シート（ファイルB）へ正常に反映されました。
     </p>
     <button class="btn btn-submit" onclick="window.close()">画面を閉じる</button>
   </div>
@@ -170,13 +223,14 @@
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let targetQuestId = '';
+  let cachedUserName = '';
+  let oneWayDistance = 0; // 片道距離キャッシュ
 
   window.addEventListener('DOMContentLoaded', async () => {
-    // URLの ?qid= から案件IDを取得
     const params = new URLSearchParams(window.location.search);
     targetQuestId = params.get('qid') || '';
 
-    // ドライバー番号の自動補完
+    // ドライバー番号復帰
     const savedDriver = localStorage.getItem('odekake_driver');
     if (savedDriver) {
       try {
@@ -189,9 +243,24 @@
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(targetQuestId)}`;
         const res = await (await fetch(url)).json();
+
         if (res.success && res.quest) {
+          const q = res.quest;
+          cachedUserName = q.userName;
           document.getElementById('dispQuestInfo').textContent = 
-            `【${res.quest.id}】${res.quest.userName} 様（${res.quest.dateText}）`;
+            `【${q.id}】${q.userName} 様（${q.dateText}）`;
+
+          // 出発地と到着地を自動セット
+          document.getElementById('origin').value = q.pickup || '';
+          document.getElementById('destination').value = q.dropoff || '';
+
+          // 距離自動計算結果を即座に反映
+          if (q.autoDistance) {
+            oneWayDistance = parseFloat(q.autoDistance) || 0;
+            document.getElementById('distance').value = q.autoDistance;
+          } else if (q.pickup && q.dropoff) {
+            triggerCalcDistance();
+          }
         } else {
           document.getElementById('dispQuestInfo').textContent = `案件ID: ${targetQuestId}`;
         }
@@ -199,21 +268,63 @@
         document.getElementById('dispQuestInfo').textContent = `案件ID: ${targetQuestId}`;
       }
     } else {
-      document.getElementById('dispQuestInfo').textContent = '案件ID未指定（手動報告）';
+      document.getElementById('dispQuestInfo').textContent = '手動記録モード';
     }
   });
 
+  // Google Maps APIによる距離自動計算
+  async function triggerCalcDistance() {
+    const orig = document.getElementById('origin').value.trim();
+    const dest = document.getElementById('destination').value.trim();
+
+    if (!orig || !dest) {
+      alert('出発地と到着地の両方を入力してください。');
+      return;
+    }
+
+    const distInput = document.getElementById('distance');
+    distInput.placeholder = '計算中...';
+
+    try {
+      const url = `${GAS_API_URL}?action=calcDistance&origin=${encodeURIComponent(orig)}&destination=${encodeURIComponent(dest)}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success && res.distance) {
+        oneWayDistance = parseFloat(res.distance) || 0;
+        applyRoundTrip();
+      } else {
+        alert('距離の自動計算ができませんでした。住所をご確認いただくか、手動で距離を入力してください。');
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+    }
+  }
+
+  // 往復チェック切り替え
+  function applyRoundTrip() {
+    const isRound = document.getElementById('checkRoundTrip').checked;
+    const distInput = document.getElementById('distance');
+    if (oneWayDistance > 0) {
+      distInput.value = (isRound ? (oneWayDistance * 2) : oneWayDistance).toFixed(1);
+    }
+  }
+
+  // 活動記録の送信
   async function submitRecord() {
     const driverId = document.getElementById('driverId').value.trim();
-    const duration = document.getElementById('duration').value.trim();
+    const origin = document.getElementById('origin').value.trim();
+    const destination = document.getElementById('destination').value.trim();
     const distance = document.getElementById('distance').value.trim();
+    const duration = document.getElementById('duration').value.trim();
     const fee = document.getElementById('fee').value.trim();
     const expense = document.getElementById('expense').value.trim() || '0';
     const notes = document.getElementById('notes').value.trim();
 
     if (!driverId) { alert('ドライバー番号を入力してください。'); return; }
+    if (!origin) { alert('出発地を入力してください。'); return; }
+    if (!destination) { alert('到着地を入力してください。'); return; }
+    if (!distance) { alert('走行距離を入力（または自動計算）してください。'); return; }
     if (!duration) { alert('実車・支援時間を入力してください。'); return; }
-    if (!distance) { alert('走行距離を入力してください。'); return; }
     if (!fee) { alert('受領金額を入力してください。'); return; }
 
     const btn = document.getElementById('btnSubmit');
@@ -223,8 +334,11 @@
     const payload = {
       questId: targetQuestId,
       driverId: driverId,
-      duration: duration,
+      userName: cachedUserName,
+      origin: origin,
+      destination: destination,
       distance: distance,
+      duration: duration,
       fee: fee,
       expense: expense,
       notes: notes
