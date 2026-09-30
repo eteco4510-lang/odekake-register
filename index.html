@@ -263,11 +263,9 @@
 
 <script>
   // ==========================================
-  // 設定項目
+  // 設定項目（確認済み・正しい値）
   // ==========================================
   const LIFF_ID = "2011784961-LZ6p8VqP";
-  
-  // ★ここにGASのウェブアプリURLを貼り付けてください
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let detectedLineUserId = '';
@@ -314,7 +312,7 @@
     }
   });
 
-  // 登録送信処理
+  // 登録送信処理（GET通信でCORSエラーを完全回避）
   async function handleSubmit() {
     if (isSending) return;
     clearError();
@@ -345,20 +343,18 @@
     btn.innerHTML = '<span class="loader"></span> 登録処理中...';
 
     const payload = {
-      action: 'registerUser',
-      payload: {
-        name: name,
-        phone: cleanPhone,
-        type: type,
-        lineUserId: detectedLineUserId
-      }
+      name: name,
+      phone: cleanPhone,
+      type: type,
+      lineUserId: detectedLineUserId
     };
 
     try {
-      const response = await fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      // ★GETパラメータ通信（CORSによるLoad failedを回避）
+      const requestUrl = GAS_API_URL + 
+        '?action=registerUser&data=' + encodeURIComponent(JSON.stringify(payload));
+
+      const response = await fetch(requestUrl);
       const data = await response.json();
 
       if (data && data.success) {
