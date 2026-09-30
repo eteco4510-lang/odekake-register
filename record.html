@@ -3,220 +3,340 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>おでかけサポート 運行活動記録</title>
+  <title>乗り合いサロン活動記録</title>
   <style>
     :root {
-      --primary: #1565c0;
-      --success: #2e7d32;
-      --danger: #d93025;
-      --text: #202124;
-      --sub-text: #5f6368;
-      --border: #dadce0;
-      --bg: #f4f6f8;
+      --primary-color: #2e7d32;
+      --accent-color: #e65100;
+      --bg-color: #f7f9fa;
       --card-bg: #ffffff;
+      --border-color: #d1d5db;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --success-green: #15803d;
+      --warn-orange: #d97706;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       line-height: 1.5;
       padding-bottom: 50px;
     }
     header {
-      background-color: var(--primary);
-      color: #fff;
-      padding: 16px;
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 10;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 20;
     }
-    header h1 { font-size: 1.15rem; font-weight: bold; }
-    .container { max-width: 500px; margin: 0 auto; padding: 14px; }
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
 
     .card {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 18px;
-      margin-bottom: 14px;
-      border: 1px solid var(--border);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .quest-badge {
-      background: #e3f2fd;
-      border: 1px solid #bbdefb;
-      color: #0d47a1;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.9rem;
       margin-bottom: 16px;
-      font-weight: bold;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* GPSボタン群 */
-    .gps-action-group {
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+    .form-group .sub-label {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      font-weight: normal;
+    }
+    input[type="text"], input[type="number"], input[type="tel"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1.05rem;
+      background: #fafafa;
+    }
+    input:focus {
+      background: #ffffff;
+      border-color: #2563eb;
+      outline: none;
+    }
+
+    /* 乗客リスト追加エリア */
+    .passenger-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .btn-gps {
+    .btn-add-passenger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 10px;
+      background-color: #eff6ff;
+      border: 1px dashed #60a5fa;
+      border-radius: 8px;
+      color: #1d4ed8;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-add-passenger:active { background-color: #dbeafe; }
+
+    /* GPSステップボタン */
+    .step-section {
+      margin-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 16px;
+    }
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .btn-gps-trigger {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      width: 100%;
       padding: 16px;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: bold;
-      border: none;
       border-radius: 10px;
-      color: #fff;
+      border: 2px solid #2563eb;
+      background-color: #ffffff;
+      color: #1d4ed8;
       cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-      transition: opacity 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s;
     }
-    .btn-gps:active { opacity: 0.8; }
-    .btn-start { background-color: #e65100; }
-    .btn-dest { background-color: #2e7d32; }
-    .btn-gps:disabled {
-      background-color: #cfd8dc !important;
-      color: #78909c !important;
+    .btn-gps-trigger:active { background-color: #eff6ff; }
+    .btn-gps-trigger:disabled {
+      border-color: #d1d5db;
+      background-color: #f3f4f6;
+      color: #9ca3af;
       cursor: not-allowed;
       box-shadow: none;
     }
 
-    .gps-status {
+    /* ステータスバッジ */
+    .status-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
       font-size: 0.85rem;
-      padding: 8px 12px;
-      border-radius: 6px;
-      background: #f1f3f4;
-      margin-top: 6px;
-      color: var(--sub-text);
+      background-color: #f3f4f6;
+      color: var(--text-sub);
     }
-    .gps-status.recorded {
-      background: #e8f5e9;
-      color: #1b5e20;
+    .status-box.recorded {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
       font-weight: bold;
-      border: 1px solid #c8e6c9;
+    }
+    .lock-hint {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--warn-orange);
+      font-weight: bold;
+      display: none;
     }
 
-    /* 集計結果グリッド */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 14px 0;
-      background: #fafafa;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .grid-item { font-size: 0.85rem; }
-    .grid-label { color: var(--sub-text); }
-    .grid-val { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
-
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 4px; }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-
+    /* 送信ボタン */
     .btn-submit {
       width: 100%;
       padding: 16px;
-      background: var(--primary);
-      color: #fff;
+      margin-top: 24px;
+      background-color: #2563eb;
+      color: #ffffff;
       font-size: 1.15rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
+    }
+    .btn-submit:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* 送信完了画面カード */
+    #completeView { display: none; }
+    .complete-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 24px 20px;
+      border: 2px solid var(--success-green);
+      text-align: center;
+    }
+    .complete-header {
+      color: var(--success-green);
+      font-size: 1.35rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .result-stats-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      margin: 16px 0;
+      text-align: left;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .result-row:last-child {
+      margin-bottom: 0;
+      padding-top: 6px;
+      border-top: 1px dashed #cbd5e1;
+      font-weight: bold;
+      color: #b45309;
+      font-size: 1.05rem;
+    }
+    .info-callout {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.85rem;
+      text-align: left;
+      margin-bottom: 16px;
+      color: #92400e;
+    }
+    .btn-close {
+      width: 100%;
+      padding: 14px;
+      background-color: #4b5563;
+      color: #fff;
+      font-size: 1rem;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 3px 6px rgba(21,101,192,0.3);
-      margin-top: 10px;
     }
-    .btn-submit:disabled { background: #b0bec5; cursor: not-allowed; }
-
-    #completeView { display: none; text-align: center; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>おでかけサポート 運行活動記録</h1>
+  <h1>🚐 乗り合いサロン活動記録</h1>
 </header>
 
 <div class="container" id="formView">
   <div class="card">
-    <div id="questBadge" class="quest-badge">
-      案件：確認中...
-    </div>
-
-    <!-- GPS出発・到着アクション -->
-    <div class="gps-action-group">
-      <!-- 1. 出発ボタン -->
-      <div>
-        <button type="button" class="btn-gps btn-start" id="btnStart" onclick="recordDeparture()">
-          🚀 1. 出発時に押す（GPS取得）
-        </button>
-        <div id="startStatus" class="gps-status">未出発（乗車地で押してください）</div>
-      </div>
-
-      <!-- 2. 到着ボタン -->
-      <div>
-        <button type="button" class="btn-gps btn-dest" id="btnDest" onclick="recordArrival()" disabled>
-          🏁 2. 到着時に押す（GPS取得）
-        </button>
-        <div id="destStatus" class="gps-status">未到着（目的地到着後に押してください）</div>
-      </div>
-    </div>
-
-    <!-- 自動集計プレビュー -->
-    <div class="summary-grid">
-      <div class="grid-item">
-        <div class="grid-label">所要時間</div>
-        <div class="grid-val" id="dispDuration">0 分</div>
-      </div>
-      <div class="grid-item">
-        <div class="grid-label">片道距離 / 往復</div>
-        <div class="grid-val" id="dispDistance">0 / 0 km</div>
-      </div>
-    </div>
-
-    <!-- 乗客名入力（P列〜V列） -->
+    <!-- 登録番号 -->
     <div class="form-group">
-      <label>乗客名（同乗者）</label>
-      <input type="text" id="passenger1" placeholder="乗客1（主たる利用者）">
-    </div>
-    <div class="form-group">
-      <input type="text" id="passenger2" placeholder="乗客2（付添い等・任意）">
+      <label>登録番号（半角数字）</label>
+      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric">
     </div>
 
-    <!-- 実費弁償（I列） -->
+    <!-- ボランティア氏名 -->
     <div class="form-group">
-      <label>実費弁償・受領金額（円）</label>
-      <input type="number" id="inputFee" placeholder="例: 500" value="0" inputmode="numeric">
+      <label>ボランティア氏名</label>
+      <input type="text" id="driverName" placeholder="例: 山田 太郎">
     </div>
 
+    <!-- 乗せた人（最大7名） -->
+    <div class="form-group">
+      <label>乗せた人（最大7名）</label>
+      <div class="sub-label">※ひらがな・フルネームまたはお名前</div>
+      <div id="passengerContainer" class="passenger-list">
+        <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）">
+      </div>
+      <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
+        ＋ 乗客を追加する
+      </button>
+    </div>
+
+    <!-- 1. 出発時 -->
+    <div class="step-section">
+      <div class="step-title">1. 出発時</div>
+      <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
+        📍 出発地を記録する
+      </button>
+      <div id="depStatus" class="status-box">未記録</div>
+      <div id="depLockHint" class="lock-hint">
+        ⚠️ 出発ボタンを押したらそのままスマホをロックしてください
+      </div>
+    </div>
+
+    <!-- 2. 到着時 -->
+    <div class="step-section">
+      <div class="step-title">2. 到着時</div>
+      <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()" disabled>
+        📍 到着地を記録する
+      </button>
+      <div id="arrStatus" class="status-box">未記録</div>
+    </div>
+
+    <!-- 実績送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()" disabled>
-      活動記録を完了・送信する
+      活動実績を送信
     </button>
   </div>
 </div>
 
-<!-- 完了画面 -->
+<!-- 送信完了画面 -->
 <div class="container" id="completeView">
-  <div class="card" style="border:2px solid var(--success); padding:30px 18px;">
-    <h2 style="color:var(--success); margin-bottom:12px;">🎉 運行報告が完了しました</h2>
-    <p style="font-size:0.95rem; color:var(--sub-text); margin-bottom:20px;">
-      GPS位置情報・距離・所要時間が活動記録シートへ正常に記録されました。<br>本日の運行お疲れさまでした！
+  <div class="complete-card">
+    <div class="complete-header">✔ 送信完了</div>
+    <p style="font-size:0.9rem; color:var(--text-sub); margin-bottom:12px;">
+      活動実績を記録しました。<br>大変お疲れ様でした！
     </p>
-    <button type="button" class="btn-submit" onclick="window.close()">画面を閉じる</button>
+
+    <!-- 計算結果表示 -->
+    <div class="result-stats-box">
+      <div class="result-row">
+        <span>所要時間:</span>
+        <span id="dispDuration">0 分</span>
+      </div>
+      <div class="result-row">
+        <span>片道距離 / 往復換算:</span>
+        <span id="dispDistance">0 km / 0 km</span>
+      </div>
+      <div class="result-row">
+        <span>実費弁償額（往復）:</span>
+        <span id="dispFee">0 円</span>
+      </div>
+    </div>
+
+    <div class="info-callout">
+      <strong>📱 画面上部の「×」で閉じてください</strong><br>
+      画面の左上（または右上）にある「×」ボタンをタップして、LINEのトーク画面へお戻りください。<br><br>
+      <strong>📸 最後のステップ:</strong><br>
+      トーク画面に戻ったら、参加者全員の「集合写真」を1枚送信してください。
+    </div>
+
+    <button type="button" class="btn-close" onclick="closeWindow()">画面を閉じる</button>
   </div>
 </div>
 
@@ -224,11 +344,10 @@
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let questId = '';
-  let driverId = '';
-  let driverName = '';
+  let passengerCount = 1;
 
-  // 運行記録保持用オブジェクト
-  let runData = {
+  // 運行記録保持オブジェクト
+  let runLog = {
     depTime: '',
     depDateObj: null,
     depLat: null,
@@ -239,104 +358,131 @@
     arrLng: null,
     durationMin: 0,
     oneWayKm: 0,
-    roundTripKm: 0
+    roundTripKm: 0,
+    fee: 0
   };
 
   window.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
-    questId = params.get('qid') || 'Q-001';
+    questId = params.get('qid') || '';
 
-    // ドライバー情報の取得
+    // ドライバー情報の自動復元
     const saved = localStorage.getItem('odekake_driver');
     if (saved) {
       try {
         const d = JSON.parse(saved);
-        driverId = d.id;
-        driverName = d.name;
+        if (d.id) document.getElementById('driverId').value = d.id;
+        if (d.name) document.getElementById('driverName').value = d.name;
       } catch (e) {}
     }
 
-    document.getElementById('questBadge').textContent = `案件ID：${questId} / 担当ドライバー：${driverName || driverId || '未認証'}`;
-
-    // 案件の乗客情報を取得
-    try {
-      const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
-      const res = await (await fetch(url)).json();
-      if (res.success && res.quest) {
-        if (res.quest.userName) {
+    // クエストIDが渡されている場合は乗客1を自動補完
+    if (questId) {
+      try {
+        const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
+        const res = await (await fetch(url)).json();
+        if (res.success && res.quest && res.quest.userName) {
           document.getElementById('passenger1').value = res.quest.userName;
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
   });
+
+  // 乗客欄の動的追加（最大7名）
+  function addPassengerField() {
+    if (passengerCount >= 7) {
+      alert('乗客の登録は最大7名までです。');
+      return;
+    }
+    passengerCount++;
+    const container = document.getElementById('passengerContainer');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `passenger${passengerCount}`;
+    input.placeholder = `乗客${passengerCount}（例: すずき いちろう）`;
+    container.appendChild(input);
+
+    if (passengerCount >= 7) {
+      document.getElementById('btnAddPassenger').style.display = 'none';
+    }
+  }
 
   // 1. 出発GPS記録
   function recordDeparture() {
     if (!navigator.geolocation) {
-      alert('お使いの端末はGPS位置情報に対応していません。');
+      alert('お使いの端末はGPS機能に対応していません。');
       return;
     }
 
-    const btn = document.getElementById('btnStart');
+    const btn = document.getElementById('btnDep');
     btn.disabled = true;
     btn.textContent = '⏳ GPS測位中...';
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
-        runData.depDateObj = now;
-        runData.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-        runData.depLat = pos.coords.latitude;
-        runData.depLng = pos.coords.longitude;
+        runLog.depDateObj = now;
+        runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        runLog.depLat = pos.coords.latitude;
+        runLog.depLng = pos.coords.longitude;
 
-        btn.textContent = '✓ 出発記録済み';
-        const st = document.getElementById('startStatus');
-        st.className = 'gps-status recorded';
-        st.textContent = `✓ 出発：${runData.depTime}（緯度:${runData.depLat.toFixed(5)}, 経度:${runData.depLng.toFixed(5)}）`;
+        btn.textContent = '✔ 出発地を記録済み';
+        btn.style.borderColor = '#15803d';
+        btn.style.color = '#15803d';
+
+        const st = document.getElementById('depStatus');
+        st.className = 'status-box recorded';
+        st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
+
+        document.getElementById('depLockHint').style.display = 'block';
 
         // 到着ボタンを有効化
-        document.getElementById('btnDest').disabled = false;
+        document.getElementById('btnArr').disabled = false;
       },
       (err) => {
-        alert('GPSの取得に失敗しました。位置情報の利用を許可してください。');
+        alert('GPSの取得に失敗しました。端末の位置情報設定を確認してください。');
         btn.disabled = false;
-        btn.textContent = '🚀 1. 出発時に押す（GPS取得）';
+        btn.textContent = '📍 出発地を記録する';
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
-  // 2. 到着GPS記録 & 距離・時間自動計算
+  // 2. 到着GPS記録 & 各種自動計算
   function recordArrival() {
     if (!navigator.geolocation) return;
 
-    const btn = document.getElementById('btnDest');
+    const btn = document.getElementById('btnArr');
     btn.disabled = true;
     btn.textContent = '⏳ GPS測位中...';
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
-        runData.arrDateObj = now;
-        runData.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-        runData.arrLat = pos.coords.latitude;
-        runData.arrLng = pos.coords.longitude;
+        runLog.arrDateObj = now;
+        runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        runLog.arrLat = pos.coords.latitude;
+        runLog.arrLng = pos.coords.longitude;
 
-        btn.textContent = '✓ 到着記録済み';
-        const st = document.getElementById('destStatus');
-        st.className = 'gps-status recorded';
-        st.textContent = `✓ 到着：${runData.arrTime}（緯度:${runData.arrLat.toFixed(5)}, 経度:${runData.arrLng.toFixed(5)}）`;
+        btn.textContent = '✔ 到着地を記録済み';
+        btn.style.borderColor = '#15803d';
+        btn.style.color = '#15803d';
 
-        // 所要時間（分）の計算
-        let diffMs = runData.arrDateObj.getTime() - runData.depDateObj.getTime();
-        runData.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
-        document.getElementById('dispDuration').textContent = `${runData.durationMin} 分`;
+        const st = document.getElementById('arrStatus');
+        st.className = 'status-box recorded';
+        st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
-        // 2点間の直線距離（Hubenyの公式による計算）
-        const distKm = calcHubenyDistance(runData.depLat, runData.depLng, runData.arrLat, runData.arrLng);
-        runData.oneWayKm = parseFloat(distKm.toFixed(1));
-        runData.roundTripKm = parseFloat((distKm * 2).toFixed(1));
-        document.getElementById('dispDistance').textContent = `${runData.oneWayKm} / ${runData.roundTripKm} km`;
+        // 所要時間の計算（分）
+        const diffMs = runLog.arrDateObj.getTime() - runLog.depDateObj.getTime();
+        runLog.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
+
+        // 距離計算（Hubenyの公式）
+        const distKm = calcHubenyDistance(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
+        runLog.oneWayKm = Math.round(distKm);
+        runLog.roundTripKm = runLog.oneWayKm * 2;
+
+        // 実費弁償（往復距離 × 規定単価20円、またはスプレッドシート連動計算）
+        runLog.fee = runLog.roundTripKm * 20;
 
         // 送信ボタンを有効化
         document.getElementById('btnSubmit').disabled = false;
@@ -344,70 +490,73 @@
       (err) => {
         alert('GPSの取得に失敗しました。');
         btn.disabled = false;
-        btn.textContent = '🏁 2. 到着時に押す（GPS取得）';
+        btn.textContent = '📍 到着地を記録する';
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
-  // ヒュベニの公式（2点の緯度経度から距離kmを算出）
+  // ヒュベニの距離計算式
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
     const radLat1 = lat1 * Math.PI / 180;
     const radLon1 = lon1 * Math.PI / 180;
     const radLat2 = lat2 * Math.PI / 180;
     const radLon2 = lon2 * Math.PI / 180;
-
-    const a = 6378137.0; // 赤道半径
-    const e2 = 0.00669437999019758; // 離心率の2乗
-
+    const a = 6378137.0;
+    const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
     const lonDiff = radLon1 - radLon2;
     const latAve = (radLat1 + radLat2) / 2.0;
-
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
     const m = a * (1.0 - e2) / (w * w * w);
     const n = a / w;
-
-    const d = Math.sqrt(
-      Math.pow(latDiff * m, 2) + Math.pow(lonDiff * n * Math.cos(latAve), 2)
-    );
+    const d = Math.sqrt(Math.pow(latDiff * m, 2) + Math.pow(lonDiff * n * Math.cos(latAve), 2));
     return d / 1000.0;
   }
 
   // 3. データ送信
   async function submitRecord() {
-    const fee = document.getElementById('inputFee').value.trim() || '0';
-    const p1 = document.getElementById('passenger1').value.trim();
-    const p2 = document.getElementById('passenger2').value.trim();
+    const driverId = document.getElementById('driverId').value.trim();
+    const driverName = document.getElementById('driverName').value.trim();
+
+    if (!driverId) {
+      alert('登録番号を入力してください。');
+      return;
+    }
+    if (!driverName) {
+      alert('ボランティア氏名を入力してください。');
+      return;
+    }
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
-    btn.textContent = '保存中...';
+    btn.textContent = '送信処理中...';
 
-    // A〜W列の全項目ペイロード
+    // 乗客名1〜7の取得
+    const passengers = [];
+    for (let i = 1; i <= 7; i++) {
+      const el = document.getElementById(`passenger${i}`);
+      passengers.push(el ? el.value.trim() : '');
+    }
+
+    // A〜W列の完全ペイロード
     const payload = {
       questId: questId,
       driverId: driverId,
       driverName: driverName,
-      depTime: runData.depTime,
-      arrTime: runData.arrTime,
-      duration: runData.durationMin,
-      oneWayDistance: runData.oneWayKm,
-      roundTripDistance: runData.roundTripKm,
-      fee: fee,
-      depLat: runData.depLat,
-      depLng: runData.depLng,
-      arrLat: runData.arrLat,
-      arrLng: runData.arrLng,
-      depMapUrl: `https://www.google.com/maps?q=${runData.depLat},${runData.depLng}`,
-      arrMapUrl: `https://www.google.com/maps?q=${runData.arrLat},${runData.arrLng}`,
-      passenger1: p1,
-      passenger2: p2,
-      passenger3: '',
-      passenger4: '',
-      passenger5: '',
-      passenger6: '',
-      passenger7: ''
+      depTime: runLog.depTime,
+      arrTime: runLog.arrTime,
+      duration: runLog.durationMin,
+      oneWayDistance: runLog.oneWayKm,
+      roundTripDistance: runLog.roundTripKm,
+      fee: runLog.fee,
+      depLat: runLog.depLat,
+      depLng: runLog.depLng,
+      arrLat: runLog.arrLat,
+      arrLng: runLog.arrLng,
+      depMapUrl: `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}`,
+      arrMapUrl: `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}`,
+      passengers: passengers
     };
 
     try {
@@ -417,16 +566,30 @@
       if (res.success) {
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
+
+        // 完了画面の数値を反映
+        document.getElementById('dispDuration').textContent = `${runLog.durationMin} 分`;
+        document.getElementById('dispDistance').textContent = `片道: ${runLog.oneWayKm} km / 往復換算: ${runLog.roundTripKm} km`;
+        document.getElementById('dispFee').textContent = `${runLog.fee} 円`;
+
         window.scrollTo(0, 0);
       } else {
         alert('保存エラー: ' + res.message);
         btn.disabled = false;
-        btn.textContent = '活動記録を完了・送信する';
+        btn.textContent = '活動実績を送信';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
       btn.disabled = false;
-      btn.textContent = '活動記録を完了・送信する';
+      btn.textContent = '活動実績を送信';
+    }
+  }
+
+  function closeWindow() {
+    if (typeof liff !== 'undefined' && liff.isInClient()) {
+      liff.closeWindow();
+    } else {
+      window.close();
     }
   }
 </script>
