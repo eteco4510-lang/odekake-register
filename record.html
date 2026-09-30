@@ -134,13 +134,6 @@
       transition: all 0.2s;
     }
     .btn-gps-trigger:active { background-color: #eff6ff; }
-    .btn-gps-trigger:disabled {
-      border-color: #d1d5db;
-      background-color: #f3f4f6;
-      color: #9ca3af;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
 
     /* ステータスバッジ */
     .status-box {
@@ -165,7 +158,7 @@
       display: none;
     }
 
-    /* 送信ボタン */
+    /* 送信ボタン（常時活性） */
     .btn-submit {
       width: 100%;
       padding: 16px;
@@ -179,13 +172,9 @@
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
     }
-    .btn-submit:disabled {
-      background-color: #cbd5e1;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .btn-submit:active { background-color: #1d4ed8; }
 
-    /* 送信完了画面カード */
+    /* 送信完了画面 */
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
@@ -268,7 +257,7 @@
     <!-- 乗せた人（最大7名） -->
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
-      <div class="sub-label">※ひらがな・フルネームまたはお名前</div>
+      <div class="sub-label">※ひらがな・フルネームまたはお名前（空欄可）</div>
       <div id="passengerContainer" class="passenger-list">
         <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）">
       </div>
@@ -283,7 +272,7 @@
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
         📍 出発地を記録する
       </button>
-      <div id="depStatus" class="status-box">未記録</div>
+      <div id="depStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
       <div id="depLockHint" class="lock-hint">
         ⚠️ 出発ボタンを押したらそのままスマホをロックしてください
       </div>
@@ -292,14 +281,14 @@
     <!-- 2. 到着時 -->
     <div class="step-section">
       <div class="step-title">2. 到着時</div>
-      <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()" disabled>
+      <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
         📍 到着地を記録する
       </button>
-      <div id="arrStatus" class="status-box">未記録</div>
+      <div id="arrStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
     </div>
 
-    <!-- 実績送信ボタン -->
-    <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()" disabled>
+    <!-- 実績送信ボタン（最初からいつでも送信可能） -->
+    <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
   </div>
@@ -346,7 +335,6 @@
   let questId = '';
   let passengerCount = 1;
 
-  // 運行記録保持オブジェクト
   let runLog = {
     depTime: '',
     depDateObj: null,
@@ -376,7 +364,6 @@
       } catch (e) {}
     }
 
-    // クエストIDが渡されている場合は乗客1を自動補完
     if (questId) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
@@ -388,12 +375,8 @@
     }
   });
 
-  // 乗客欄の動的追加（最大7名）
   function addPassengerField() {
-    if (passengerCount >= 7) {
-      alert('乗客の登録は最大7名までです。');
-      return;
-    }
+    if (passengerCount >= 7) return;
     passengerCount++;
     const container = document.getElementById('passengerContainer');
     const input = document.createElement('input');
@@ -410,12 +393,11 @@
   // 1. 出発GPS記録
   function recordDeparture() {
     if (!navigator.geolocation) {
-      alert('お使いの端末はGPS機能に対応していません。');
+      alert('端末の位置情報機能が利用できません。');
       return;
     }
 
     const btn = document.getElementById('btnDep');
-    btn.disabled = true;
     btn.textContent = '⏳ GPS測位中...';
 
     navigator.geolocation.getCurrentPosition(
@@ -436,24 +418,24 @@
 
         document.getElementById('depLockHint').style.display = 'block';
 
-        // 到着ボタンを有効化
-        document.getElementById('btnArr').disabled = false;
+        calcSummaryIfPossible();
       },
       (err) => {
-        alert('GPSの取得に失敗しました。端末の位置情報設定を確認してください。');
-        btn.disabled = false;
+        alert('位置情報の取得に失敗しました（設定で位置情報を許可するか、そのまま送信してください）。');
         btn.textContent = '📍 出発地を記録する';
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
-  // 2. 到着GPS記録 & 各種自動計算
+  // 2. 到着GPS記録
   function recordArrival() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      alert('端末の位置情報機能が利用できません。');
+      return;
+    }
 
     const btn = document.getElementById('btnArr');
-    btn.disabled = true;
     btn.textContent = '⏳ GPS測位中...';
 
     navigator.geolocation.getCurrentPosition(
@@ -472,31 +454,31 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
-        // 所要時間の計算（分）
-        const diffMs = runLog.arrDateObj.getTime() - runLog.depDateObj.getTime();
-        runLog.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
-
-        // 距離計算（Hubenyの公式）
-        const distKm = calcHubenyDistance(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
-        runLog.oneWayKm = Math.round(distKm);
-        runLog.roundTripKm = runLog.oneWayKm * 2;
-
-        // 実費弁償（往復距離 × 規定単価20円、またはスプレッドシート連動計算）
-        runLog.fee = runLog.roundTripKm * 20;
-
-        // 送信ボタンを有効化
-        document.getElementById('btnSubmit').disabled = false;
+        calcSummaryIfPossible();
       },
       (err) => {
-        alert('GPSの取得に失敗しました。');
-        btn.disabled = false;
+        alert('位置情報の取得に失敗しました（設定で位置情報を許可するか、そのまま送信してください）。');
         btn.textContent = '📍 到着地を記録する';
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
-  // ヒュベニの距離計算式
+  // 出発・到着が両方揃った場合のみ自動計算
+  function calcSummaryIfPossible() {
+    if (runLog.depDateObj && runLog.arrDateObj) {
+      const diffMs = runLog.arrDateObj.getTime() - runLog.depDateObj.getTime();
+      runLog.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
+    }
+
+    if (runLog.depLat && runLog.depLng && runLog.arrLat && runLog.arrLng) {
+      const distKm = calcHubenyDistance(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
+      runLog.oneWayKm = Math.round(distKm);
+      runLog.roundTripKm = runLog.oneWayKm * 2;
+      runLog.fee = runLog.roundTripKm * 20;
+    }
+  }
+
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
     const radLat1 = lat1 * Math.PI / 180;
     const radLon1 = lon1 * Math.PI / 180;
@@ -514,32 +496,25 @@
     return d / 1000.0;
   }
 
-  // 3. データ送信
+  // 3. データ送信（未入力・未記録でもそのまま送信）
   async function submitRecord() {
     const driverId = document.getElementById('driverId').value.trim();
     const driverName = document.getElementById('driverName').value.trim();
-
-    if (!driverId) {
-      alert('登録番号を入力してください。');
-      return;
-    }
-    if (!driverName) {
-      alert('ボランティア氏名を入力してください。');
-      return;
-    }
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
     btn.textContent = '送信処理中...';
 
-    // 乗客名1〜7の取得
     const passengers = [];
     for (let i = 1; i <= 7; i++) {
       const el = document.getElementById(`passenger${i}`);
       passengers.push(el ? el.value.trim() : '');
     }
 
-    // A〜W列の完全ペイロード
+    // GPS未取得時は空欄で安全に送信
+    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+    const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
+
     const payload = {
       questId: questId,
       driverId: driverId,
@@ -550,12 +525,12 @@
       oneWayDistance: runLog.oneWayKm,
       roundTripDistance: runLog.roundTripKm,
       fee: runLog.fee,
-      depLat: runLog.depLat,
-      depLng: runLog.depLng,
-      arrLat: runLog.arrLat,
-      arrLng: runLog.arrLng,
-      depMapUrl: `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}`,
-      arrMapUrl: `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}`,
+      depLat: runLog.depLat || '',
+      depLng: runLog.depLng || '',
+      arrLat: runLog.arrLat || '',
+      arrLng: runLog.arrLng || '',
+      depMapUrl: depMapUrl,
+      arrMapUrl: arrMapUrl,
       passengers: passengers
     };
 
@@ -567,7 +542,6 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        // 完了画面の数値を反映
         document.getElementById('dispDuration').textContent = `${runLog.durationMin} 分`;
         document.getElementById('dispDistance').textContent = `片道: ${runLog.oneWayKm} km / 往復換算: ${runLog.roundTripKm} km`;
         document.getElementById('dispFee').textContent = `${runLog.fee} 円`;
