@@ -135,6 +135,22 @@
     }
     .btn-gps-trigger:active { background-color: #eff6ff; }
 
+    /* 目立つ注意書きボックス */
+    .lock-notice-box {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background-color: #fffbeb;
+      border: 2px solid #f59e0b;
+      color: #b45309;
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.4;
+    }
+
     /* ステータスバッジ */
     .status-box {
       margin-top: 8px;
@@ -149,13 +165,6 @@
       border: 1px solid #bbf7d0;
       color: #15803d;
       font-weight: bold;
-    }
-    .lock-hint {
-      margin-top: 6px;
-      font-size: 0.82rem;
-      color: var(--warn-orange);
-      font-weight: bold;
-      display: none;
     }
 
     /* 送信ボタン（常時活性） */
@@ -242,16 +251,10 @@
 
 <div class="container" id="formView">
   <div class="card">
-    <!-- 登録番号 -->
+    <!-- 登録番号（ボランティア氏名は削除し、番号のみ自動補完） -->
     <div class="form-group">
       <label>登録番号（半角数字）</label>
       <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric">
-    </div>
-
-    <!-- ボランティア氏名 -->
-    <div class="form-group">
-      <label>ボランティア氏名</label>
-      <input type="text" id="driverName" placeholder="例: 山田 太郎">
     </div>
 
     <!-- 乗せた人（最大7名） -->
@@ -272,10 +275,14 @@
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
         📍 出発地を記録する
       </button>
-      <div id="depStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
-      <div id="depLockHint" class="lock-hint">
-        ⚠️ 出発ボタンを押したらそのままスマホをロックしてください
+
+      <!-- ★目立つ注意書き（常時表示） -->
+      <div class="lock-notice-box">
+        <span>⚠️</span>
+        <span>出発ボタンを押したらそのままスマホをロックしてください</span>
       </div>
+
+      <div id="depStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
     </div>
 
     <!-- 2. 到着時 -->
@@ -287,7 +294,7 @@
       <div id="arrStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
     </div>
 
-    <!-- 実績送信ボタン（最初からいつでも送信可能） -->
+    <!-- 実績送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
@@ -302,7 +309,6 @@
       活動実績を記録しました。<br>大変お疲れ様でした！
     </p>
 
-    <!-- 計算結果表示 -->
     <div class="result-stats-box">
       <div class="result-row">
         <span>所要時間:</span>
@@ -334,6 +340,7 @@
 
   let questId = '';
   let passengerCount = 1;
+  let cachedDriverName = '';
 
   let runLog = {
     depTime: '',
@@ -354,13 +361,13 @@
     const params = new URLSearchParams(window.location.search);
     questId = params.get('qid') || '';
 
-    // ドライバー情報の自動復元
+    // ★登録番号の自動補完（認証情報があれば自動セット）
     const saved = localStorage.getItem('odekake_driver');
     if (saved) {
       try {
         const d = JSON.parse(saved);
         if (d.id) document.getElementById('driverId').value = d.id;
-        if (d.name) document.getElementById('driverName').value = d.name;
+        if (d.name) cachedDriverName = d.name;
       } catch (e) {}
     }
 
@@ -390,7 +397,6 @@
     }
   }
 
-  // 1. 出発GPS記録
   function recordDeparture() {
     if (!navigator.geolocation) {
       alert('端末の位置情報機能が利用できません。');
@@ -416,8 +422,6 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
 
-        document.getElementById('depLockHint').style.display = 'block';
-
         calcSummaryIfPossible();
       },
       (err) => {
@@ -428,7 +432,6 @@
     );
   }
 
-  // 2. 到着GPS記録
   function recordArrival() {
     if (!navigator.geolocation) {
       alert('端末の位置情報機能が利用できません。');
@@ -464,7 +467,6 @@
     );
   }
 
-  // 出発・到着が両方揃った場合のみ自動計算
   function calcSummaryIfPossible() {
     if (runLog.depDateObj && runLog.arrDateObj) {
       const diffMs = runLog.arrDateObj.getTime() - runLog.depDateObj.getTime();
@@ -496,10 +498,8 @@
     return d / 1000.0;
   }
 
-  // 3. データ送信（未入力・未記録でもそのまま送信）
   async function submitRecord() {
     const driverId = document.getElementById('driverId').value.trim();
-    const driverName = document.getElementById('driverName').value.trim();
 
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
@@ -511,14 +511,13 @@
       passengers.push(el ? el.value.trim() : '');
     }
 
-    // GPS未取得時は空欄で安全に送信
     const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
     const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
 
     const payload = {
       questId: questId,
       driverId: driverId,
-      driverName: driverName,
+      driverName: cachedDriverName, // 空欄でもGAS側で名簿から補完
       depTime: runLog.depTime,
       arrTime: runLog.arrTime,
       duration: runLog.durationMin,
