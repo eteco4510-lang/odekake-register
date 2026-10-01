@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>おでかけサポート 運行掲示板</title>
+  <!-- LINE Front-end Framework (LIFF) SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
       --primary: #1565c0;
       --primary-dark: #0d47a1;
       --success: #1e8e3e;
-      --warning: #f29900;
       --danger: #d93025;
       --text: #202124;
       --sub-text: #5f6368;
@@ -28,7 +29,7 @@
     header {
       background-color: var(--primary);
       color: #fff;
-      padding: 16px;
+      padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
@@ -36,21 +37,39 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     header h1 { font-size: 1.15rem; font-weight: bold; }
+
+    .header-user-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
     .driver-badge {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       background: rgba(255,255,255,0.2);
       padding: 4px 10px;
       border-radius: 20px;
       display: inline-block;
-      margin-top: 4px;
+      font-weight: bold;
     }
+    .btn-logout {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
     .container { max-width: 550px; margin: 0 auto; padding: 14px; }
 
     /* ログインカード */
     .card {
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 18px;
+      padding: 20px;
       margin-bottom: 14px;
       border: 1px solid var(--border);
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -127,18 +146,19 @@
     .btn-accept:active { background: #166527; }
 
     .refresh-bar {
-      text-align: right;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 10px;
     }
     .btn-refresh {
-      background: none;
+      background: #fff;
       border: 1px solid var(--border);
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 0.85rem;
       color: var(--sub-text);
       cursor: pointer;
-      background: #fff;
     }
   </style>
 </head>
@@ -146,15 +166,18 @@
 
 <header>
   <h1>おでかけサポート 運行掲示板</h1>
-  <div id="driverBadge" class="driver-badge" style="display:none;">ドライバー：認証中</div>
+  <div id="userHeaderBar" class="header-user-bar" style="display:none;">
+    <div id="driverBadge" class="driver-badge">🚗 認証中...</div>
+    <button type="button" class="btn-logout" onclick="logoutDriver()">切替 / ログアウト</button>
+  </div>
 </header>
 
 <div class="container">
-  <!-- 認証画面 -->
+  <!-- 認証画面（未ログイン時は必ずここが表示されます） -->
   <div id="loginView" class="card">
     <h2 style="font-size:1.1rem; margin-bottom:12px;">🚗 ドライバー認証</h2>
     <p style="font-size:0.85rem; color:var(--sub-text); margin-bottom:14px;">
-      事前に事務局から発行された5桁番号と、登録電話番号の下4桁を入力してください。
+      ボランティア登録番号（5桁）と、登録電話番号の下4桁を入力してください。
     </p>
     <div class="form-group">
       <label>ドライバー番号（5桁）</label>
@@ -164,44 +187,83 @@
       <label>電話番号の下4桁</label>
       <input type="tel" id="inputPhoneLast4" placeholder="例: 1234" inputmode="numeric">
     </div>
-    <button class="btn btn-primary" onclick="doDriverLogin()">掲示板を開く</button>
+    <button class="btn btn-primary" id="btnLogin" onclick="doDriverLogin()">掲示板を開く</button>
   </div>
 
   <!-- 掲示板一覧画面 -->
   <div id="boardView" style="display:none;">
     <div class="refresh-bar">
+      <span style="font-size:0.85rem; color:var(--sub-text);">現在募集中の案件</span>
       <button class="btn-refresh" onclick="loadQuests()">🔄 最新の案件に更新</button>
     </div>
-    <div id="questList">読み込み中...</div>
+    <div id="questList">案件を読み込み中...</div>
   </div>
 </div>
 
 <script>
+  const LIFF_ID = "2011784961-LZ6p8VqP";
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let currentDriver = null;
 
-  window.addEventListener('DOMContentLoaded', () => {
-    // 保存されたログイン情報の復帰
+  window.addEventListener('DOMContentLoaded', async () => {
+    // 1. LIFFの初期化
+    try {
+      await liff.init({ liffId: LIFF_ID });
+    } catch (e) {
+      console.warn('LIFF init:', e);
+    }
+
+    // 2. この端末の保存ログイン情報をチェック
     const saved = localStorage.getItem('odekake_driver');
     if (saved) {
       try {
         currentDriver = JSON.parse(saved);
-        showBoard();
-        return;
-      } catch (e) {}
+        if (currentDriver && currentDriver.id && currentDriver.name) {
+          showBoard();
+          return;
+        }
+      } catch (e) {
+        localStorage.removeItem('odekake_driver');
+      }
     }
+
+    // 未ログインの場合はログイン画面を表示
+    showLogin();
   });
 
-  // ドライバー認証
+  // ログイン画面の表示
+  function showLogin() {
+    currentDriver = null;
+    document.getElementById('loginView').style.display = 'block';
+    document.getElementById('boardView').style.display = 'none';
+    document.getElementById('userHeaderBar').style.display = 'none';
+    document.getElementById('inputDriverId').value = '';
+    document.getElementById('inputPhoneLast4').value = '';
+  }
+
+  // 掲示板画面の表示
+  function showBoard() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('boardView').style.display = 'block';
+    document.getElementById('userHeaderBar').style.display = 'flex';
+    document.getElementById('driverBadge').textContent = `🚗 ${currentDriver.name} さん (ID:${currentDriver.id})`;
+    loadQuests();
+  }
+
+  // ドライバー認証処理
   async function doDriverLogin() {
     const dId = document.getElementById('inputDriverId').value.trim();
     const last4 = document.getElementById('inputPhoneLast4').value.trim();
 
     if (!dId || !last4) {
-      alert('番号と電話番号下4桁を入力してください。');
+      alert('ドライバー番号と電話番号下4桁を入力してください。');
       return;
     }
+
+    const btn = document.getElementById('btnLogin');
+    btn.disabled = true;
+    btn.textContent = '照合中...';
 
     try {
       const url = `${GAS_API_URL}?action=verifyDriver&driverId=${encodeURIComponent(dId)}&phoneLast4=${encodeURIComponent(last4)}`;
@@ -209,23 +271,26 @@
 
       if (res.isValid) {
         currentDriver = { id: res.driverId, name: res.name };
+        // この端末に保存
         localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
         showBoard();
       } else {
-        alert('ドライバー認証に失敗しました。番号と電話番号をご確認ください。');
+        alert('ドライバー認証に失敗しました。番号と電話番号下4桁をご確認ください。');
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '掲示板を開く';
     }
   }
 
-  function showBoard() {
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('boardView').style.display = 'block';
-    const badge = document.getElementById('driverBadge');
-    badge.textContent = `🚗 ${currentDriver.name} さん (ID:${currentDriver.id})`;
-    badge.style.display = 'inline-block';
-    loadQuests();
+  // ログアウト（別アカウントへの切り替え）
+  function logoutDriver() {
+    if (confirm('ログアウトして別のドライバー番号でログインし直しますか？')) {
+      localStorage.removeItem('odekake_driver');
+      showLogin();
+    }
   }
 
   // 案件一覧の読み込み
@@ -268,14 +333,20 @@
 
   // 案件受託処理
   async function acceptQuest(qid) {
-    if (!confirm('この運行を受託しますか？\n受注後は利用者の詳細連絡先がLINEへ通知されます。')) return;
+    if (!currentDriver) {
+      alert('先にドライバー認証を行ってください。');
+      showLogin();
+      return;
+    }
+
+    if (!confirm('この運行を受託しますか？\n受注後は利用者の詳細情報がLINEへ届きます。')) return;
 
     try {
       const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
       const res = await (await fetch(url)).json();
 
       if (res.success) {
-        alert('受託が完了しました！\n詳細内容をあなたのLINEトークへ送信しました。');
+        alert('受託が完了しました！\n詳細内容をLINEトークへ送信しました。');
         loadQuests();
       } else {
         alert('受託できませんでした: ' + res.message);
