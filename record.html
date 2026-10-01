@@ -260,7 +260,7 @@
     <!-- 乗せた人（最大7名） -->
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
-      <div class="sub-label">※ひらがな・フルネームまたはお名前（空欄可）</div>
+      <div class="sub-label">※ひらがなでOK</div>
       <div id="passengerContainer" class="passenger-list">
         <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）">
       </div>
@@ -282,7 +282,7 @@
         <span>出発ボタンを押したらそのままスマホをロックしてください</span>
       </div>
 
-      <div id="depStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
+      <div id="depStatus" class="status-box">押し忘れたら到着だけ記録してください</div>
     </div>
 
     <!-- 2. 到着時 -->
@@ -291,7 +291,7 @@
       <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
         📍 到着地を記録する
       </button>
-      <div id="arrStatus" class="status-box">未記録（押し忘れでも送信できます）</div>
+      <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
     <!-- 実績送信ボタン -->
