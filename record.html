@@ -81,7 +81,6 @@
       outline: none;
     }
 
-    /* 乗客リスト追加エリア */
     .passenger-list {
       display: flex;
       flex-direction: column;
@@ -104,7 +103,6 @@
     }
     .btn-add-passenger:active { background-color: #dbeafe; }
 
-    /* GPSステップボタン */
     .step-section {
       margin-top: 20px;
       border-top: 1px solid #e5e7eb;
@@ -135,7 +133,6 @@
     }
     .btn-gps-trigger:active { background-color: #eff6ff; }
 
-    /* 目立つ注意書きボックス */
     .lock-notice-box {
       margin-top: 10px;
       padding: 12px 14px;
@@ -151,7 +148,6 @@
       line-height: 1.4;
     }
 
-    /* ステータスバッジ */
     .status-box {
       margin-top: 8px;
       padding: 10px 12px;
@@ -167,7 +163,6 @@
       font-weight: bold;
     }
 
-    /* 送信ボタン（常時活性） */
     .btn-submit {
       width: 100%;
       padding: 16px;
@@ -183,7 +178,6 @@
     }
     .btn-submit:active { background-color: #1d4ed8; }
 
-    /* 送信完了画面 */
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
@@ -251,32 +245,28 @@
 
 <div class="container" id="formView">
   <div class="card">
-    <!-- 登録番号（ボランティア氏名は削除し、番号のみ自動補完） -->
     <div class="form-group">
       <label>登録番号（半角数字）</label>
-      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric">
+      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="saveCurrentDraft()">
     </div>
 
-    <!-- 乗せた人（最大7名） -->
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
       <div class="sub-label">※ひらがなでOK</div>
       <div id="passengerContainer" class="passenger-list">
-        <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）">
+        <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）" oninput="saveCurrentDraft()">
       </div>
       <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
         ＋ 乗客を追加する
       </button>
     </div>
 
-    <!-- 1. 出発時 -->
     <div class="step-section">
       <div class="step-title">1. 出発時</div>
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
         📍 出発地を記録する
       </button>
 
-      <!-- ★目立つ注意書き（常時表示） -->
       <div class="lock-notice-box">
         <span>⚠️</span>
         <span>出発ボタンを押したらそのままスマホをロックしてください</span>
@@ -285,7 +275,6 @@
       <div id="depStatus" class="status-box">押し忘れたら到着だけ記録してください</div>
     </div>
 
-    <!-- 2. 到着時 -->
     <div class="step-section">
       <div class="step-title">2. 到着時</div>
       <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
@@ -294,14 +283,12 @@
       <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
-    <!-- 実績送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
   </div>
 </div>
 
-<!-- 送信完了画面 -->
 <div class="container" id="completeView">
   <div class="complete-card">
     <div class="complete-header">✔ 送信完了</div>
@@ -344,11 +331,11 @@
 
   let runLog = {
     depTime: '',
-    depDateObj: null,
+    depTimestamp: null,
     depLat: null,
     depLng: null,
     arrTime: '',
-    arrDateObj: null,
+    arrTimestamp: null,
     arrLat: null,
     arrLng: null,
     durationMin: 0,
@@ -357,32 +344,114 @@
     fee: 0
   };
 
+  function getDraftKey() {
+    return 'odekake_draft_' + (questId || 'general');
+  }
+
+  function saveCurrentDraft() {
+    try {
+      const passengers = [];
+      for (let i = 1; i <= passengerCount; i++) {
+        const el = document.getElementById(`passenger${i}`);
+        if (el) passengers.push(el.value);
+      }
+      const draft = {
+        driverId: document.getElementById('driverId').value,
+        passengers: passengers,
+        passengerCount: passengerCount,
+        runLog: runLog
+      };
+      localStorage.setItem(getDraftKey(), JSON.stringify(draft));
+    } catch (e) {}
+  }
+
+  function restoreDraft() {
+    try {
+      const raw = localStorage.getItem(getDraftKey());
+      if (!raw) return false;
+      const draft = JSON.parse(raw);
+
+      if (draft.driverId) {
+        document.getElementById('driverId').value = draft.driverId;
+      }
+
+      if (draft.passengers && draft.passengers.length > 0) {
+        while (passengerCount < draft.passengers.length && passengerCount < 7) {
+          addPassengerField(false);
+        }
+        draft.passengers.forEach((val, idx) => {
+          const el = document.getElementById(`passenger${idx + 1}`);
+          if (el) el.value = val;
+        });
+      }
+
+      if (draft.runLog) {
+        runLog = draft.runLog;
+
+        if (runLog.depTime) {
+          const btnDep = document.getElementById('btnDep');
+          btnDep.textContent = '✔ 出発地を記録済み';
+          btnDep.style.borderColor = '#15803d';
+          btnDep.style.color = '#15803d';
+
+          const stDep = document.getElementById('depStatus');
+          stDep.className = 'status-box recorded';
+          stDep.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
+        }
+
+        if (runLog.arrTime) {
+          const btnArr = document.getElementById('btnArr');
+          btnArr.textContent = '✔ 到着地を記録済み';
+          btnArr.style.borderColor = '#15803d';
+          btnArr.style.color = '#15803d';
+
+          const stArr = document.getElementById('arrStatus');
+          stArr.className = 'status-box recorded';
+          stArr.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
+        }
+
+        calcSummaryIfPossible();
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(getDraftKey());
+    } catch (e) {}
+  }
+
   window.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     questId = params.get('qid') || '';
 
-    // ★登録番号の自動補完（認証情報があれば自動セット）
-    const saved = localStorage.getItem('odekake_driver');
-    if (saved) {
+    const savedDriver = localStorage.getItem('odekake_driver');
+    if (savedDriver) {
       try {
-        const d = JSON.parse(saved);
+        const d = JSON.parse(savedDriver);
         if (d.id) document.getElementById('driverId').value = d.id;
         if (d.name) cachedDriverName = d.name;
       } catch (e) {}
     }
 
-    if (questId) {
+    const hasDraft = restoreDraft();
+
+    if (questId && !hasDraft) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
         const res = await (await fetch(url)).json();
         if (res.success && res.quest && res.quest.userName) {
           document.getElementById('passenger1').value = res.quest.userName;
+          saveCurrentDraft();
         }
       } catch (e) {}
     }
   });
 
-  function addPassengerField() {
+  function addPassengerField(triggerSave = true) {
     if (passengerCount >= 7) return;
     passengerCount++;
     const container = document.getElementById('passengerContainer');
@@ -390,11 +459,13 @@
     input.type = 'text';
     input.id = `passenger${passengerCount}`;
     input.placeholder = `乗客${passengerCount}（例: すずき いちろう）`;
+    input.oninput = saveCurrentDraft;
     container.appendChild(input);
 
     if (passengerCount >= 7) {
       document.getElementById('btnAddPassenger').style.display = 'none';
     }
+    if (triggerSave) saveCurrentDraft();
   }
 
   function recordDeparture() {
@@ -409,7 +480,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
-        runLog.depDateObj = now;
+        runLog.depTimestamp = now.getTime();
         runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
         runLog.depLat = pos.coords.latitude;
         runLog.depLng = pos.coords.longitude;
@@ -423,6 +494,7 @@
         st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
 
         calcSummaryIfPossible();
+        saveCurrentDraft();
       },
       (err) => {
         alert('位置情報の取得に失敗しました（設定で位置情報を許可するか、そのまま送信してください）。');
@@ -444,7 +516,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
-        runLog.arrDateObj = now;
+        runLog.arrTimestamp = now.getTime();
         runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
         runLog.arrLat = pos.coords.latitude;
         runLog.arrLng = pos.coords.longitude;
@@ -458,6 +530,7 @@
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
         calcSummaryIfPossible();
+        saveCurrentDraft();
       },
       (err) => {
         alert('位置情報の取得に失敗しました（設定で位置情報を許可するか、そのまま送信してください）。');
@@ -468,8 +541,8 @@
   }
 
   function calcSummaryIfPossible() {
-    if (runLog.depDateObj && runLog.arrDateObj) {
-      const diffMs = runLog.arrDateObj.getTime() - runLog.depDateObj.getTime();
+    if (runLog.depTimestamp && runLog.arrTimestamp) {
+      const diffMs = runLog.arrTimestamp - runLog.depTimestamp;
       runLog.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
     }
 
@@ -517,7 +590,7 @@
     const payload = {
       questId: questId,
       driverId: driverId,
-      driverName: cachedDriverName, // 空欄でもGAS側で名簿から補完
+      driverName: cachedDriverName,
       depTime: runLog.depTime,
       arrTime: runLog.arrTime,
       duration: runLog.durationMin,
@@ -538,6 +611,8 @@
       const res = await (await fetch(url)).json();
 
       if (res.success) {
+        clearDraft();
+
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
