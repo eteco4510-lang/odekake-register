@@ -179,7 +179,6 @@
     }
     .btn-submit:active { background-color: #1d4ed8; }
 
-    /* 送迎中止ボタン */
     .abort-section {
       margin-top: 24px;
       padding-top: 16px;
@@ -266,20 +265,17 @@
 
 <div class="container" id="formView">
   <div class="card">
-    <!-- ★案件番号（自動表示＆シート連携） -->
     <div class="form-group">
       <label>案件番号</label>
       <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="saveCurrentDraft()" style="background:#f1f5f9; font-weight:bold; color:#1e40af;">
       <div class="sub-label">※受託した案件番号が自動入力されます</div>
     </div>
 
-    <!-- 登録番号 -->
     <div class="form-group">
       <label>登録番号（半角数字）</label>
       <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="saveCurrentDraft()">
     </div>
 
-    <!-- 乗客 -->
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
       <div class="sub-label">※ひらがなでOK</div>
@@ -291,7 +287,6 @@
       </button>
     </div>
 
-    <!-- 1. 出発時 -->
     <div class="step-section">
       <div class="step-title">1. 出発時</div>
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
@@ -306,7 +301,6 @@
       <div id="depStatus" class="status-box">押し忘れたら到着だけ記録してください</div>
     </div>
 
-    <!-- 2. 到着時 -->
     <div class="step-section">
       <div class="step-title">2. 到着時</div>
       <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
@@ -315,12 +309,10 @@
       <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
-    <!-- 活動実績送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
 
-    <!-- ★一番下の送迎中止ボタン -->
     <div class="abort-section">
       <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
         🚫 送迎を中止する（不在・急変など）
@@ -332,7 +324,6 @@
   </div>
 </div>
 
-<!-- 送信完了画面 -->
 <div class="container" id="completeView">
   <div class="complete-card">
     <div class="complete-header" id="completeHeaderTitle">✔ 送信完了</div>
@@ -356,7 +347,7 @@
     </div>
 
     <div class="info-callout" id="infoCalloutArea">
-      <strong>📱 画面上部の「×」で閉じてください</strong><br>
+      <strong>📱 画面右上の「×」で閉じてください</strong><br>
       画面の右上にある「×」ボタンをタップして、LINEのトーク画面へお戻りください。<br><br>
       <strong>📸 最後のステップ:</strong><br>
       トーク画面に戻ったら、参加者全員の「集合写真」を1枚送信してください。
@@ -614,7 +605,7 @@
     const a = 6378137.0;
     const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
-    const lonDiff = radLon1 - radLon2;
+    const lonDiff = radLon1 - lonDiff;
     const latAve = (radLat1 + radLat2) / 2.0;
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
     const m = a * (1.0 - e2) / (w * w * w);
@@ -623,7 +614,6 @@
     return d / 1000.0;
   }
 
-  // 通常の運行実績送信
   async function submitRecord() {
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
@@ -671,9 +661,14 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
+        // ★GAS側で計算されたGoogle Maps実走行距離・実費弁償額を直接反映
+        const finalOneWay = (res.oneWayDistance !== undefined && res.oneWayDistance !== null) ? res.oneWayDistance : runLog.oneWayKm;
+        const finalRound = (res.roundTripDistance !== undefined && res.roundTripDistance !== null) ? res.roundTripDistance : runLog.roundTripKm;
+        const finalFee = (res.fee !== undefined && res.fee !== null) ? res.fee : runLog.fee;
+
         document.getElementById('dispDuration').textContent = `${runLog.durationMin} 分`;
-        document.getElementById('dispDistance').textContent = `片道: ${runLog.oneWayKm} km / 往復換算: ${runLog.roundTripKm} km`;
-        document.getElementById('dispFee').textContent = `${runLog.fee} 円`;
+        document.getElementById('dispDistance').textContent = `片道: ${finalOneWay} km / 往復換算: ${finalRound} km`;
+        document.getElementById('dispFee').textContent = `${finalFee} 円`;
 
         window.scrollTo(0, 0);
       } else {
@@ -688,7 +683,6 @@
     }
   }
 
-  // ★送迎中止の送信処理
   async function abortTrip() {
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     if (!qid) {
@@ -701,7 +695,7 @@
     }
 
     const reason = prompt('中止の理由を入力してください（例: 10分待機も不在、利用者の体調不良、都合キャンセル 等）', '利用者が来ないため（10分経過）');
-    if (reason === null) return; // キャンセル時
+    if (reason === null) return;
 
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnAbort');
