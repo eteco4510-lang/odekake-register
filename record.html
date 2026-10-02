@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>乗り合いサロン活動記録</title>
+  <title>おでかけサポート活動記録</title>
   <style>
     :root {
       --primary-color: #2e7d32;
@@ -15,6 +15,7 @@
       --text-sub: #6b7280;
       --success-green: #15803d;
       --warn-orange: #d97706;
+      --danger-red: #dc2626;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -178,6 +179,26 @@
     }
     .btn-submit:active { background-color: #1d4ed8; }
 
+    /* 送迎中止ボタン */
+    .abort-section {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border-color);
+      text-align: center;
+    }
+    .btn-abort {
+      width: 100%;
+      padding: 13px;
+      background-color: #fff1f2;
+      border: 1px solid #fca5a5;
+      color: var(--danger-red);
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-abort:active { background-color: #ffe4e6; }
+
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
@@ -240,16 +261,25 @@
 <body>
 
 <header>
-  <h1>🚐 乗り合いサロン活動記録</h1>
+  <h1>🚗 おでかけサポート活動記録</h1>
 </header>
 
 <div class="container" id="formView">
   <div class="card">
+    <!-- ★案件番号（自動表示＆シート連携） -->
+    <div class="form-group">
+      <label>案件番号</label>
+      <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="saveCurrentDraft()" style="background:#f1f5f9; font-weight:bold; color:#1e40af;">
+      <div class="sub-label">※受託した案件番号が自動入力されます</div>
+    </div>
+
+    <!-- 登録番号 -->
     <div class="form-group">
       <label>登録番号（半角数字）</label>
       <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="saveCurrentDraft()">
     </div>
 
+    <!-- 乗客 -->
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
       <div class="sub-label">※ひらがなでOK</div>
@@ -261,6 +291,7 @@
       </button>
     </div>
 
+    <!-- 1. 出発時 -->
     <div class="step-section">
       <div class="step-title">1. 出発時</div>
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
@@ -275,6 +306,7 @@
       <div id="depStatus" class="status-box">押し忘れたら到着だけ記録してください</div>
     </div>
 
+    <!-- 2. 到着時 -->
     <div class="step-section">
       <div class="step-title">2. 到着時</div>
       <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
@@ -283,20 +315,32 @@
       <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
+    <!-- 活動実績送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
+
+    <!-- ★一番下の送迎中止ボタン -->
+    <div class="abort-section">
+      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
+        🚫 送迎を中止する（不在・急変など）
+      </button>
+      <div style="font-size:0.78rem; color:var(--text-sub); margin-top:6px;">
+        ※利用者が来ない場合（10分経過）や体調不良で中止する場合はこちら
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- 送信完了画面 -->
 <div class="container" id="completeView">
   <div class="complete-card">
-    <div class="complete-header">✔ 送信完了</div>
-    <p style="font-size:0.9rem; color:var(--text-sub); margin-bottom:12px;">
+    <div class="complete-header" id="completeHeaderTitle">✔ 送信完了</div>
+    <p id="completeMsg" style="font-size:0.9rem; color:var(--text-sub); margin-bottom:12px;">
       活動実績を記録しました。<br>大変お疲れ様でした！
     </p>
 
-    <div class="result-stats-box">
+    <div class="result-stats-box" id="resultStatsArea">
       <div class="result-row">
         <span>所要時間:</span>
         <span id="dispDuration">0 分</span>
@@ -311,9 +355,9 @@
       </div>
     </div>
 
-    <div class="info-callout">
+    <div class="info-callout" id="infoCalloutArea">
       <strong>📱 画面上部の「×」で閉じてください</strong><br>
-      画面の左上（または右上）にある「×」ボタンをタップして、LINEのトーク画面へお戻りください。<br><br>
+      画面の右上にある「×」ボタンをタップして、LINEのトーク画面へお戻りください。<br><br>
       <strong>📸 最後のステップ:</strong><br>
       トーク画面に戻ったら、参加者全員の「集合写真」を1枚送信してください。
     </div>
@@ -345,7 +389,8 @@
   };
 
   function getDraftKey() {
-    return 'odekake_draft_' + (questId || 'general');
+    const qidVal = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
+    return 'odekake_draft_' + (qidVal || questId || 'general');
   }
 
   function saveCurrentDraft() {
@@ -356,7 +401,8 @@
         if (el) passengers.push(el.value);
       }
       const draft = {
-        driverId: document.getElementById('driverId').value,
+        questId: document.getElementById('questIdInput').value.trim(),
+        driverId: document.getElementById('driverId').value.trim(),
         passengers: passengers,
         passengerCount: passengerCount,
         runLog: runLog
@@ -371,6 +417,9 @@
       if (!raw) return false;
       const draft = JSON.parse(raw);
 
+      if (draft.questId) {
+        document.getElementById('questIdInput').value = draft.questId;
+      }
       if (draft.driverId) {
         document.getElementById('driverId').value = draft.driverId;
       }
@@ -427,6 +476,9 @@
   window.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     questId = params.get('qid') || '';
+    if (questId) {
+      document.getElementById('questIdInput').value = questId;
+    }
 
     const savedDriver = localStorage.getItem('odekake_driver');
     if (savedDriver) {
@@ -571,7 +623,9 @@
     return d / 1000.0;
   }
 
+  // 通常の運行実績送信
   async function submitRecord() {
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
 
     const btn = document.getElementById('btnSubmit');
@@ -588,9 +642,10 @@
     const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
 
     const payload = {
-      questId: questId,
+      questId: qid,
       driverId: driverId,
       driverName: cachedDriverName,
+      isCancelled: false,
       depTime: runLog.depTime,
       arrTime: runLog.arrTime,
       duration: runLog.durationMin,
@@ -630,6 +685,78 @@
       alert('通信エラー: ' + e.message);
       btn.disabled = false;
       btn.textContent = '活動実績を送信';
+    }
+  }
+
+  // ★送迎中止の送信処理
+  async function abortTrip() {
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    if (!qid) {
+      alert('案件番号が確認できません。案件番号を入力してください。');
+      return;
+    }
+
+    if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) {
+      return;
+    }
+
+    const reason = prompt('中止の理由を入力してください（例: 10分待機も不在、利用者の体調不良、都合キャンセル 等）', '利用者が来ないため（10分経過）');
+    if (reason === null) return; // キャンセル時
+
+    const driverId = document.getElementById('driverId').value.trim();
+    const btn = document.getElementById('btnAbort');
+    btn.disabled = true;
+    btn.textContent = '中止処理中...';
+
+    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+
+    const payload = {
+      questId: qid,
+      driverId: driverId,
+      driverName: cachedDriverName,
+      isCancelled: true,
+      cancelReason: reason || '利用者の不在',
+      depTime: runLog.depTime || '',
+      arrTime: '',
+      duration: 0,
+      oneWayDistance: 0,
+      roundTripDistance: 0,
+      fee: 0,
+      depLat: runLog.depLat || '',
+      depLng: runLog.depLng || '',
+      arrLat: '',
+      arrLng: '',
+      depMapUrl: depMapUrl,
+      arrMapUrl: '',
+      passengers: ['【送迎中止】' + (reason || '')]
+    };
+
+    try {
+      const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success) {
+        clearDraft();
+
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        document.getElementById('completeHeaderTitle').textContent = '🚫 送迎中止として記録完了';
+        document.getElementById('completeHeaderTitle').style.color = '#dc2626';
+        document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason || '利用者の不在'}`;
+        document.getElementById('resultStatsArea').style.display = 'none';
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>📱 画面右上の「×」で閉じてください</strong><br>安全運転でご帰着ください。<br><br><strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
+
+        window.scrollTo(0, 0);
+      } else {
+        alert('中止処理エラー: ' + res.message);
+        btn.disabled = false;
+        btn.textContent = '🚫 送迎を中止する（不在・急変など）';
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = '🚫 送迎を中止する（不在・急変など）';
     }
   }
 
