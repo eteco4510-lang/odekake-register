@@ -267,7 +267,7 @@
   <div class="card">
     <div class="form-group">
       <label>案件番号</label>
-      <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="saveCurrentDraft()" style="background:#f1f5f9; font-weight:bold; color:#1e40af;">
+      <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="saveCurrentDraft()" style="background:#f1f5f9; font-weight:bold; color:#1e40af;">
       <div class="sub-label">※受託した案件番号が自動入力されます</div>
     </div>
 
@@ -379,6 +379,35 @@
     fee: 0
   };
 
+  // ★ URLから案件番号（qid）を確実に抽出する関数（LIFFの2次リダイレクトにも完全対応）
+  function extractQuestIdFromUrl() {
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    // 1. 通常の ?qid=...
+    let q = searchParams.get('qid');
+    if (q) return q.trim();
+
+    // 2. LINE LIFF特有の ?liff.state=... 内のエンコードされたパラメータ
+    const liffState = searchParams.get('liff.state');
+    if (liffState) {
+      try {
+        const decoded = decodeURIComponent(liffState);
+        const stateParams = new URLSearchParams(decoded.includes('?') ? decoded.split('?')[1] : decoded);
+        q = stateParams.get('qid');
+        if (q) return q.trim();
+      } catch (e) {}
+    }
+
+    // 3. ハッシュ（#qid=...）にある場合
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      q = hashParams.get('qid');
+      if (q) return q.trim();
+    }
+
+    return '';
+  }
+
   function getDraftKey() {
     const qidVal = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     return 'odekake_draft_' + (qidVal || questId || 'general');
@@ -465,24 +494,47 @@
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
-    const params = new URLSearchParams(window.location.search);
-    questId = params.get('qid') || '';
+    // 1. パターンA: URLから案件番号を自動取得
+    questId = extractQuestIdFromUrl();
     if (questId) {
       document.getElementById('questIdInput').value = questId;
     }
 
+    // 2. 端末保存のドライバー情報を復元
+    let localDriverId = '';
     const savedDriver = localStorage.getItem('odekake_driver');
     if (savedDriver) {
       try {
         const d = JSON.parse(savedDriver);
-        if (d.id) document.getElementById('driverId').value = d.id;
+        if (d.id) {
+          document.getElementById('driverId').value = d.id;
+          localDriverId = d.id;
+        }
         if (d.name) cachedDriverName = d.name;
       } catch (e) {}
     }
 
+    // 3. 一時保存下書きの復元
     const hasDraft = restoreDraft();
 
-    if (questId && !hasDraft) {
+    // 4. パターンB: URLに案件番号がない場合、ドライバー番号から受注中案件を自動照会
+    if (!questId && localDriverId && !hasDraft) {
+      try {
+        const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
+        const checkRes = await (await fetch(checkUrl)).json();
+        if (checkRes.success && checkRes.quest && checkRes.quest.id) {
+          questId = checkRes.quest.id;
+          document.getElementById('questIdInput').value = questId;
+          if (checkRes.quest.userName) {
+            document.getElementById('passenger1').value = checkRes.quest.userName;
+          }
+          saveCurrentDraft();
+        }
+      } catch (e) {}
+    }
+
+    // 5. 案件番号が判明しており、乗客名が未入力なら案件詳細を取得して補完
+    if (questId && !document.getElementById('passenger1').value.trim()) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
         const res = await (await fetch(url)).json();
@@ -661,7 +713,6 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        // ★GAS側で計算されたGoogle Maps実走行距離・実費弁償額を直接反映
         const finalOneWay = (res.oneWayDistance !== undefined && res.oneWayDistance !== null) ? res.oneWayDistance : runLog.oneWayKm;
         const finalRound = (res.roundTripDistance !== undefined && res.roundTripDistance !== null) ? res.roundTripDistance : runLog.roundTripKm;
         const finalFee = (res.fee !== undefined && res.fee !== null) ? res.fee : runLog.fee;
