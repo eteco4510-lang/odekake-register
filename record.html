@@ -198,26 +198,60 @@
     }
     .btn-abort:active { background-color: #ffe4e6; }
 
+    /* 送信完了画面 */
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
       border-radius: 14px;
-      padding: 24px 20px;
+      padding: 24px 18px;
       border: 2px solid var(--success-green);
       text-align: center;
     }
     .complete-header {
       color: var(--success-green);
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: bold;
       margin-bottom: 6px;
     }
+
+    /* ★「×で閉じる」超強調バナー */
+    .close-instruction-banner {
+      background: #fef2f2;
+      border: 3px solid #ef4444;
+      border-radius: 12px;
+      padding: 16px 14px;
+      margin: 18px 0;
+      text-align: center;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .close-instruction-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #b91c1c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .close-instruction-desc {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #7f1d1d;
+      line-height: 1.4;
+    }
+
     .result-stats-box {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 10px;
       padding: 14px;
-      margin: 16px 0;
+      margin-bottom: 16px;
       text-align: left;
     }
     .result-row {
@@ -234,26 +268,16 @@
       color: #b45309;
       font-size: 1.05rem;
     }
-    .info-callout {
+
+    .photo-callout {
       background: #fffbeb;
       border: 1px solid #fde68a;
       border-radius: 8px;
-      padding: 12px;
-      font-size: 0.85rem;
-      text-align: left;
-      margin-bottom: 16px;
-      color: #92400e;
-    }
-    .btn-close {
-      width: 100%;
       padding: 14px;
-      background-color: #4b5563;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      font-size: 0.9rem;
+      text-align: left;
+      color: #92400e;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -324,12 +348,23 @@
   </div>
 </div>
 
+<!-- 送信完了画面 -->
 <div class="container" id="completeView">
   <div class="complete-card">
     <div class="complete-header" id="completeHeaderTitle">✔ 送信完了</div>
-    <p id="completeMsg" style="font-size:0.9rem; color:var(--text-sub); margin-bottom:12px;">
-      活動実績を記録しました。<br>大変お疲れ様でした！
+    <p id="completeMsg" style="font-size:0.95rem; color:var(--text-sub); margin-bottom:8px;">
+      活動実績を記録しました。安全運転お疲れ様でした！
     </p>
+
+    <!-- ★強調された閉じる案内バナー -->
+    <div class="close-instruction-banner">
+      <div class="close-instruction-title">
+        <span>👆</span> 画面右上の「 × 」で閉じてください
+      </div>
+      <div class="close-instruction-desc">
+        右上の「×」ボタンを押すと、LINEのトーク画面に戻ります。
+      </div>
+    </div>
 
     <div class="result-stats-box" id="resultStatsArea">
       <div class="result-row">
@@ -346,14 +381,10 @@
       </div>
     </div>
 
-    <div class="info-callout" id="infoCalloutArea">
-      <strong>📱 画面右上の「×」で閉じてください</strong><br>
-      画面の右上にある「×」ボタンをタップして、LINEのトーク画面へお戻りください。<br><br>
-      <strong>📸 最後のステップ:</strong><br>
-      トーク画面に戻ったら、参加者全員の「集合写真」を1枚送信してください。
+    <div class="photo-callout" id="infoCalloutArea">
+      <strong>📸 最後のステップ（写真送信）:</strong><br>
+      右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
     </div>
-
-    <button type="button" class="btn-close" onclick="closeWindow()">画面を閉じる</button>
   </div>
 </div>
 
@@ -379,15 +410,11 @@
     fee: 0
   };
 
-  // ★ URLから案件番号（qid）を確実に抽出する関数（LIFFの2次リダイレクトにも完全対応）
   function extractQuestIdFromUrl() {
     const searchParams = new URLSearchParams(window.location.search);
-    
-    // 1. 通常の ?qid=...
     let q = searchParams.get('qid');
     if (q) return q.trim();
 
-    // 2. LINE LIFF特有の ?liff.state=... 内のエンコードされたパラメータ
     const liffState = searchParams.get('liff.state');
     if (liffState) {
       try {
@@ -398,13 +425,11 @@
       } catch (e) {}
     }
 
-    // 3. ハッシュ（#qid=...）にある場合
     if (window.location.hash) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       q = hashParams.get('qid');
       if (q) return q.trim();
     }
-
     return '';
   }
 
@@ -494,13 +519,11 @@
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
-    // 1. パターンA: URLから案件番号を自動取得
     questId = extractQuestIdFromUrl();
     if (questId) {
       document.getElementById('questIdInput').value = questId;
     }
 
-    // 2. 端末保存のドライバー情報を復元
     let localDriverId = '';
     const savedDriver = localStorage.getItem('odekake_driver');
     if (savedDriver) {
@@ -514,10 +537,8 @@
       } catch (e) {}
     }
 
-    // 3. 一時保存下書きの復元
     const hasDraft = restoreDraft();
 
-    // 4. パターンB: URLに案件番号がない場合、ドライバー番号から受注中案件を自動照会
     if (!questId && localDriverId && !hasDraft) {
       try {
         const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
@@ -533,7 +554,6 @@
       } catch (e) {}
     }
 
-    // 5. 案件番号が判明しており、乗客名が未入力なら案件詳細を取得して補完
     if (questId && !document.getElementById('passenger1').value.trim()) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
@@ -721,6 +741,11 @@
         document.getElementById('dispDistance').textContent = `片道: ${finalOneWay} km / 往復換算: ${finalRound} km`;
         document.getElementById('dispFee').textContent = `${finalFee} 円`;
 
+        // もしシート書き込みで警告があれば通知
+        if (res.sheetWarning) {
+          alert('【注意】運行記録は完了しましたが、' + res.sheetWarning);
+        }
+
         window.scrollTo(0, 0);
       } else {
         alert('保存エラー: ' + res.message);
@@ -790,7 +815,7 @@
         document.getElementById('completeHeaderTitle').style.color = '#dc2626';
         document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason || '利用者の不在'}`;
         document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>📱 画面右上の「×」で閉じてください</strong><br>安全運転でご帰着ください。<br><br><strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
 
         window.scrollTo(0, 0);
       } else {
@@ -802,14 +827,6 @@
       alert('通信エラー: ' + e.message);
       btn.disabled = false;
       btn.textContent = '🚫 送迎を中止する（不在・急変など）';
-    }
-  }
-
-  function closeWindow() {
-    if (typeof liff !== 'undefined' && liff.isInClient()) {
-      liff.closeWindow();
-    } else {
-      window.close();
     }
   }
 </script>
