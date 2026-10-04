@@ -854,7 +854,7 @@
         document.getElementById('completeHeaderTitle').style.color = '#dc2626';
         document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason || '利用者の不在'}`;
         document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「何かありましたらトークにてコメントをおねがいします。`;
 
         window.scrollTo(0, 0);
       } else {
