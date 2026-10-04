@@ -333,12 +333,12 @@
       <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
-    <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
+    <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord(false)">
       活動実績を送信
     </button>
 
     <div class="abort-section">
-      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
+      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip(false)">
         🚫 送迎を中止する（不在・急変など）
       </button>
       <div style="font-size:0.78rem; color:var(--text-sub); margin-top:6px;">
@@ -382,7 +382,8 @@
 
     <div class="photo-callout" id="infoCalloutArea">
       <strong>📸 最後のステップ（写真送信）:</strong><br>
-      右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
+      右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。<br>
+      <span style="font-size:0.8rem; color:#b45309;">※修正・再提出の場合で、すでに写真を送信済みの場合は再送不要です。</span>
     </div>
   </div>
 </div>
@@ -393,7 +394,6 @@
   let questId = '';
   let passengerCount = 1;
   let cachedDriverName = '';
-  // ★連打防止用グローバルフラグ
   let isSubmitting = false;
 
   let runLog = {
@@ -687,9 +687,9 @@
     return d / 1000.0;
   }
 
-  // ★連打防止・多重送信遮断を施した送信関数
-  async function submitRecord() {
-    if (isSubmitting) return; // 既に送信中なら即座に弾く
+  // ★C案：警告＋確認付き上書き送信関数
+  async function submitRecord(isOverwrite = false) {
+    if (isSubmitting && !isOverwrite) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
@@ -697,12 +697,11 @@
     const btn = document.getElementById('btnSubmit');
     const btnAbort = document.getElementById('btnAbort');
 
-    // ★即時ロック（変数 ＆ DOM ＆ タッチ無効化）
     isSubmitting = true;
     btn.disabled = true;
     btn.style.pointerEvents = 'none';
     btn.style.opacity = '0.6';
-    btn.textContent = '⏳ 送信中（そのままお待ちください）...';
+    btn.textContent = isOverwrite ? '⏳ 上書き更新中...' : '⏳ 送信中（そのままお待ちください）...';
     if (btnAbort) {
       btnAbort.disabled = true;
       btnAbort.style.pointerEvents = 'none';
@@ -722,6 +721,7 @@
       driverId: driverId,
       driverName: cachedDriverName,
       isCancelled: false,
+      isOverwrite: isOverwrite,
       depTime: runLog.depTime,
       arrTime: runLog.arrTime,
       duration: runLog.durationMin,
@@ -741,11 +741,37 @@
       const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
       const res = await (await fetch(url)).json();
 
+      // ★すでに報告済みの場合の確認ダイアログ
+      if (res.alreadyReported) {
+        const ok = confirm(`【報告済みの案件です】\n案件番号 [${qid}] はすでに活動実績が記録されています。\n\n内容を修正して最新データで上書き保存しますか？`);
+        if (ok) {
+          // 上書きモードで再実行
+          return submitRecord(true);
+        } else {
+          // キャンセル時は元の状態に復旧
+          isSubmitting = false;
+          btn.disabled = false;
+          btn.style.pointerEvents = 'auto';
+          btn.style.opacity = '1';
+          btn.textContent = '活動実績を送信';
+          if (btnAbort) {
+            btnAbort.disabled = false;
+            btnAbort.style.pointerEvents = 'auto';
+          }
+          return;
+        }
+      }
+
       if (res.success) {
         clearDraft();
 
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
+
+        if (res.isUpdated) {
+          document.getElementById('completeHeaderTitle').textContent = '✔ 修正・上書き完了';
+          document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の活動実績を最新内容に更新しました。<br>安全運転お疲れ様でした！`;
+        }
 
         const finalOneWay = (res.oneWayDistance !== undefined && res.oneWayDistance !== null) ? res.oneWayDistance : runLog.oneWayKm;
         const finalRound = (res.roundTripDistance !== undefined && res.roundTripDistance !== null) ? res.roundTripDistance : runLog.roundTripKm;
@@ -762,7 +788,6 @@
         window.scrollTo(0, 0);
       } else {
         alert('保存エラー: ' + res.message);
-        // エラー時のみロック解除して再試行可能にする
         isSubmitting = false;
         btn.disabled = false;
         btn.style.pointerEvents = 'auto';
@@ -787,9 +812,9 @@
     }
   }
 
-  // ★送迎中止の連打防止
-  async function abortTrip() {
-    if (isSubmitting) return;
+  // ★送迎中止（C案対応）
+  async function abortTrip(isOverwrite = false) {
+    if (isSubmitting && !isOverwrite) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     if (!qid) {
@@ -797,12 +822,16 @@
       return;
     }
 
-    if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) {
+    if (!isOverwrite && !confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) {
       return;
     }
 
-    const reason = prompt('中止の理由を入力してください（例: 10分待機も不在、利用者の体調不良、都合キャンセル 等）', '利用者が来ないため（10分経過）');
-    if (reason === null) return;
+    let reason = '利用者の不在';
+    if (!isOverwrite) {
+      const inputReason = prompt('中止の理由を入力してください（例: 10分待機も不在、利用者の体調不良、都合キャンセル 等）', '利用者が来ないため（10分経過）');
+      if (inputReason === null) return;
+      reason = inputReason || '利用者の不在';
+    }
 
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnAbort');
@@ -811,7 +840,7 @@
     isSubmitting = true;
     btn.disabled = true;
     btn.style.pointerEvents = 'none';
-    btn.textContent = '⏳ 中止処理中...';
+    btn.textContent = isOverwrite ? '⏳ 中止内容を上書き中...' : '⏳ 中止処理中...';
     if (btnSubmit) {
       btnSubmit.disabled = true;
       btnSubmit.style.pointerEvents = 'none';
@@ -824,7 +853,8 @@
       driverId: driverId,
       driverName: cachedDriverName,
       isCancelled: true,
-      cancelReason: reason || '利用者の不在',
+      isOverwrite: isOverwrite,
+      cancelReason: reason,
       depTime: runLog.depTime || '',
       arrTime: '',
       duration: 0,
@@ -837,12 +867,29 @@
       arrLng: '',
       depMapUrl: depMapUrl,
       arrMapUrl: '',
-      passengers: ['【送迎中止】' + (reason || '')]
+      passengers: ['【送迎中止】' + reason]
     };
 
     try {
       const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
       const res = await (await fetch(url)).json();
+
+      if (res.alreadyReported) {
+        const ok = confirm(`【報告済みの案件です】\n案件番号 [${qid}] はすでに記録されています。\n\n「送迎中止」として内容を上書き更新しますか？`);
+        if (ok) {
+          return abortTrip(true);
+        } else {
+          isSubmitting = false;
+          btn.disabled = false;
+          btn.style.pointerEvents = 'auto';
+          btn.textContent = '🚫 送迎を中止する（不在・急変など）';
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.style.pointerEvents = 'auto';
+          }
+          return;
+        }
+      }
 
       if (res.success) {
         clearDraft();
@@ -850,11 +897,11 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        document.getElementById('completeHeaderTitle').textContent = '🚫 送迎中止として記録完了';
+        document.getElementById('completeHeaderTitle').textContent = res.isUpdated ? '🚫 送迎中止として上書き完了' : '🚫 送迎中止として記録完了';
         document.getElementById('completeHeaderTitle').style.color = '#dc2626';
-        document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason || '利用者の不在'}`;
+        document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason}`;
         document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「何かありましたらトークにてコメントをおねがいします。`;
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
 
         window.scrollTo(0, 0);
       } else {
