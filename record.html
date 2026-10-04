@@ -176,6 +176,7 @@
       border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
+      transition: background-color 0.2s, opacity 0.2s;
     }
     .btn-submit:active { background-color: #1d4ed8; }
 
@@ -214,7 +215,6 @@
       margin-bottom: 6px;
     }
 
-    /* ★「×で閉じる」超強調バナー */
     .close-instruction-banner {
       background: #fef2f2;
       border: 3px solid #ef4444;
@@ -356,7 +356,6 @@
       活動実績を記録しました。安全運転お疲れ様でした！
     </p>
 
-    <!-- ★強調された閉じる案内バナー -->
     <div class="close-instruction-banner">
       <div class="close-instruction-title">
         <span>👆</span> 画面右上の「 × 」で閉じてください
@@ -394,6 +393,8 @@
   let questId = '';
   let passengerCount = 1;
   let cachedDriverName = '';
+  // ★連打防止用グローバルフラグ
+  let isSubmitting = false;
 
   let runLog = {
     depTime: '',
@@ -686,13 +687,26 @@
     return d / 1000.0;
   }
 
+  // ★連打防止・多重送信遮断を施した送信関数
   async function submitRecord() {
+    if (isSubmitting) return; // 既に送信中なら即座に弾く
+
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
 
     const btn = document.getElementById('btnSubmit');
+    const btnAbort = document.getElementById('btnAbort');
+
+    // ★即時ロック（変数 ＆ DOM ＆ タッチ無効化）
+    isSubmitting = true;
     btn.disabled = true;
-    btn.textContent = '送信処理中...';
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.6';
+    btn.textContent = '⏳ 送信中（そのままお待ちください）...';
+    if (btnAbort) {
+      btnAbort.disabled = true;
+      btnAbort.style.pointerEvents = 'none';
+    }
 
     const passengers = [];
     for (let i = 1; i <= 7; i++) {
@@ -741,25 +755,42 @@
         document.getElementById('dispDistance').textContent = `片道: ${finalOneWay} km / 往復換算: ${finalRound} km`;
         document.getElementById('dispFee').textContent = `${finalFee} 円`;
 
-        // もしシート書き込みで警告があれば通知
         if (res.sheetWarning) {
-          alert('【注意】運行記録は完了しましたが、' + res.sheetWarning);
+          alert('【注意】' + res.sheetWarning);
         }
 
         window.scrollTo(0, 0);
       } else {
         alert('保存エラー: ' + res.message);
+        // エラー時のみロック解除して再試行可能にする
+        isSubmitting = false;
         btn.disabled = false;
+        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '1';
         btn.textContent = '活動実績を送信';
+        if (btnAbort) {
+          btnAbort.disabled = false;
+          btnAbort.style.pointerEvents = 'auto';
+        }
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
+      isSubmitting = false;
       btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
       btn.textContent = '活動実績を送信';
+      if (btnAbort) {
+        btnAbort.disabled = false;
+        btnAbort.style.pointerEvents = 'auto';
+      }
     }
   }
 
+  // ★送迎中止の連打防止
   async function abortTrip() {
+    if (isSubmitting) return;
+
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     if (!qid) {
       alert('案件番号が確認できません。案件番号を入力してください。');
@@ -775,8 +806,16 @@
 
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnAbort');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    isSubmitting = true;
     btn.disabled = true;
-    btn.textContent = '中止処理中...';
+    btn.style.pointerEvents = 'none';
+    btn.textContent = '⏳ 中止処理中...';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.style.pointerEvents = 'none';
+    }
 
     const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
 
@@ -820,13 +859,25 @@
         window.scrollTo(0, 0);
       } else {
         alert('中止処理エラー: ' + res.message);
+        isSubmitting = false;
         btn.disabled = false;
+        btn.style.pointerEvents = 'auto';
         btn.textContent = '🚫 送迎を中止する（不在・急変など）';
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.style.pointerEvents = 'auto';
+        }
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
+      isSubmitting = false;
       btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
       btn.textContent = '🚫 送迎を中止する（不在・急変など）';
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.style.pointerEvents = 'auto';
+      }
     }
   }
 </script>
