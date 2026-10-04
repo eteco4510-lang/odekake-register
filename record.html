@@ -164,7 +164,7 @@
       font-weight: bold;
     }
 
-    /* ★未充足時の案内メッセージ枠 */
+    /* 未充足時の案内メッセージ枠 */
     .submit-notice-box {
       margin-top: 24px;
       padding: 14px 16px;
@@ -177,7 +177,7 @@
       line-height: 1.5;
     }
 
-    /* ★初期状態は非表示（条件達成で表示） */
+    /* 必要項目達成時に出現する送信ボタン */
     .btn-submit {
       display: none;
       width: 100%;
@@ -324,7 +324,7 @@
       <label>乗せた人（最大7名）</label>
       <div class="sub-label">※ひらがなでOK</div>
       <div id="passengerContainer" class="passenger-list">
-        <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）" oninput="handleFieldChange()">
+        <input type="text" id="passenger1" placeholder="お名前を自動取得中..." oninput="handleFieldChange()">
       </div>
       <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
         ＋ 乗客を追加する
@@ -353,12 +353,12 @@
       <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
     </div>
 
-    <!-- ★未入力時の案内メッセージ枠 -->
+    <!-- 未入力時の案内メッセージ枠 -->
     <div id="submitNoticeBox" class="submit-notice-box">
       ⏳ 必須項目を入力・到着地を記録すると送信ボタンが表示されます
     </div>
 
-    <!-- ★必要項目が揃うと表示される送信ボタン -->
+    <!-- 必要項目が揃うと表示される送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
@@ -482,13 +482,11 @@
     } catch (e) {}
   }
 
-  // ★入力値変更時の共通ハンドラ（下書き保存 ＆ 送信ボタン表示判定）
   function handleFieldChange() {
     saveCurrentDraft();
     checkSubmitRequirement();
   }
 
-  // ★必要項目の充足を判定して「送信ボタン」の表示/非表示を切り替える関数
   function checkSubmitRequirement() {
     const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
@@ -505,11 +503,9 @@
     if (!runLog.arrTime) missing.push('到着地');
 
     if (missing.length === 0) {
-      // 全項目充足：ボタンを表示、案内を非表示
       btn.style.display = 'block';
       notice.style.display = 'none';
     } else {
-      // 未充足：ボタンを非表示、不足項目を案内
       btn.style.display = 'none';
       notice.style.display = 'block';
       notice.innerHTML = `⚠️ <strong>${missing.join('・')}</strong> を完了すると送信ボタンが表示されます`;
@@ -535,7 +531,7 @@
         }
         draft.passengers.forEach((val, idx) => {
           const el = document.getElementById(`passenger${idx + 1}`);
-          if (el) el.value = val;
+          if (el && val) el.value = val;
         });
       }
 
@@ -575,9 +571,11 @@
   function clearDraft() {
     try {
       localStorage.removeItem(getDraftKey());
+      localStorage.removeItem('odekake_draft_general');
     } catch (e) {}
   }
 
+  // ★初期化処理：下書きの有無に関わらず、乗客名・案件番号を確実にサーバーから自動補完
   window.addEventListener('DOMContentLoaded', async () => {
     questId = extractQuestIdFromUrl();
     if (questId) {
@@ -597,35 +595,50 @@
       } catch (e) {}
     }
 
-    const hasDraft = restoreDraft();
+    // 下書きを復元（GPSや追加乗客など）
+    restoreDraft();
 
-    if (!questId && localDriverId && !hasDraft) {
+    // 1. 案件番号が空の場合、ドライバー番号から受託中案件を自動照会
+    if (!questId && localDriverId) {
       try {
         const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
         const checkRes = await (await fetch(checkUrl)).json();
-        if (checkRes.success && checkRes.quest && checkRes.quest.id) {
-          questId = checkRes.quest.id;
+        const qObj = checkRes.quest || checkRes.data;
+        if (checkRes.success && qObj && qObj.id) {
+          questId = String(qObj.id).trim();
           document.getElementById('questIdInput').value = questId;
-          if (checkRes.quest.userName) {
-            document.getElementById('passenger1').value = checkRes.quest.userName;
+          const uName = qObj.userName || qObj.name || '';
+          if (uName && !document.getElementById('passenger1').value.trim()) {
+            document.getElementById('passenger1').value = uName;
           }
           saveCurrentDraft();
         }
       } catch (e) {}
     }
 
-    if (questId && !document.getElementById('passenger1').value.trim()) {
+    // 2. 案件番号はあるが「乗客1」が空の場合、案件詳細を照会して名前を確実にセット
+    const currentP1 = document.getElementById('passenger1').value.trim();
+    if (questId && !currentP1) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
         const res = await (await fetch(url)).json();
-        if (res.success && res.quest && res.quest.userName) {
-          document.getElementById('passenger1').value = res.quest.userName;
-          saveCurrentDraft();
+        const qObj = res.quest || res.data;
+        if (res.success && qObj) {
+          const uName = qObj.userName || qObj.name || '';
+          if (uName) {
+            document.getElementById('passenger1').value = uName;
+            saveCurrentDraft();
+          }
         }
       } catch (e) {}
     }
 
-    // 初期化完了後にボタン表示状態を判定
+    // プレースホルダーの初期化
+    if (!document.getElementById('passenger1').value.trim()) {
+      document.getElementById('passenger1').placeholder = '乗客1（例: さとう はなこ）';
+    }
+
+    // ボタンの表示/非表示を最新状態に判定
     checkSubmitRequirement();
   });
 
@@ -708,7 +721,7 @@
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
         calcSummaryIfPossible();
-        handleFieldChange(); // ★到着記録によりボタンが出現
+        handleFieldChange();
       },
       (err) => {
         alert('位置情報の取得に失敗しました（設定で位置情報を許可するか、そのまま送信してください）。');
