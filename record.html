@@ -177,7 +177,7 @@
       line-height: 1.5;
     }
 
-    /* 必要項目達成時に出現する送信ボタン */
+    /* 必要項目（案件番号・登録番号・乗客名）達成時に出現する送信ボタン */
     .btn-submit {
       display: none;
       width: 100%;
@@ -324,7 +324,7 @@
       <label>乗せた人（最大7名）</label>
       <div class="sub-label">※ひらがなでOK</div>
       <div id="passengerContainer" class="passenger-list">
-        <input type="text" id="passenger1" placeholder="お名前を自動取得中..." oninput="handleFieldChange()">
+        <input type="text" id="passenger1" placeholder="乗客1（例: さとう はなこ）" oninput="handleFieldChange()">
       </div>
       <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
         ＋ 乗客を追加する
@@ -355,7 +355,7 @@
 
     <!-- 未入力時の案内メッセージ枠 -->
     <div id="submitNoticeBox" class="submit-notice-box">
-      ⏳ 必須項目を入力・到着地を記録すると送信ボタンが表示されます
+      ⏳ 必須項目（案件番号・登録番号・乗客名）を入力すると送信ボタンが表示されます
     </div>
 
     <!-- 必要項目が揃うと表示される送信ボタン -->
@@ -487,6 +487,7 @@
     checkSubmitRequirement();
   }
 
+  // ★重要修正：必要項目（案件番号・登録番号・乗客名）の3点のみでボタン出現を判定
   function checkSubmitRequirement() {
     const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
@@ -500,15 +501,15 @@
     if (!qid) missing.push('案件番号');
     if (!did) missing.push('登録番号');
     if (!p1) missing.push('乗客名');
-    if (!runLog.arrTime) missing.push('到着地');
 
     if (missing.length === 0) {
+      // 必須3項目が入力済みなら即座に送信ボタンを表示
       btn.style.display = 'block';
       notice.style.display = 'none';
     } else {
       btn.style.display = 'none';
       notice.style.display = 'block';
-      notice.innerHTML = `⚠️ <strong>${missing.join('・')}</strong> を完了すると送信ボタンが表示されます`;
+      notice.innerHTML = `⚠️ <strong>${missing.join('・')}</strong> を入力すると送信ボタンが表示されます`;
     }
   }
 
@@ -575,7 +576,6 @@
     } catch (e) {}
   }
 
-  // ★初期化処理：下書きの有無に関わらず、乗客名・案件番号を確実にサーバーから自動補完
   window.addEventListener('DOMContentLoaded', async () => {
     questId = extractQuestIdFromUrl();
     if (questId) {
@@ -595,10 +595,9 @@
       } catch (e) {}
     }
 
-    // 下書きを復元（GPSや追加乗客など）
     restoreDraft();
 
-    // 1. 案件番号が空の場合、ドライバー番号から受託中案件を自動照会
+    // 1. 案件番号が空の場合、受託中案件を自動照会
     if (!questId && localDriverId) {
       try {
         const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
@@ -616,7 +615,7 @@
       } catch (e) {}
     }
 
-    // 2. 案件番号はあるが「乗客1」が空の場合、案件詳細を照会して名前を確実にセット
+    // 2. 案件番号はあるが「乗客1」が空の場合、詳細照会してセット
     const currentP1 = document.getElementById('passenger1').value.trim();
     if (questId && !currentP1) {
       try {
@@ -633,12 +632,7 @@
       } catch (e) {}
     }
 
-    // プレースホルダーの初期化
-    if (!document.getElementById('passenger1').value.trim()) {
-      document.getElementById('passenger1').placeholder = '乗客1（例: さとう はなこ）';
-    }
-
-    // ボタンの表示/非表示を最新状態に判定
+    // 初期化完了後にボタン判定
     checkSubmitRequirement();
   });
 
