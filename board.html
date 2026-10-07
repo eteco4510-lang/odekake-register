@@ -191,7 +191,6 @@
       border: 1px solid #fed7aa;
     }
 
-    /* ★日付 ＆ 集合時間の強調コンテナ */
     .quest-datetime-wrap {
       display: flex;
       align-items: center;
@@ -207,7 +206,6 @@
       align-items: center;
       gap: 4px;
     }
-    /* ★目立つ「0:00集合」バッジ */
     .quest-time-badge {
       font-size: 1.15rem;
       font-weight: 900;
@@ -222,7 +220,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
 
-    /* ★文字を大きく見やすくした出発地・目的地コンテナ */
+    /* 出発地・目的地コンテナ */
     .route-container {
       background-color: #f8fafc;
       border-radius: 12px;
@@ -234,8 +232,8 @@
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      font-size: 1.15rem; /* ★文字サイズを大幅拡大 */
-      margin-bottom: 10px;
+      font-size: 1.15rem;
+      margin-bottom: 12px;
       line-height: 1.45;
     }
     .route-row:last-child { margin-bottom: 0; }
@@ -251,11 +249,30 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .route-text {
+
+    /* ★タップでGoogle検索に飛ぶリンクラベル */
+    .route-link {
       font-size: 1.18rem;
       font-weight: 900;
-      color: var(--text-main);
+      color: var(--primary-blue);
+      text-decoration: underline;
+      text-underline-offset: 4px;
       word-break: break-all;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s, opacity 0.15s;
+    }
+    .route-link:active {
+      color: var(--primary-hover);
+      opacity: 0.75;
+    }
+    .route-search-icon {
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-block;
+      vertical-align: middle;
     }
 
     .quest-meta {
@@ -446,7 +463,6 @@
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
 
-      // ★日付と集合時間の分離・抽出
       let displayDate = q.dateText || '日時指定なし';
       let timeBadgeHtml = '';
 
@@ -459,7 +475,12 @@
         timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
-      // ★出発地・目的地の表記および文字拡大レイアウト
+      // ★Google検索用URLの生成（「入力値 + 場所」）
+      const pickupQuery = encodeURIComponent((q.pickup || '') + ' 場所');
+      const dropoffQuery = encodeURIComponent((q.dropoff || '') + ' 場所');
+      const pickupSearchUrl = `https://www.google.com/search?q=${pickupQuery}`;
+      const dropoffSearchUrl = `https://www.google.com/search?q=${dropoffQuery}`;
+
       card.innerHTML = `
         <div class="quest-header">
           <span class="quest-id-badge">案件 #${q.id}</span>
@@ -473,12 +494,18 @@
           <div class="route-row">
             <span class="route-icon">📍</span>
             <span class="route-label">出発地:</span>
-            <span class="route-text">${q.pickup}</span>
+            <a href="${pickupSearchUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+              <span>${q.pickup}</span>
+              <span class="route-search-icon">🔍</span>
+            </a>
           </div>
           <div class="route-row">
             <span class="route-icon">🏁</span>
             <span class="route-label">目的地:</span>
-            <span class="route-text">${q.dropoff}</span>
+            <a href="${dropoffSearchUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+              <span>${q.dropoff}</span>
+              <span class="route-search-icon">🔍</span>
+            </a>
           </div>
         </div>
         <div class="quest-meta">
