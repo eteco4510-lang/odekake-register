@@ -205,13 +205,17 @@
           <input type="radio" name="userType" value="本人申請" checked onchange="handleTypeChange()"> 本人申請
         </label>
         <label class="radio-label" id="labelCare">
-          <input type="radio" name="userType" value="ケアマネ代理" onchange="handleTypeChange()"> ケアマネ・代理
+          <input type="radio" name="userType" value="ケアマネ等代理" onchange="handleTypeChange()"> ケアマネ等代理
         </label>
+      </div>
+      <div class="sub-label" style="margin-top:8px;">
+        ※ご自身で乗車・申請される方は「本人申請」、ご家族やケアマネジャー等として代理で申請を行いたい方は「ケアマネ等代理」を選択してください。
       </div>
     </div>
 
     <div class="form-group">
-      <label id="nameLabel">利用者氏名（乗車代表者）</label>
+      <!-- ★（）を削除して「利用者氏名」に統一 -->
+      <label id="nameLabel">利用者氏名</label>
       <div class="sub-label">※漢字またはひらがなで入力してください</div>
       <input type="text" id="userName" placeholder="例: 相模 太郎">
     </div>
@@ -279,7 +283,6 @@
     const isHonin = document.querySelector('input[name="userType"]:checked').value === '本人申請';
     document.getElementById('labelHonin').className = isHonin ? 'radio-label active' : 'radio-label';
     document.getElementById('labelCare').className = !isHonin ? 'radio-label active' : 'radio-label';
-    document.getElementById('nameLabel').textContent = isHonin ? '利用者氏名（乗車代表者）' : '利用者氏名（対象のご本人様）';
   }
 
   async function submitRegistration() {
@@ -315,7 +318,6 @@
       const res = await (await fetch(url)).json();
 
       if (res.success) {
-        // 番号の多重フォールバック取得
         const finalNumber = res.userNum || res.userNumber || res.userId || res.id || res.regNumber || (res.data && res.data.userNum) || '取得済';
 
         document.getElementById('formView').style.display = 'none';
