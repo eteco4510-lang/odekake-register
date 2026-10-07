@@ -250,7 +250,7 @@
       flex-shrink: 0;
     }
 
-    /* ★タップでGoogle検索に飛ぶリンクラベル */
+    /* ★タップでGoogleマップに飛ぶリンクラベル */
     .route-link {
       font-size: 1.18rem;
       font-weight: 900;
@@ -268,8 +268,8 @@
       color: var(--primary-hover);
       opacity: 0.75;
     }
-    .route-search-icon {
-      font-size: 0.95rem;
+    .route-map-icon {
+      font-size: 1rem;
       text-decoration: none;
       display: inline-block;
       vertical-align: middle;
@@ -475,11 +475,9 @@
         timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
-      // ★Google検索用URLの生成（「入力値 + 場所」）
-      const pickupQuery = encodeURIComponent((q.pickup || '') + ' 場所');
-      const dropoffQuery = encodeURIComponent((q.dropoff || '') + ' 場所');
-      const pickupSearchUrl = `https://www.google.com/search?q=${pickupQuery}`;
-      const dropoffSearchUrl = `https://www.google.com/search?q=${dropoffQuery}`;
+      // ★Googleマップ直接起動URL（Google Maps Universal URL仕様）
+      const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
+      const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
 
       card.innerHTML = `
         <div class="quest-header">
@@ -494,17 +492,17 @@
           <div class="route-row">
             <span class="route-icon">📍</span>
             <span class="route-label">出発地:</span>
-            <a href="${pickupSearchUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+            <a href="${pickupMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
               <span>${q.pickup}</span>
-              <span class="route-search-icon">🔍</span>
+              <span class="route-map-icon">🗺️</span>
             </a>
           </div>
           <div class="route-row">
             <span class="route-icon">🏁</span>
             <span class="route-label">目的地:</span>
-            <a href="${dropoffSearchUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+            <a href="${dropoffMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
               <span>${q.dropoff}</span>
-              <span class="route-search-icon">🔍</span>
+              <span class="route-map-icon">🗺️</span>
             </a>
           </div>
         </div>
