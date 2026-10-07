@@ -159,9 +159,9 @@
       background: var(--card-bg);
       border-radius: 16px;
       padding: 18px;
-      margin-bottom: 18px;
-      border: 2px solid #cbd5e1;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
       position: relative;
     }
     .quest-header {
@@ -173,7 +173,7 @@
       border-bottom: 1px dashed var(--border-color);
     }
     .quest-id-badge {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 900;
       color: #ffffff;
       background-color: #334155;
@@ -182,7 +182,7 @@
       letter-spacing: 0.5px;
     }
     .agency-tag {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 800;
       color: #7c2d12;
       background-color: #ffedd5;
@@ -190,14 +190,36 @@
       border-radius: 6px;
       border: 1px solid #fed7aa;
     }
-    .quest-datetime {
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: var(--primary-blue);
-      margin-bottom: 12px;
+
+    /* ★日付 ＆ 集合時間の強調コンテナ */
+    .quest-datetime-wrap {
       display: flex;
       align-items: center;
-      gap: 6px;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      margin-bottom: 14px;
+    }
+    .quest-date {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    /* ★目立つ「0:00集合」バッジ */
+    .quest-time-badge {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #b45309;
+      background-color: var(--warn-bg);
+      border: 2px solid #f59e0b;
+      padding: 3px 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      letter-spacing: 0.5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
 
     /* ★文字を大きく見やすくした出発地・目的地コンテナ */
@@ -205,66 +227,35 @@
       background-color: #f8fafc;
       border-radius: 12px;
       padding: 14px 16px;
-      margin-bottom: 14px;
-      border: 2px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      margin-bottom: 16px;
+      border: 2px solid #cbd5e1;
     }
     .route-row {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      line-height: 1.4;
+      font-size: 1.15rem; /* ★文字サイズを大幅拡大 */
+      margin-bottom: 10px;
+      line-height: 1.45;
     }
-    /* 出発地行（右側に集合時間バッジを配置） */
-    .route-row-pickup {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed #cbd5e1;
-    }
-    .route-left {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      flex: 1;
-      min-width: 0;
-    }
+    .route-row:last-child { margin-bottom: 0; }
     .route-icon {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
     }
     .route-label {
       font-size: 1.1rem;
-      font-weight: 800;
-      color: #475569;
+      font-weight: 900;
+      color: #334155;
+      white-space: nowrap;
       flex-shrink: 0;
     }
     .route-text {
-      font-size: 1.2rem;
+      font-size: 1.18rem;
       font-weight: 900;
       color: var(--text-main);
       word-break: break-all;
-    }
-    /* ★出発地の右側に表示する集合時間バッジ */
-    .meeting-time-badge {
-      flex-shrink: 0;
-      background-color: var(--warn-bg);
-      border: 2px solid #f59e0b;
-      color: var(--warn-amber);
-      font-size: 1.05rem;
-      font-weight: 900;
-      padding: 4px 10px;
-      border-radius: 8px;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .quest-meta {
@@ -274,15 +265,14 @@
       font-size: 0.95rem;
       color: var(--text-muted);
       margin-bottom: 16px;
-      font-weight: 800;
-      padding: 0 4px;
+      font-weight: 700;
     }
     .btn-accept {
       width: 100%;
-      height: 56px;
+      height: 54px;
       background-color: #16a34a;
       color: #ffffff;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 900;
       border: none;
       border-radius: 12px;
@@ -303,9 +293,8 @@
       color: var(--text-muted);
       background: #ffffff;
       border-radius: 16px;
-      border: 2px dashed var(--border-color);
+      border: 1px dashed var(--border-color);
       font-weight: bold;
-      line-height: 1.6;
     }
   </style>
 </head>
@@ -457,39 +446,39 @@
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
 
-      // ★日付文字列から「時間（例: 9:30）」を抽出して右側バッジへ配置
-      let dateOnly = q.dateText || '日時指定なし';
+      // ★日付と集合時間の分離・抽出
+      let displayDate = q.dateText || '日時指定なし';
       let timeBadgeHtml = '';
-      const timeMatch = dateOnly.match(/\b\d{1,2}:\d{2}\b/);
+
+      const timeMatch = displayDate.match(/(\d{1,2}:\d{2})/);
       if (timeMatch) {
-        const timeStr = timeMatch[0];
-        timeBadgeHtml = `<div class="meeting-time-badge">⏰ 集合 ${timeStr}</div>`;
-        dateOnly = dateOnly.replace(timeStr, '').trim();
+        const timeVal = timeMatch[1];
+        displayDate = displayDate.replace(timeVal, '').trim();
+        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${timeVal} 集合</span>`;
+      } else if (q.targetTime) {
+        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
+      // ★出発地・目的地の表記および文字拡大レイアウト
       card.innerHTML = `
         <div class="quest-header">
           <span class="quest-id-badge">案件 #${q.id}</span>
           ${agencyTag}
         </div>
-        <div class="quest-datetime">
-          <span>📅</span> <span>${dateOnly}</span>
+        <div class="quest-datetime-wrap">
+          <span class="quest-date">📅 ${displayDate}</span>
+          ${timeBadgeHtml}
         </div>
         <div class="route-container">
-          <div class="route-row-pickup">
-            <div class="route-left">
-              <span class="route-icon">📍</span>
-              <span class="route-label">出発地:</span>
-              <span class="route-text">${q.pickup}</span>
-            </div>
-            ${timeBadgeHtml}
+          <div class="route-row">
+            <span class="route-icon">📍</span>
+            <span class="route-label">出発地:</span>
+            <span class="route-text">${q.pickup}</span>
           </div>
           <div class="route-row">
-            <div class="route-left">
-              <span class="route-icon">🏁</span>
-              <span class="route-label">目的地:</span>
-              <span class="route-text">${q.dropoff}</span>
-            </div>
+            <span class="route-icon">🏁</span>
+            <span class="route-label">目的地:</span>
+            <span class="route-text">${q.dropoff}</span>
           </div>
         </div>
         <div class="quest-meta">
