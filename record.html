@@ -231,7 +231,6 @@
     }
     .btn-abort:active { background-color: #fee2e2; }
 
-    /* 完了画面 */
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
@@ -584,6 +583,7 @@
     }
 
     restoreDraft();
+    checkSubmitRequirement();
 
     if (!questId && localDriverId) {
       try {
@@ -598,6 +598,7 @@
             document.getElementById('passenger1').value = uName;
           }
           saveCurrentDraft();
+          checkSubmitRequirement(); // ★自動代入後に即座にボタン出現判定を実行
         }
       } catch (e) {}
     }
@@ -613,6 +614,7 @@
           if (uName) {
             document.getElementById('passenger1').value = uName;
             saveCurrentDraft();
+            checkSubmitRequirement(); // ★自動代入後に即座にボタン出現判定を実行
           }
         }
       } catch (e) {}
@@ -700,7 +702,7 @@
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
         calcSummaryIfPossible();
-        handleFieldChange();
+        handleFieldChange(); // ★到着記録完了と同時に全条件を再判定してボタン出現
       },
       () => {
         alert('位置情報の取得に失敗しました。');
