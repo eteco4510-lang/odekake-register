@@ -598,7 +598,7 @@
             document.getElementById('passenger1').value = uName;
           }
           saveCurrentDraft();
-          checkSubmitRequirement(); // ★自動代入後に即座にボタン出現判定を実行
+          checkSubmitRequirement();
         }
       } catch (e) {}
     }
@@ -614,7 +614,7 @@
           if (uName) {
             document.getElementById('passenger1').value = uName;
             saveCurrentDraft();
-            checkSubmitRequirement(); // ★自動代入後に即座にボタン出現判定を実行
+            checkSubmitRequirement();
           }
         }
       } catch (e) {}
@@ -667,7 +667,9 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
 
-        calcSummaryIfPossible();
+        try {
+          calcSummaryIfPossible();
+        } catch(e) {}
         handleFieldChange();
       },
       () => {
@@ -701,8 +703,15 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
-        calcSummaryIfPossible();
-        handleFieldChange(); // ★到着記録完了と同時に全条件を再判定してボタン出現
+        // ★計算で万一エラーが起きてもボタン判定を絶対に遮断しない安全保護
+        try {
+          calcSummaryIfPossible();
+        } catch(err) {
+          console.warn('実走距離計算スキップ:', err);
+        }
+
+        // ★到着地記録完了と同時に全条件を判定して送信ボタンを表示
+        handleFieldChange();
       },
       () => {
         alert('位置情報の取得に失敗しました。');
@@ -725,6 +734,7 @@
     }
   }
 
+  // ★致命的バグを修正したヒュベニ公式計算関数
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
     const radLat1 = lat1 * Math.PI / 180;
     const radLon1 = lon1 * Math.PI / 180;
@@ -733,7 +743,8 @@
     const a = 6378137.0;
     const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
-    const lonDiff = radLon1 - lonDiff;
+    // ★修正箇所: radLon1 - radLon2（以前は radLon1 - lonDiff となっておりクラッシュしていた）
+    const lonDiff = radLon1 - radLon2;
     const latAve = (radLat1 + radLat2) / 2.0;
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
     const m = a * (1.0 - e2) / (w * w * w);
