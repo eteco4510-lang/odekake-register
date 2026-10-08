@@ -13,19 +13,13 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       --border-color: #cbd5e1;
-      --success-green: #15803d;
       --warn-amber: #b45309;
       --warn-bg: #fef3c7;
       --danger-red: #b91c1c;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-main);
       line-height: 1.5;
@@ -47,14 +41,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .header-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .header-title { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
     .driver-badge {
       font-size: 0.85rem;
       font-weight: bold;
@@ -74,30 +61,17 @@
       border: none;
       cursor: pointer;
       text-decoration: underline;
-      padding-left: 4px;
     }
-    .container {
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 14px 16px;
-    }
+    .container { max-width: 520px; margin: 0 auto; padding: 14px 16px; }
     .card {
       background: var(--card-bg);
       border-radius: 16px;
       padding: 22px 18px;
       margin-bottom: 16px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
-    .form-group {
-      margin-bottom: 18px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.95rem; font-weight: 800; margin-bottom: 6px; }
     input[type="tel"] {
       width: 100%;
       height: 52px;
@@ -108,11 +82,7 @@
       color: var(--text-main);
       background-color: #fafafa;
     }
-    input[type="tel"]:focus {
-      background-color: #ffffff;
-      border-color: var(--primary-blue);
-      outline: none;
-    }
+    input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
     .btn-action {
       width: 100%;
       height: 54px;
@@ -123,15 +93,6 @@
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.25);
-      transition: all 0.15s;
-    }
-    .btn-action:active {
-      background-color: var(--primary-hover);
-      transform: scale(0.98);
     }
     .btn-refresh {
       width: 100%;
@@ -141,20 +102,29 @@
       border-radius: 12px;
       font-size: 0.95rem;
       font-weight: 800;
-      color: var(--text-main);
       cursor: pointer;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-bottom: 16px;
+      transition: all 0.2s;
     }
-    .btn-refresh:active {
-      background-color: #f8fafc;
-      transform: scale(0.98);
+    .btn-refresh:active { background-color: #f8fafc; transform: scale(0.98); }
+    
+    /* バックグラウンド同期間の小さなインジケーター */
+    .sync-status-bar {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 12px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    /* 案件カード */
     .quest-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -162,7 +132,11 @@
       margin-bottom: 16px;
       border: 2px solid #e2e8f0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-      position: relative;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
     }
     .quest-header {
       display: flex;
@@ -179,7 +153,6 @@
       background-color: #334155;
       padding: 4px 10px;
       border-radius: 6px;
-      letter-spacing: 0.5px;
     }
     .agency-tag {
       font-size: 0.78rem;
@@ -190,7 +163,6 @@
       border-radius: 6px;
       border: 1px solid #fed7aa;
     }
-
     .quest-datetime-wrap {
       display: flex;
       align-items: center;
@@ -198,14 +170,7 @@
       gap: 8px 10px;
       margin-bottom: 14px;
     }
-    .quest-date {
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
+    .quest-date { font-size: 1.15rem; font-weight: 900; color: var(--text-main); }
     .quest-time-badge {
       font-size: 1.15rem;
       font-weight: 900;
@@ -216,11 +181,7 @@
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      letter-spacing: 0.5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-
-    /* 出発地・目的地コンテナ */
     .route-container {
       background-color: #f8fafc;
       border-radius: 12px;
@@ -237,20 +198,7 @@
       line-height: 1.45;
     }
     .route-row:last-child { margin-bottom: 0; }
-    .route-icon {
-      font-size: 1.2rem;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .route-label {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #334155;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    /* ★タップでGoogleマップに飛ぶリンクラベル */
+    .route-label { font-size: 1.1rem; font-weight: 900; color: #334155; flex-shrink: 0; }
     .route-link {
       font-size: 1.18rem;
       font-weight: 900;
@@ -258,23 +206,11 @@
       text-decoration: underline;
       text-underline-offset: 4px;
       word-break: break-all;
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: color 0.15s, opacity 0.15s;
     }
-    .route-link:active {
-      color: var(--primary-hover);
-      opacity: 0.75;
-    }
-    .route-map-icon {
-      font-size: 1rem;
-      text-decoration: none;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
+    .route-link:active { color: var(--primary-hover); opacity: 0.75; }
     .quest-meta {
       display: flex;
       justify-content: space-between;
@@ -294,16 +230,8 @@
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
-      transition: all 0.15s;
     }
-    .btn-accept:active {
-      background-color: #15803d;
-      transform: scale(0.98);
-    }
+    .btn-accept:active { background-color: #15803d; transform: scale(0.98); }
     .empty-box {
       text-align: center;
       padding: 40px 20px;
@@ -328,12 +256,8 @@
 </header>
 
 <div class="container">
-  <!-- 認証画面 -->
   <div id="authSection" class="card" style="display:none;">
     <h2 style="font-size:1.15rem; font-weight:800; margin-bottom:12px; text-align:center;">ドライバー認証</h2>
-    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:18px; text-align:center;">
-      登録番号と電話番号の下4桁を入力してログインしてください。
-    </p>
     <div class="form-group">
       <label>ドライバー登録番号</label>
       <input type="tel" id="authDriverId" placeholder="例: 10101" inputmode="numeric">
@@ -342,39 +266,33 @@
       <label>登録電話番号（下4桁）</label>
       <input type="tel" id="authPhone4" placeholder="例: 1234" maxlength="4" inputmode="numeric">
     </div>
-    <button type="button" class="btn-action" id="btnAuth" onclick="executeAuth()">
-      認証する
-    </button>
+    <button type="button" class="btn-action" id="btnAuth" onclick="executeAuth()">認証する</button>
   </div>
 
-  <!-- 掲示板案件一覧画面 -->
   <div id="boardSection" style="display:none;">
-    <button type="button" class="btn-refresh" onclick="fetchBoardQuests()">
+    <button type="button" class="btn-refresh" id="btnRefresh" onclick="fetchBoardQuests(true)">
       🔄 最新の案件に更新
     </button>
+    <div id="syncStatusBar" class="sync-status-bar"></div>
     <div id="questListArea"></div>
   </div>
 </div>
 
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const LOCAL_CACHE_KEY = 'odekake_board_quests_cache';
 
   let currentDriver = null;
   let isProcessingAccept = false;
 
-  window.addEventListener('DOMContentLoaded', () => {
-    checkSavedDriver();
-  });
+  window.addEventListener('DOMContentLoaded', () => { checkSavedDriver(); });
 
   function checkSavedDriver() {
     const saved = localStorage.getItem('odekake_driver');
     if (saved) {
       try {
         currentDriver = JSON.parse(saved);
-        if (currentDriver && currentDriver.id) {
-          showBoardView();
-          return;
-        }
+        if (currentDriver && currentDriver.id) { showBoardView(); return; }
       } catch (e) {}
     }
     showAuthView();
@@ -391,12 +309,26 @@
     document.getElementById('boardSection').style.display = 'block';
     document.getElementById('driverBadgeArea').style.display = 'flex';
     document.getElementById('dispDriverName').textContent = `${currentDriver.name || 'ボランティア'} (ID:${currentDriver.id})`;
-    fetchBoardQuests();
+
+    // ★【体感0秒処理】保存済みの前回の案件があれば開いた瞬間に0秒で即時レンダリング
+    const localCached = localStorage.getItem(LOCAL_CACHE_KEY);
+    if (localCached) {
+      try {
+        const cachedQuests = JSON.parse(localCached);
+        if (cachedQuests && cachedQuests.length > 0) {
+          renderQuests(cachedQuests);
+        }
+      } catch (e) {}
+    }
+
+    // 裏側（バックグラウンド）で最新データを取得
+    fetchBoardQuests(false);
   }
 
   function logoutDriver() {
     if (confirm('登録情報の連携を解除しますか？')) {
       localStorage.removeItem('odekake_driver');
+      localStorage.removeItem(LOCAL_CACHE_KEY);
       currentDriver = null;
       showAuthView();
     }
@@ -405,51 +337,79 @@
   async function executeAuth() {
     const driverId = document.getElementById('authDriverId').value.trim();
     const phone4 = document.getElementById('authPhone4').value.trim();
-
-    if (!driverId || !phone4) {
-      alert('登録番号と電話番号下4桁を入力してください。');
-      return;
-    }
+    if (!driverId || !phone4) { alert('登録番号と下4桁を入力してください'); return; }
 
     const btn = document.getElementById('btnAuth');
-    btn.disabled = true;
-    btn.textContent = '認証中...';
+    btn.disabled = true; btn.textContent = '認証中...';
 
     try {
       const url = `${GAS_API_URL}?action=authDriver&driverId=${encodeURIComponent(driverId)}&phone4=${encodeURIComponent(phone4)}`;
       const res = await (await fetch(url)).json();
-
       if (res.success && res.driver) {
         currentDriver = res.driver;
         localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
         showBoardView();
       } else {
-        alert(res.message || '登録情報と一致しませんでした。');
-        btn.disabled = false;
-        btn.textContent = '認証する';
+        alert(res.message || '一致しませんでした。');
+        btn.disabled = false; btn.textContent = '認証する';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      btn.disabled = false;
-      btn.textContent = '認証する';
+      btn.disabled = false; btn.textContent = '認証する';
     }
   }
 
-  async function fetchBoardQuests() {
+  async function fetchBoardQuests(isManualRefresh = false) {
     const listArea = document.getElementById('questListArea');
-    listArea.innerHTML = '<div class="empty-box">⏳ 最新の募集中案件を取得中...</div>';
+    const statusBar = document.getElementById('syncStatusBar');
+    const btnRef = document.getElementById('btnRefresh');
+
+    const hasRenderedItems = listArea.children.length > 0;
+    if (!hasRenderedItems) {
+      listArea.innerHTML = '<div class="empty-box">⏳ 案件を取得中...</div>';
+    }
+
+    if (statusBar) statusBar.textContent = '📡 最新情報を取得中...';
+    if (isManualRefresh && btnRef) {
+      btnRef.disabled = true;
+      btnRef.textContent = '🔄 更新中...';
+    }
 
     try {
       const url = `${GAS_API_URL}?action=getBoardQuests`;
       const res = await (await fetch(url)).json();
 
-      if (res.success && res.quests && res.quests.length > 0) {
-        renderQuests(res.quests);
+      if (res.success && res.quests) {
+        // ローカルキャッシュに最新版を保存
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(res.quests));
+
+        if (res.quests.length > 0) {
+          renderQuests(res.quests);
+        } else {
+          listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
+        }
+        if (statusBar) statusBar.textContent = '✔ 最新の情報に更新済み';
       } else {
-        listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。<br>安全運転ありがとうございます！</div>';
+        if (!hasRenderedItems) {
+          listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
+        }
+        if (statusBar) statusBar.textContent = '';
       }
     } catch (e) {
-      listArea.innerHTML = `<div class="empty-box" style="color:var(--danger-red);">案件の取得に失敗しました。<br>${e.message}</div>`;
+      if (!hasRenderedItems) {
+        listArea.innerHTML = `<div class="empty-box" style="color:var(--danger-red);">取得に失敗しました。<br>${e.message}</div>`;
+      }
+      if (statusBar) statusBar.textContent = '⚠️ オフラインまたは通信エラー';
+    } finally {
+      if (btnRef) {
+        btnRef.disabled = false;
+        btnRef.textContent = '🔄 最新の案件に更新';
+      }
+      setTimeout(() => {
+        if (statusBar && statusBar.textContent.includes('更新済み')) {
+          statusBar.textContent = '';
+        }
+      }, 3000);
     }
   }
 
@@ -462,7 +422,6 @@
       card.className = 'quest-card';
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
-
       let displayDate = q.dateText || '日時指定なし';
       let timeBadgeHtml = '';
 
@@ -475,7 +434,6 @@
         timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
-      // ★Googleマップ直接起動URL（Google Maps Universal URL仕様）
       const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
       const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
 
@@ -490,19 +448,15 @@
         </div>
         <div class="route-container">
           <div class="route-row">
-            <span class="route-icon">📍</span>
             <span class="route-label">出発地:</span>
             <a href="${pickupMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
-              <span>${q.pickup}</span>
-              <span class="route-map-icon">🗺️</span>
+              <span>${q.pickup}</span> <span>🗺️</span>
             </a>
           </div>
           <div class="route-row">
-            <span class="route-icon">🏁</span>
             <span class="route-label">目的地:</span>
             <a href="${dropoffMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
-              <span>${q.dropoff}</span>
-              <span class="route-map-icon">🗺️</span>
+              <span>${q.dropoff}</span> <span>🗺️</span>
             </a>
           </div>
         </div>
@@ -510,9 +464,7 @@
           <span>乗車人数: ${q.passengers}</span>
           <span>利用者: ${q.userNameMasked}</span>
         </div>
-        <button type="button" class="btn-accept" onclick="acceptQuest('${q.id}')">
-          この案件を受託する
-        </button>
+        <button type="button" class="btn-accept" onclick="acceptQuest('${q.id}')">この案件を受託する</button>
       `;
       listArea.appendChild(card);
     });
@@ -520,23 +472,18 @@
 
   async function acceptQuest(qid) {
     if (isProcessingAccept) return;
-
-    if (!confirm(`【受託確認】\n案件番号 [${qid}] を受託しますか？\n受託すると公式LINEへ運行案内が届きます。`)) {
-      return;
-    }
+    if (!confirm(`【受託確認】\n案件番号 [${qid}] を受託しますか？\n受託すると公式LINEへ運行案内が届きます。`)) return;
 
     isProcessingAccept = true;
-
     try {
       const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
       const res = await (await fetch(url)).json();
-
       if (res.success) {
         alert('受託が完了しました！\n公式LINEのトーク画面に案内が届いていますのでご確認ください。');
-        fetchBoardQuests();
+        fetchBoardQuests(true);
       } else {
         alert('受託できませんでした: ' + res.message);
-        fetchBoardQuests();
+        fetchBoardQuests(true);
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
