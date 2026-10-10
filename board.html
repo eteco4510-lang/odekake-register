@@ -16,6 +16,7 @@
       --warn-amber: #b45309;
       --warn-bg: #fef3c7;
       --danger-red: #b91c1c;
+      --danger-bg: #fef2f2;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -108,11 +109,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: all 0.2s;
     }
-    .btn-refresh:active { background-color: #f8fafc; transform: scale(0.98); }
-    
-    /* バックグラウンド同期間の小さなインジケーター */
     .sync-status-bar {
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -122,9 +119,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
     }
 
+    /* 通常案件カード */
     .quest-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -132,12 +129,29 @@
       margin-bottom: 16px;
       border: 2px solid #e2e8f0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-      animation: fadeIn 0.2s ease-in-out;
+      transition: all 0.2s;
     }
-    @keyframes fadeIn {
-      from { opacity: 0.5; }
-      to { opacity: 1; }
+
+    /* ★機能2：今日・明日の未受託直前案件（赤枠＆薄赤背景） */
+    .quest-card.urgent-card {
+      background-color: #fffaf9;
+      border: 2.5px solid #ef4444;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15);
     }
+    .urgent-banner {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      font-size: 0.85rem;
+      font-weight: 900;
+      padding: 5px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .quest-header {
       display: flex;
       justify-content: space-between;
@@ -280,7 +294,7 @@
 
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-  const LOCAL_CACHE_KEY = 'odekake_board_quests_cache';
+  const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
   let isProcessingAccept = false;
@@ -310,18 +324,13 @@
     document.getElementById('driverBadgeArea').style.display = 'flex';
     document.getElementById('dispDriverName').textContent = `${currentDriver.name || 'ボランティア'} (ID:${currentDriver.id})`;
 
-    // ★【体感0秒処理】保存済みの前回の案件があれば開いた瞬間に0秒で即時レンダリング
     const localCached = localStorage.getItem(LOCAL_CACHE_KEY);
     if (localCached) {
       try {
         const cachedQuests = JSON.parse(localCached);
-        if (cachedQuests && cachedQuests.length > 0) {
-          renderQuests(cachedQuests);
-        }
+        if (cachedQuests && cachedQuests.length > 0) renderQuests(cachedQuests);
       } catch (e) {}
     }
-
-    // 裏側（バックグラウンド）で最新データを取得
     fetchBoardQuests(false);
   }
 
@@ -364,15 +373,12 @@
     const statusBar = document.getElementById('syncStatusBar');
     const btnRef = document.getElementById('btnRefresh');
 
-    const hasRenderedItems = listArea.children.length > 0;
-    if (!hasRenderedItems) {
+    if (listArea.children.length === 0) {
       listArea.innerHTML = '<div class="empty-box">⏳ 案件を取得中...</div>';
     }
-
     if (statusBar) statusBar.textContent = '📡 最新情報を取得中...';
     if (isManualRefresh && btnRef) {
-      btnRef.disabled = true;
-      btnRef.textContent = '🔄 更新中...';
+      btnRef.disabled = true; btnRef.textContent = '🔄 更新中...';
     }
 
     try {
@@ -380,36 +386,21 @@
       const res = await (await fetch(url)).json();
 
       if (res.success && res.quests) {
-        // ローカルキャッシュに最新版を保存
         localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(res.quests));
-
         if (res.quests.length > 0) {
           renderQuests(res.quests);
         } else {
           listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
         }
         if (statusBar) statusBar.textContent = '✔ 最新の情報に更新済み';
-      } else {
-        if (!hasRenderedItems) {
-          listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
-        }
-        if (statusBar) statusBar.textContent = '';
       }
     } catch (e) {
-      if (!hasRenderedItems) {
-        listArea.innerHTML = `<div class="empty-box" style="color:var(--danger-red);">取得に失敗しました。<br>${e.message}</div>`;
-      }
-      if (statusBar) statusBar.textContent = '⚠️ オフラインまたは通信エラー';
+      if (statusBar) statusBar.textContent = '⚠️ 通信エラー';
     } finally {
       if (btnRef) {
-        btnRef.disabled = false;
-        btnRef.textContent = '🔄 最新の案件に更新';
+        btnRef.disabled = false; btnRef.textContent = '🔄 最新の案件に更新';
       }
-      setTimeout(() => {
-        if (statusBar && statusBar.textContent.includes('更新済み')) {
-          statusBar.textContent = '';
-        }
-      }, 3000);
+      setTimeout(() => { if (statusBar) statusBar.textContent = ''; }, 3000);
     }
   }
 
@@ -419,7 +410,12 @@
 
     quests.forEach(q => {
       const card = document.createElement('div');
-      card.className = 'quest-card';
+      // ★機能2：緊急案件なら urgent-card クラスを付与
+      card.className = q.isUrgent ? 'quest-card urgent-card' : 'quest-card';
+
+      const urgentBannerHtml = q.isUrgent
+        ? '<div class="urgent-banner"><span>🚨</span><span>【至急】運行日が迫っています（直前募集中）</span></div>'
+        : '';
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
       let displayDate = q.dateText || '日時指定なし';
@@ -438,6 +434,7 @@
       const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
 
       card.innerHTML = `
+        ${urgentBannerHtml}
         <div class="quest-header">
           <span class="quest-id-badge">案件 #${q.id}</span>
           ${agencyTag}
@@ -479,7 +476,7 @@
       const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
       const res = await (await fetch(url)).json();
       if (res.success) {
-        alert('受託が完了しました！\n公式LINEのトーク画面に案内が届いていますのでご確認ください。');
+        alert('受託が完了しました！\n公式LINEをご確認ください。');
         fetchBoardQuests(true);
       } else {
         alert('受託できませんでした: ' + res.message);
