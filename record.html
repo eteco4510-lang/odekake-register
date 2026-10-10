@@ -295,7 +295,7 @@
     </button>
 
     <div class="danger-actions-section">
-      <!-- ★「キャンセル」に文面統一 -->
+      <!-- ★理由質問なしの受託キャンセルボタン -->
       <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
         ⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）
       </button>
@@ -640,7 +640,7 @@
     return d / 1000.0;
   }
 
-  /* ★「キャンセル」に文面・処理を統一 */
+  /* ★キャンセル理由を聞かずに1ステップで完了するキャンセル処理 */
   async function cancelThisQuest() {
     if (isSubmitting) return;
 
@@ -656,16 +656,13 @@
       return;
     }
 
-    const reason = prompt('キャンセルの理由を入力してください（任意）', '急病・体調不良');
-    if (reason === null) return;
-
     const btn = document.getElementById('btnDecline');
     isSubmitting = true;
     btn.disabled = true;
     btn.textContent = '⏳ キャンセル処理中...';
 
     try {
-      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&reason=${encodeURIComponent(reason || '都合悪化')}`;
+      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
       const res = await (await fetch(url)).json();
 
       if (res.success) {
