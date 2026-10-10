@@ -170,7 +170,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 下部非常時アクション群 */
     .danger-actions-section {
       margin-top: 32px;
       padding-top: 20px;
@@ -296,9 +295,9 @@
     </button>
 
     <div class="danger-actions-section">
-      <!-- ★機能3：受託辞退ボタン -->
-      <button type="button" class="btn-decline" id="btnDecline" onclick="declineThisQuest()">
-        ⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）
+      <!-- ★「キャンセル」に文面統一 -->
+      <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
+        ⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）
       </button>
       <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
         🚫 利用者不在などで送迎を中止する（現場での中止）
@@ -641,8 +640,8 @@
     return d / 1000.0;
   }
 
-  /* ★機能3：受託辞退処理 */
-  async function declineThisQuest() {
+  /* ★「キャンセル」に文面・処理を統一 */
+  async function cancelThisQuest() {
     if (isSubmitting) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
@@ -653,20 +652,20 @@
       return;
     }
 
-    if (!confirm(`【受託辞退の確認】\n案件 [${qid}] の受託を辞退しますか？\n辞退すると掲示板で再度ボランティア募集が行われます。`)) {
+    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) {
       return;
     }
 
-    const reason = prompt('辞退の理由を入力してください（任意）', '急病・体調不良');
+    const reason = prompt('キャンセルの理由を入力してください（任意）', '急病・体調不良');
     if (reason === null) return;
 
     const btn = document.getElementById('btnDecline');
     isSubmitting = true;
     btn.disabled = true;
-    btn.textContent = '⏳ 辞退処理中...';
+    btn.textContent = '⏳ キャンセル処理中...';
 
     try {
-      const url = `${GAS_API_URL}?action=declineQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&reason=${encodeURIComponent(reason || '都合悪化')}`;
+      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&reason=${encodeURIComponent(reason || '都合悪化')}`;
       const res = await (await fetch(url)).json();
 
       if (res.success) {
@@ -674,24 +673,24 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託を辞退しました';
+        document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託をキャンセルしました';
         document.getElementById('completeHeaderTitle').style.color = '#b45309';
-        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託辞退を受け付けました。<br>掲示板で再度ボランティアを募集します。`;
+        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
         document.getElementById('resultStatsArea').style.display = 'none';
         document.getElementById('infoCalloutArea').innerHTML = `<strong>✔ 事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
 
         window.scrollTo(0, 0);
       } else {
-        alert('辞退エラー: ' + res.message);
+        alert('キャンセルエラー: ' + res.message);
         isSubmitting = false;
         btn.disabled = false;
-        btn.textContent = '⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）';
+        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
       isSubmitting = false;
       btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）';
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
     }
   }
 
