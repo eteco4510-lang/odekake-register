@@ -20,14 +20,9 @@
       --danger-red: #b91c1c;
       --danger-bg: #fef2f2;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-main);
       line-height: 1.5;
@@ -52,11 +47,7 @@
       justify-content: center;
       gap: 6px;
     }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 14px 16px;
-    }
+    .container { max-width: 500px; margin: 0 auto; padding: 14px 16px; }
     .card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -65,20 +56,9 @@
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 1rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-    .form-group .sub-label {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .form-group .sub-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
     input[type="text"], input[type="tel"] {
       width: 100%;
       height: 52px;
@@ -89,17 +69,8 @@
       color: var(--text-main);
       background-color: #fafafa;
     }
-    input[type="text"]:focus, input[type="tel"]:focus {
-      background-color: #ffffff;
-      border-color: var(--primary-blue);
-      outline: none;
-    }
-    .passenger-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
+    input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
+    .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .btn-add-passenger {
       width: 100%;
       height: 48px;
@@ -115,18 +86,12 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn-add-passenger:active { background-color: #dbeafe; }
-
     .step-section {
       margin-top: 24px;
       border-top: 2px solid #e2e8f0;
       padding-top: 20px;
     }
-    .step-title {
-      font-size: 1.05rem;
-      font-weight: 900;
-      margin-bottom: 10px;
-    }
+    .step-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 10px; }
     .btn-gps-trigger {
       width: 100%;
       height: 58px;
@@ -141,13 +106,8 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      transition: all 0.15s;
     }
-    .btn-gps-trigger:active {
-      background-color: #eff6ff;
-      transform: scale(0.98);
-    }
+    .btn-gps-trigger:active { background-color: #eff6ff; transform: scale(0.98); }
     .lock-notice-box {
       margin-top: 10px;
       padding: 12px 14px;
@@ -204,32 +164,43 @@
       box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.35);
       animation: fadeIn 0.3s ease-in-out;
     }
-    .btn-submit:active {
-      background-color: var(--primary-hover);
-      transform: scale(0.98);
-    }
+    .btn-submit:active { background-color: var(--primary-hover); transform: scale(0.98); }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .abort-section {
-      margin-top: 30px;
+
+    /* 下部非常時アクション群 */
+    .danger-actions-section {
+      margin-top: 32px;
       padding-top: 20px;
       border-top: 2px dashed var(--border-color);
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-decline {
+      width: 100%;
+      height: 48px;
+      background-color: #fffbeb;
+      border: 2px solid #f59e0b;
+      color: #b45309;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
     }
     .btn-abort {
       width: 100%;
-      height: 50px;
+      height: 48px;
       background-color: var(--danger-bg);
       border: 2px solid #fca5a5;
       color: var(--danger-red);
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 800;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
     }
-    .btn-abort:active { background-color: #fee2e2; }
 
     #completeView { display: none; }
     .complete-card {
@@ -238,14 +209,8 @@
       padding: 24px 18px;
       border: 2px solid var(--success-green);
       text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
-    .complete-header {
-      color: var(--success-green);
-      font-size: 1.5rem;
-      font-weight: 900;
-      margin-bottom: 6px;
-    }
+    .complete-header { color: var(--success-green); font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; }
     .close-instruction-banner {
       background: var(--danger-bg);
       border: 3px solid #ef4444;
@@ -253,23 +218,9 @@
       padding: 16px 14px;
       margin: 20px 0;
       text-align: center;
-      animation: pulse 2s infinite;
     }
-    .close-instruction-title {
-      font-size: 1.25rem;
-      font-weight: 900;
-      color: var(--danger-red);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-    .close-instruction-desc {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #7f1d1d;
-    }
+    .close-instruction-title { font-size: 1.25rem; font-weight: 900; color: var(--danger-red); margin-bottom: 4px; }
+    .close-instruction-desc { font-size: 0.95rem; font-weight: 800; color: #7f1d1d; }
     .result-stats-box {
       background: #f8fafc;
       border: 2px solid #e2e8f0;
@@ -278,30 +229,12 @@
       margin-bottom: 18px;
       text-align: left;
     }
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 1rem;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
+    .result-row { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
     .result-row:last-child {
-      margin-bottom: 0;
-      padding-top: 8px;
-      border-top: 1px dashed #cbd5e1;
-      font-weight: 900;
-      color: var(--warn-amber);
-      font-size: 1.15rem;
+      margin-bottom: 0; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-weight: 900; color: var(--warn-amber); font-size: 1.15rem;
     }
     .photo-callout {
-      background: var(--warn-bg);
-      border: 2px solid #fde68a;
-      border-radius: 10px;
-      padding: 16px 14px;
-      font-size: 0.92rem;
-      text-align: left;
-      color: #78350f;
-      line-height: 1.5;
+      background: var(--warn-bg); border: 2px solid #fde68a; border-radius: 10px; padding: 16px 14px; font-size: 0.92rem; text-align: left; color: #78350f;
     }
   </style>
 </head>
@@ -316,7 +249,6 @@
     <div class="form-group">
       <label>案件番号</label>
       <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
-      <div class="sub-label">※受託した案件番号が自動入力されます</div>
     </div>
 
     <div class="form-group">
@@ -363,13 +295,14 @@
       活動実績を送信
     </button>
 
-    <div class="abort-section">
-      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
-        🚫 送迎を中止する（不在・急変など）
+    <div class="danger-actions-section">
+      <!-- ★機能3：受託辞退ボタン -->
+      <button type="button" class="btn-decline" id="btnDecline" onclick="declineThisQuest()">
+        ⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）
       </button>
-      <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">
-        ※利用者が来ない場合（10分経過）や体調不良で中止する場合はこちら
-      </div>
+      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
+        🚫 利用者不在などで送迎を中止する（現場での中止）
+      </button>
     </div>
   </div>
 </div>
@@ -391,22 +324,13 @@
     </div>
 
     <div class="result-stats-box" id="resultStatsArea">
-      <div class="result-row">
-        <span>所要時間:</span>
-        <span id="dispDuration">0 分</span>
-      </div>
-      <div class="result-row">
-        <span>片道距離 / 往復換算:</span>
-        <span id="dispDistance">0 km / 0 km</span>
-      </div>
-      <div class="result-row">
-        <span>実費弁償額（往復）:</span>
-        <span id="dispFee">0 円</span>
-      </div>
+      <div class="result-row"><span>所要時間:</span><span id="dispDuration">0 分</span></div>
+      <div class="result-row"><span>片道距離 / 往復換算:</span><span id="dispDistance">0 km / 0 km</span></div>
+      <div class="result-row"><span>実費弁償額（往復）:</span><span id="dispFee">0 円</span></div>
     </div>
 
     <div class="photo-callout" id="infoCalloutArea">
-      <strong>📸 最後のステップ（写真送信）:</strong><br>
+      <strong>📸 最後のステップ:</strong><br>
       右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
     </div>
   </div>
@@ -421,18 +345,9 @@
   let isSubmitting = false;
 
   let runLog = {
-    depTime: '',
-    depTimestamp: null,
-    depLat: null,
-    depLng: null,
-    arrTime: '',
-    arrTimestamp: null,
-    arrLat: null,
-    arrLng: null,
-    durationMin: 0,
-    oneWayKm: 0,
-    roundTripKm: 0,
-    fee: 0
+    depTime: '', depTimestamp: null, depLat: null, depLng: null,
+    arrTime: '', arrTimestamp: null, arrLat: null, arrLng: null,
+    durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0
   };
 
   function extractQuestIdFromUrl() {
@@ -448,12 +363,6 @@
         q = stateParams.get('qid');
         if (q) return q.trim();
       } catch (e) {}
-    }
-
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      q = hashParams.get('qid');
-      if (q) return q.trim();
     }
     return '';
   }
@@ -553,9 +462,7 @@
         calcSummaryIfPossible();
       }
       return true;
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
   }
 
   function clearDraft() {
@@ -645,10 +552,7 @@
   }
 
   function recordDeparture() {
-    if (!navigator.geolocation) {
-      alert('端末の位置情報機能が利用できません。');
-      return;
-    }
+    if (!navigator.geolocation) { alert('位置情報機能が利用できません。'); return; }
     const btn = document.getElementById('btnDep');
     btn.textContent = '⏳ GPS測位中...';
 
@@ -661,15 +565,12 @@
         runLog.depLng = pos.coords.longitude;
 
         btn.textContent = '✔ 出発地を記録済み';
-        btn.style.borderColor = '#15803d';
-        btn.style.color = '#15803d';
+        btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('depStatus');
         st.className = 'status-box recorded';
         st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
 
-        try {
-          calcSummaryIfPossible();
-        } catch(e) {}
+        try { calcSummaryIfPossible(); } catch(e) {}
         handleFieldChange();
       },
       () => {
@@ -681,10 +582,7 @@
   }
 
   function recordArrival() {
-    if (!navigator.geolocation) {
-      alert('端末の位置情報機能が利用できません。');
-      return;
-    }
+    if (!navigator.geolocation) { alert('位置情報機能が利用できません。'); return; }
     const btn = document.getElementById('btnArr');
     btn.textContent = '⏳ GPS測位中...';
 
@@ -697,20 +595,12 @@
         runLog.arrLng = pos.coords.longitude;
 
         btn.textContent = '✔ 到着地を記録済み';
-        btn.style.borderColor = '#15803d';
-        btn.style.color = '#15803d';
+        btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('arrStatus');
         st.className = 'status-box recorded';
         st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
 
-        // ★計算で万一エラーが起きてもボタン判定を絶対に遮断しない安全保護
-        try {
-          calcSummaryIfPossible();
-        } catch(err) {
-          console.warn('実走距離計算スキップ:', err);
-        }
-
-        // ★到着地記録完了と同時に全条件を判定して送信ボタンを表示
+        try { calcSummaryIfPossible(); } catch(err) { console.warn('距離計算スキップ:', err); }
         handleFieldChange();
       },
       () => {
@@ -734,7 +624,6 @@
     }
   }
 
-  // ★致命的バグを修正したヒュベニ公式計算関数
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
     const radLat1 = lat1 * Math.PI / 180;
     const radLon1 = lon1 * Math.PI / 180;
@@ -743,7 +632,6 @@
     const a = 6378137.0;
     const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
-    // ★修正箇所: radLon1 - radLon2（以前は radLon1 - lonDiff となっておりクラッシュしていた）
     const lonDiff = radLon1 - radLon2;
     const latAve = (radLat1 + radLat2) / 2.0;
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
@@ -753,23 +641,71 @@
     return d / 1000.0;
   }
 
+  /* ★機能3：受託辞退処理 */
+  async function declineThisQuest() {
+    if (isSubmitting) return;
+
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+
+    if (!qid || !driverId) {
+      alert('案件番号またはドライバー登録番号が確認できません。');
+      return;
+    }
+
+    if (!confirm(`【受託辞退の確認】\n案件 [${qid}] の受託を辞退しますか？\n辞退すると掲示板で再度ボランティア募集が行われます。`)) {
+      return;
+    }
+
+    const reason = prompt('辞退の理由を入力してください（任意）', '急病・体調不良');
+    if (reason === null) return;
+
+    const btn = document.getElementById('btnDecline');
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.textContent = '⏳ 辞退処理中...';
+
+    try {
+      const url = `${GAS_API_URL}?action=declineQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&reason=${encodeURIComponent(reason || '都合悪化')}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託を辞退しました';
+        document.getElementById('completeHeaderTitle').style.color = '#b45309';
+        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託辞退を受け付けました。<br>掲示板で再度ボランティアを募集します。`;
+        document.getElementById('resultStatsArea').style.display = 'none';
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>✔ 事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
+
+        window.scrollTo(0, 0);
+      } else {
+        alert('辞退エラー: ' + res.message);
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.textContent = '⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）';
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = '⚠️ 都合悪化のため受託を辞退する（再募集へ戻す）';
+    }
+  }
+
   async function submitRecord() {
     if (isSubmitting) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnSubmit');
-    const btnAbort = document.getElementById('btnAbort');
 
     isSubmitting = true;
     btn.disabled = true;
-    btn.style.pointerEvents = 'none';
     btn.style.opacity = '0.6';
     btn.textContent = '⏳ 送信中（そのままお待ちください）...';
-    if (btnAbort) {
-      btnAbort.disabled = true;
-      btnAbort.style.pointerEvents = 'none';
-    }
 
     const passengers = [];
     for (let i = 1; i <= 7; i++) {
@@ -781,23 +717,12 @@
     const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
 
     const payload = {
-      questId: qid,
-      driverId: driverId,
-      driverName: cachedDriverName,
-      isCancelled: false,
-      depTime: runLog.depTime,
-      arrTime: runLog.arrTime,
-      duration: runLog.durationMin,
-      oneWayDistance: runLog.oneWayKm,
-      roundTripDistance: runLog.roundTripKm,
-      fee: runLog.fee,
-      depLat: runLog.depLat || '',
-      depLng: runLog.depLng || '',
-      arrLat: runLog.arrLat || '',
-      arrLng: runLog.arrLng || '',
-      depMapUrl: depMapUrl,
-      arrMapUrl: arrMapUrl,
-      passengers: passengers
+      questId: qid, driverId: driverId, driverName: cachedDriverName,
+      isCancelled: false, depTime: runLog.depTime, arrTime: runLog.arrTime,
+      duration: runLog.durationMin, oneWayDistance: runLog.oneWayKm, roundTripDistance: runLog.roundTripKm,
+      fee: runLog.fee, depLat: runLog.depLat || '', depLng: runLog.depLng || '',
+      arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
+      depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
     };
 
     try {
@@ -820,27 +745,13 @@
         window.scrollTo(0, 0);
       } else {
         alert('保存エラー: ' + res.message);
-        isSubmitting = false;
-        btn.disabled = false;
-        btn.style.pointerEvents = 'auto';
-        btn.style.opacity = '1';
+        isSubmitting = false; btn.disabled = false; btn.style.opacity = '1';
         btn.textContent = '活動実績を送信';
-        if (btnAbort) {
-          btnAbort.disabled = false;
-          btnAbort.style.pointerEvents = 'auto';
-        }
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      isSubmitting = false;
-      btn.disabled = false;
-      btn.style.pointerEvents = 'auto';
-      btn.style.opacity = '1';
+      isSubmitting = false; btn.disabled = false; btn.style.opacity = '1';
       btn.textContent = '活動実績を送信';
-      if (btnAbort) {
-        btnAbort.disabled = false;
-        btnAbort.style.pointerEvents = 'auto';
-      }
     }
   }
 
@@ -848,51 +759,29 @@
     if (isSubmitting) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
-    if (!qid) {
-      alert('案件番号が確認できません。案件番号を入力してください。');
-      return;
-    }
+    if (!qid) { alert('案件番号が確認できません。'); return; }
 
-    if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) {
-      return;
-    }
+    if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) return;
 
     const reason = prompt('中止の理由を入力してください', '利用者が来ないため（10分経過）');
     if (reason === null) return;
 
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnAbort');
-    const btnSubmit = document.getElementById('btnSubmit');
 
     isSubmitting = true;
     btn.disabled = true;
-    btn.style.pointerEvents = 'none';
     btn.textContent = '⏳ 中止処理中...';
-    if (btnSubmit) {
-      btnSubmit.disabled = true;
-      btnSubmit.style.pointerEvents = 'none';
-    }
 
     const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
 
     const payload = {
-      questId: qid,
-      driverId: driverId,
-      driverName: cachedDriverName,
-      isCancelled: true,
-      cancelReason: reason || '利用者の不在',
-      depTime: runLog.depTime || '',
-      arrTime: '',
-      duration: 0,
-      oneWayDistance: 0,
-      roundTripDistance: 0,
-      fee: 0,
-      depLat: runLog.depLat || '',
-      depLng: runLog.depLng || '',
-      arrLat: '',
-      arrLng: '',
-      depMapUrl: depMapUrl,
-      arrMapUrl: '',
+      questId: qid, driverId: driverId, driverName: cachedDriverName,
+      isCancelled: true, cancelReason: reason || '利用者の不在',
+      depTime: runLog.depTime || '', arrTime: '', duration: 0,
+      oneWayDistance: 0, roundTripDistance: 0, fee: 0,
+      depLat: runLog.depLat || '', depLng: runLog.depLng || '',
+      arrLat: '', arrLng: '', depMapUrl: depMapUrl, arrMapUrl: '',
       passengers: ['【送迎中止】' + (reason || '利用者の不在')]
     };
 
@@ -914,25 +803,11 @@
         window.scrollTo(0, 0);
       } else {
         alert('中止処理エラー: ' + res.message);
-        isSubmitting = false;
-        btn.disabled = false;
-        btn.style.pointerEvents = 'auto';
-        btn.textContent = '🚫 送迎を中止する（不在・急変など）';
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          btnSubmit.style.pointerEvents = 'auto';
-        }
+        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      isSubmitting = false;
-      btn.disabled = false;
-      btn.style.pointerEvents = 'auto';
-      btn.textContent = '🚫 送迎を中止する（不在・急変など）';
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.style.pointerEvents = 'auto';
-      }
+      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
     }
   }
 </script>
