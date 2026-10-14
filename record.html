@@ -339,7 +339,7 @@
 
     <div class="form-group">
       <label>その他実費（有料道路・駐車場代の合計）</label>
-      <div class="sub-label">※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）</div>
+      <div class="sub-label">※発生した場合のみ半角数字で入力</div>
       <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()">
     </div>
 
@@ -790,12 +790,12 @@
       } else {
         alert('キャンセルエラー: ' + res.message);
         isSubmitting = false; btn.disabled = false;
-        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
+        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
       isSubmitting = false; btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする';
     }
   }
 
@@ -928,11 +928,11 @@
         window.scrollTo(0, 0);
       } else {
         alert('中止処理エラー: ' + res.message);
-        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
+        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
+      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する';
     }
   }
 </script>
