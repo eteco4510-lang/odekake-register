@@ -59,7 +59,7 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
     .form-group .sub-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
-    input[type="text"], input[type="tel"] {
+    input[type="text"], input[type="tel"], input[type="number"] {
       width: 100%;
       height: 52px;
       padding: 0 14px;
@@ -70,6 +70,37 @@
       background-color: #fafafa;
     }
     input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
+    
+    /* 運行区分（往復/片道）ボタンスタイル */
+    .trip-type-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .trip-type-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 50px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #f8fafc;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .trip-type-label input { width: 18px; height: 18px; margin: 0; accent-color: var(--primary-blue); }
+    .trip-type-label.active {
+      border-color: var(--primary-blue);
+      background-color: #eff6ff;
+      color: var(--primary-blue);
+      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
+    }
+
     .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .btn-add-passenger {
       width: 100%;
@@ -228,12 +259,12 @@
       margin-bottom: 18px;
       text-align: left;
     }
-    .result-row { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
+    .result-row { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 8px; font-weight: 600; }
     .result-row:last-child {
       margin-bottom: 0; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-weight: 900; color: var(--warn-amber); font-size: 1.15rem;
     }
     .photo-callout {
-      background: var(--warn-bg); border: 2px solid #fde68a; border-radius: 10px; padding: 16px 14px; font-size: 0.92rem; text-align: left; color: #78350f;
+      background: var(--warn-bg); border: 2px solid #fde68a; border-radius: 10px; padding: 16px 14px; font-size: 0.92rem; text-align: left; color: #78350f; line-height: 1.5;
     }
   </style>
 </head>
@@ -250,6 +281,22 @@
       <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
     </div>
 
+    <!-- ★改修：運行区分（往復／片道）選択 -->
+    <div class="form-group">
+      <label>運行区分</label>
+      <div class="trip-type-group">
+        <label class="trip-type-label active" id="labelRound">
+          <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
+          <span>🔄 往復送迎</span>
+        </label>
+        <label class="trip-type-label" id="labelOneWay">
+          <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
+          <span>➡️ 片道のみ</span>
+        </label>
+      </div>
+      <div class="sub-label" style="margin-top:6px;">※マニュアル規定：往復は延べ2人、片道は延べ1人として計算されます</div>
+    </div>
+
     <div class="form-group">
       <label>登録番号（半角数字）</label>
       <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="handleFieldChange()">
@@ -264,6 +311,13 @@
       <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
         ＋ 乗客を追加する
       </button>
+    </div>
+
+    <!-- ★改修：その他実費（有料道路・駐車場代等）入力欄 -->
+    <div class="form-group">
+      <label>その他実費（有料道路・駐車場代の合計）</label>
+      <div class="sub-label">※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）</div>
+      <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()">
     </div>
 
     <div class="step-section">
@@ -295,7 +349,6 @@
     </button>
 
     <div class="danger-actions-section">
-      <!-- ★理由質問なしの受託キャンセルボタン -->
       <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
         ⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）
       </button>
@@ -323,14 +376,38 @@
     </div>
 
     <div class="result-stats-box" id="resultStatsArea">
-      <div class="result-row"><span>所要時間:</span><span id="dispDuration">0 分</span></div>
-      <div class="result-row"><span>片道距離 / 往復換算:</span><span id="dispDistance">0 km / 0 km</span></div>
-      <div class="result-row"><span>実費弁償額（往復）:</span><span id="dispFee">0 円</span></div>
+      <div class="result-row">
+        <span>運行区分 / 所要時間:</span>
+        <span id="dispTripInfo">往復 / 0 分</span>
+      </div>
+      <div class="result-row">
+        <span>計算対象距離:</span>
+        <span id="dispDistance">0 km</span>
+      </div>
+      <div class="result-row">
+        <span>乗車人数（片道 / 延べ）:</span>
+        <span id="dispPassengerCount">1 人 / 2 人</span>
+      </div>
+      <div class="result-row">
+        <span>燃料費相当（20円/km）:</span>
+        <span id="dispFuelFee">0 円</span>
+      </div>
+      <div class="result-row" id="rowOtherExpense">
+        <span>その他実費（有料道路・駐車場）:</span>
+        <span id="dispOtherExpense">0 円</span>
+      </div>
+      <div class="result-row">
+        <span>合計実費弁償額:</span>
+        <span id="dispFee">0 円</span>
+      </div>
     </div>
 
+    <!-- ★改修：領収書レシート案内（動的表示） -->
     <div class="photo-callout" id="infoCalloutArea">
-      <strong>📸 最後のステップ:</strong><br>
-      右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
+      <strong>📸 最後のステップ（写真送信）:</strong><br>
+      <span id="dispPhotoNotice">
+        右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
+      </span>
     </div>
   </div>
 </div>
@@ -346,7 +423,7 @@
   let runLog = {
     depTime: '', depTimestamp: null, depLat: null, depLng: null,
     arrTime: '', arrTimestamp: null, arrLat: null, arrLng: null,
-    durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0
+    durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
   };
 
   function extractQuestIdFromUrl() {
@@ -371,6 +448,14 @@
     return 'odekake_draft_' + (qidVal || questId || 'general');
   }
 
+  function handleTripTypeChange() {
+    const isRound = document.querySelector('input[name="tripType"]:checked').value === '往復';
+    document.getElementById('labelRound').className = isRound ? 'trip-type-label active' : 'trip-type-label';
+    document.getElementById('labelOneWay').className = !isRound ? 'trip-type-label active' : 'trip-type-label';
+    calcSummaryIfPossible();
+    handleFieldChange();
+  }
+
   function saveCurrentDraft() {
     try {
       const passengers = [];
@@ -381,6 +466,8 @@
       const draft = {
         questId: document.getElementById('questIdInput').value.trim(),
         driverId: document.getElementById('driverId').value.trim(),
+        tripType: document.querySelector('input[name="tripType"]:checked').value,
+        otherExpense: document.getElementById('otherExpense').value,
         passengers: passengers,
         passengerCount: passengerCount,
         runLog: runLog
@@ -427,6 +514,12 @@
 
       if (draft.questId) document.getElementById('questIdInput').value = draft.questId;
       if (draft.driverId) document.getElementById('driverId').value = draft.driverId;
+      if (draft.otherExpense) document.getElementById('otherExpense').value = draft.otherExpense;
+
+      if (draft.tripType) {
+        const rad = document.querySelector(`input[name="tripType"][value="${draft.tripType}"]`);
+        if (rad) { rad.checked = true; handleTripTypeChange(); }
+      }
 
       if (draft.passengers && draft.passengers.length > 0) {
         while (passengerCount < draft.passengers.length && passengerCount < 7) {
@@ -443,8 +536,7 @@
         if (runLog.depTime) {
           const btnDep = document.getElementById('btnDep');
           btnDep.textContent = '✔ 出発地を記録済み';
-          btnDep.style.borderColor = '#15803d';
-          btnDep.style.color = '#15803d';
+          btnDep.style.borderColor = '#15803d'; btnDep.style.color = '#15803d';
           const stDep = document.getElementById('depStatus');
           stDep.className = 'status-box recorded';
           stDep.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
@@ -452,8 +544,7 @@
         if (runLog.arrTime) {
           const btnArr = document.getElementById('btnArr');
           btnArr.textContent = '✔ 到着地を記録済み';
-          btnArr.style.borderColor = '#15803d';
-          btnArr.style.color = '#15803d';
+          btnArr.style.borderColor = '#15803d'; btnArr.style.color = '#15803d';
           const stArr = document.getElementById('arrStatus');
           stArr.className = 'status-box recorded';
           stArr.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
@@ -619,8 +710,14 @@
       const distKm = calcHubenyDistance(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
       runLog.oneWayKm = Math.round(distKm);
       runLog.roundTripKm = runLog.oneWayKm * 2;
-      runLog.fee = runLog.roundTripKm * 20;
     }
+
+    const tripType = document.querySelector('input[name="tripType"]:checked') ? document.querySelector('input[name="tripType"]:checked').value : '往復';
+    const calcDistance = (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm;
+    runLog.fuelFee = calcDistance * 20;
+
+    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
+    runLog.fee = runLog.fuelFee + otherExp;
   }
 
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
@@ -640,26 +737,17 @@
     return d / 1000.0;
   }
 
-  /* ★キャンセル理由を聞かずに1ステップで完了するキャンセル処理 */
   async function cancelThisQuest() {
     if (isSubmitting) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
 
-    if (!qid || !driverId) {
-      alert('案件番号またはドライバー登録番号が確認できません。');
-      return;
-    }
-
-    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) {
-      return;
-    }
+    if (!qid || !driverId) { alert('案件番号または登録番号が確認できません。'); return; }
+    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) return;
 
     const btn = document.getElementById('btnDecline');
-    isSubmitting = true;
-    btn.disabled = true;
-    btn.textContent = '⏳ キャンセル処理中...';
+    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ キャンセル処理中...';
 
     try {
       const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
@@ -679,14 +767,12 @@
         window.scrollTo(0, 0);
       } else {
         alert('キャンセルエラー: ' + res.message);
-        isSubmitting = false;
-        btn.disabled = false;
+        isSubmitting = false; btn.disabled = false;
         btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      isSubmitting = false;
-      btn.disabled = false;
+      isSubmitting = false; btn.disabled = false;
       btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
     }
   }
@@ -696,11 +782,13 @@
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
+    const tripType = document.querySelector('input[name="tripType"]:checked').value;
+    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
     const btn = document.getElementById('btnSubmit');
 
-    isSubmitting = true;
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
+    calcSummaryIfPossible();
+
+    isSubmitting = true; btn.disabled = true; btn.style.opacity = '0.6';
     btn.textContent = '⏳ 送信中（そのままお待ちください）...';
 
     const passengers = [];
@@ -714,9 +802,13 @@
 
     const payload = {
       questId: qid, driverId: driverId, driverName: cachedDriverName,
-      isCancelled: false, depTime: runLog.depTime, arrTime: runLog.arrTime,
-      duration: runLog.durationMin, oneWayDistance: runLog.oneWayKm, roundTripDistance: runLog.roundTripKm,
-      fee: runLog.fee, depLat: runLog.depLat || '', depLng: runLog.depLng || '',
+      isCancelled: false, tripType: tripType, otherExpense: otherExp,
+      depTime: runLog.depTime, arrTime: runLog.arrTime,
+      duration: runLog.durationMin,
+      oneWayDistance: runLog.oneWayKm,
+      roundTripDistance: (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm,
+      fuelFee: runLog.fuelFee, fee: runLog.fee,
+      depLat: runLog.depLat || '', depLng: runLog.depLng || '',
       arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
       depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
     };
@@ -730,13 +822,31 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        const finalOneWay = (res.oneWayDistance !== undefined && res.oneWayDistance !== null) ? res.oneWayDistance : runLog.oneWayKm;
-        const finalRound = (res.roundTripDistance !== undefined && res.roundTripDistance !== null) ? res.roundTripDistance : runLog.roundTripKm;
-        const finalFee = (res.fee !== undefined && res.fee !== null) ? res.fee : runLog.fee;
+        const finalDist = (tripType === '片道')
+          ? `${res.oneWayDistance !== undefined ? res.oneWayDistance : runLog.oneWayKm} km (片道実走)`
+          : `${res.roundTripDistance !== undefined ? res.roundTripDistance : runLog.roundTripKm} km (片道×2往復)`;
 
-        document.getElementById('dispDuration').textContent = `${runLog.durationMin} 分`;
-        document.getElementById('dispDistance').textContent = `片道: ${finalOneWay} km / 往復換算: ${finalRound} km`;
-        document.getElementById('dispFee').textContent = `${finalFee} 円`;
+        const actualPCount = passengers.filter(p => p.trim() !== '').length || 1;
+        const totalPCount = (tripType === '片道') ? actualPCount : actualPCount * 2;
+
+        document.getElementById('dispTripInfo').textContent = `${tripType} / ${runLog.durationMin} 分`;
+        document.getElementById('dispDistance').textContent = finalDist;
+        document.getElementById('dispPassengerCount').textContent = `片道 ${actualPCount} 人 / 延べ ${totalPCount} 人 (人回)`;
+        document.getElementById('dispFuelFee').textContent = `${res.fuelFee !== undefined ? res.fuelFee : runLog.fuelFee} 円`;
+        document.getElementById('dispOtherExpense').textContent = `${otherExp} 円`;
+        document.getElementById('dispFee').textContent = `${res.fee !== undefined ? res.fee : runLog.fee} 円`;
+
+        // ★改修：レシート提出案内の切り替え表示
+        const noticeEl = document.getElementById('dispPhotoNotice');
+        if (otherExp > 0) {
+          noticeEl.innerHTML = `
+            右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br>
+            <strong style="color:#b91c1c;">【有料道路・駐車場代のレシート（領収書）の写真】</strong>をトーク画面に送信してください。<br>
+            <span style="font-size:0.8rem; color:#78350f;">※相模原市マニュアル規定により、レシート原本は5年間保管が必要です。</span>
+          `;
+        } else {
+          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。`;
+        }
 
         window.scrollTo(0, 0);
       } else {
@@ -756,7 +866,6 @@
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     if (!qid) { alert('案件番号が確認できません。'); return; }
-
     if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) return;
 
     const reason = prompt('中止の理由を入力してください', '利用者が来ないため（10分経過）');
@@ -765,17 +874,16 @@
     const driverId = document.getElementById('driverId').value.trim();
     const btn = document.getElementById('btnAbort');
 
-    isSubmitting = true;
-    btn.disabled = true;
-    btn.textContent = '⏳ 中止処理中...';
+    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ 中止処理中...';
 
     const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
 
     const payload = {
       questId: qid, driverId: driverId, driverName: cachedDriverName,
       isCancelled: true, cancelReason: reason || '利用者の不在',
+      tripType: '中止', otherExpense: 0,
       depTime: runLog.depTime || '', arrTime: '', duration: 0,
-      oneWayDistance: 0, roundTripDistance: 0, fee: 0,
+      oneWayDistance: 0, roundTripDistance: 0, fuelFee: 0, fee: 0,
       depLat: runLog.depLat || '', depLng: runLog.depLng || '',
       arrLat: '', arrLng: '', depMapUrl: depMapUrl, arrMapUrl: '',
       passengers: ['【送迎中止】' + (reason || '利用者の不在')]
