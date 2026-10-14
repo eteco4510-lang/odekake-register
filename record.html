@@ -71,34 +71,41 @@
     }
     input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
     
-    /* 運行区分（往復/片道）ボタンスタイル */
-    .trip-type-group {
+    /* ★アプリ風・洗練セグメンテッドコントロール（運行区分） */
+    .trip-segment-control {
+      background-color: #f1f5f9;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 4px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 6px;
+      gap: 6px;
+      margin-top: 8px;
     }
-    .trip-type-label {
+    .trip-segment {
+      height: 48px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      height: 50px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
+      font-size: 1.05rem;
       font-weight: 800;
-      font-size: 1rem;
+      color: var(--text-muted);
       cursor: pointer;
-      background-color: #f8fafc;
-      transition: all 0.2s;
       user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .trip-type-label input { width: 18px; height: 18px; margin: 0; accent-color: var(--primary-blue); }
-    .trip-type-label.active {
-      border-color: var(--primary-blue);
-      background-color: #eff6ff;
-      color: var(--primary-blue);
-      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
+    /* ラジオボタンの丸ポチを完全非表示 */
+    .trip-segment input[type="radio"] {
+      display: none;
+    }
+    /* アクティブ時のリッチなブルー塗りつぶし */
+    .trip-segment.active {
+      background-color: var(--primary-blue);
+      color: #ffffff;
+      font-weight: 900;
+      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
+      transform: scale(1.01);
     }
 
     .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
@@ -281,20 +288,20 @@
       <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
     </div>
 
-    <!-- ★改修：運行区分（往復／片道）選択 -->
+    <!-- ★洗練されたセグメンテッドコントロール（往復／片道） -->
     <div class="form-group">
       <label>運行区分</label>
-      <div class="trip-type-group">
-        <label class="trip-type-label active" id="labelRound">
+      <div class="trip-segment-control">
+        <label class="trip-segment active" id="labelRound">
           <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
-          <span>🔄 往復送迎</span>
+          <span>往復送迎</span>
         </label>
-        <label class="trip-type-label" id="labelOneWay">
+        <label class="trip-segment" id="labelOneWay">
           <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
-          <span>➡️ 片道のみ</span>
+          <span>片道のみ</span>
         </label>
       </div>
-      <div class="sub-label" style="margin-top:6px;">※マニュアル規定：往復は延べ2人、片道は延べ1人として計算されます</div>
+      <div class="sub-label" style="margin-top:8px;">※マニュアル規定：往復は延べ2人、片道は延べ1人として計算されます</div>
     </div>
 
     <div class="form-group">
@@ -313,7 +320,6 @@
       </button>
     </div>
 
-    <!-- ★改修：その他実費（有料道路・駐車場代等）入力欄 -->
     <div class="form-group">
       <label>その他実費（有料道路・駐車場代の合計）</label>
       <div class="sub-label">※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）</div>
@@ -402,7 +408,6 @@
       </div>
     </div>
 
-    <!-- ★改修：領収書レシート案内（動的表示） -->
     <div class="photo-callout" id="infoCalloutArea">
       <strong>📸 最後のステップ（写真送信）:</strong><br>
       <span id="dispPhotoNotice">
@@ -450,8 +455,8 @@
 
   function handleTripTypeChange() {
     const isRound = document.querySelector('input[name="tripType"]:checked').value === '往復';
-    document.getElementById('labelRound').className = isRound ? 'trip-type-label active' : 'trip-type-label';
-    document.getElementById('labelOneWay').className = !isRound ? 'trip-type-label active' : 'trip-type-label';
+    document.getElementById('labelRound').className = isRound ? 'trip-segment active' : 'trip-segment';
+    document.getElementById('labelOneWay').className = !isRound ? 'trip-segment active' : 'trip-segment';
     calcSummaryIfPossible();
     handleFieldChange();
   }
@@ -836,7 +841,6 @@
         document.getElementById('dispOtherExpense').textContent = `${otherExp} 円`;
         document.getElementById('dispFee').textContent = `${res.fee !== undefined ? res.fee : runLog.fee} 円`;
 
-        // ★改修：レシート提出案内の切り替え表示
         const noticeEl = document.getElementById('dispPhotoNotice');
         if (otherExp > 0) {
           noticeEl.innerHTML = `
