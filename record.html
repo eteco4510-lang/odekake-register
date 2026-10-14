@@ -57,8 +57,17 @@
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    
+    /* ★見出しラベルのみに限定（ボタン枠に干渉させない） */
+    .form-group > label {
+      display: block;
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
     .form-group .sub-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
+    
     input[type="text"], input[type="tel"], input[type="number"] {
       width: 100%;
       height: 52px;
@@ -71,41 +80,49 @@
     }
     input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
     
-    /* ★アプリ風・洗練セグメンテッドコントロール（運行区分） */
-    .trip-segment-control {
-      background-color: #f1f5f9;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 14px;
-      padding: 4px;
+    /* ★上下中央・左右中央を完全固定したラジオボタンスタイル */
+    .radio-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 10px;
       margin-top: 8px;
     }
-    .trip-segment {
-      height: 48px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.05rem;
+    .radio-group .radio-label {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      height: 50px !important;
+      margin: 0 !important;
+      padding: 0 8px !important;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
       font-weight: 800;
-      color: var(--text-muted);
+      font-size: 1rem;
       cursor: pointer;
+      background-color: #f8fafc;
+      transition: all 0.2s;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
     }
-    /* ラジオボタンの丸ポチを完全非表示 */
-    .trip-segment input[type="radio"] {
-      display: none;
+    .radio-group .radio-label input[type="radio"] {
+      width: 20px !important;
+      height: 20px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      flex-shrink: 0;
+      accent-color: var(--primary-blue);
+      cursor: pointer;
     }
-    /* アクティブ時のリッチなブルー塗りつぶし */
-    .trip-segment.active {
-      background-color: var(--primary-blue);
-      color: #ffffff;
-      font-weight: 900;
-      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
-      transform: scale(1.01);
+    .radio-group .radio-label span {
+      display: inline-block;
+      line-height: 1;
+    }
+    .radio-group .radio-label.active {
+      border-color: var(--primary-blue);
+      background-color: #eff6ff;
+      color: var(--primary-blue);
+      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
     }
 
     .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
@@ -288,20 +305,20 @@
       <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
     </div>
 
-    <!-- ★洗練されたセグメンテッドコントロール（往復／片道） -->
+    <!-- ★中央揃えを完全固定したラジオボタン（往復／片道） -->
     <div class="form-group">
       <label>運行区分</label>
-      <div class="trip-segment-control">
-        <label class="trip-segment active" id="labelRound">
+      <div class="radio-group">
+        <label class="radio-label active" id="labelRound">
           <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
-          <span>往復送迎</span>
+          <span>往復</span>
         </label>
-        <label class="trip-segment" id="labelOneWay">
+        <label class="radio-label" id="labelOneWay">
           <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
-          <span>片道のみ</span>
+          <span>片道</span>
         </label>
       </div>
-      <div class="sub-label" style="margin-top:8px;">※マニュアル規定：往復は延べ2人、片道は延べ1人として計算されます</div>
+      <div class="sub-label" style="margin-top:8px;">※マニュアル規定：利用者が1人の場合、往復は延べ2人、片道は延べ1人として計算されます</div>
     </div>
 
     <div class="form-group">
@@ -455,8 +472,8 @@
 
   function handleTripTypeChange() {
     const isRound = document.querySelector('input[name="tripType"]:checked').value === '往復';
-    document.getElementById('labelRound').className = isRound ? 'trip-segment active' : 'trip-segment';
-    document.getElementById('labelOneWay').className = !isRound ? 'trip-segment active' : 'trip-segment';
+    document.getElementById('labelRound').className = isRound ? 'radio-label active' : 'radio-label';
+    document.getElementById('labelOneWay').className = !isRound ? 'radio-label active' : 'radio-label';
     calcSummaryIfPossible();
     handleFieldChange();
   }
