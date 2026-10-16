@@ -120,8 +120,6 @@
       align-items: center;
       justify-content: center;
     }
-
-    /* 通常案件カード */
     .quest-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -131,8 +129,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.04);
       transition: all 0.2s;
     }
-
-    /* ★機能2：今日・明日の未受託直前案件（赤枠＆薄赤背景） */
     .quest-card.urgent-card {
       background-color: #fffaf9;
       border: 2.5px solid #ef4444;
@@ -151,7 +147,6 @@
       align-items: center;
       gap: 6px;
     }
-
     .quest-header {
       display: flex;
       justify-content: space-between;
@@ -293,7 +288,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
@@ -404,13 +399,26 @@
     }
   }
 
+  /**
+   * ★端末自動判定：iOSはAppleマップ、Android/その他はGoogleマップURLを生成
+   */
+  function getDeviceMapUrl(address) {
+    if (!address) return '#';
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOS) {
+      return 'https://maps.apple.com/?q=' + encodeURIComponent(address);
+    }
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+  }
+
   function renderQuests(quests) {
     const listArea = document.getElementById('questListArea');
     listArea.innerHTML = '';
 
     quests.forEach(q => {
       const card = document.createElement('div');
-      // ★機能2：緊急案件なら urgent-card クラスを付与
       card.className = q.isUrgent ? 'quest-card urgent-card' : 'quest-card';
 
       const urgentBannerHtml = q.isUrgent
@@ -430,8 +438,9 @@
         timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
-      const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
-      const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
+      // ★端末別マップURLの取得
+      const pickupMapUrl = getDeviceMapUrl(q.pickup);
+      const dropoffMapUrl = getDeviceMapUrl(q.dropoff);
 
       card.innerHTML = `
         ${urgentBannerHtml}
