@@ -109,10 +109,7 @@
       accent-color: var(--primary-blue);
       cursor: pointer;
     }
-    .radio-group .radio-label span {
-      display: inline-block;
-      line-height: 1;
-    }
+    .radio-group .radio-label span { display: inline-block; line-height: 1; }
     .radio-group .radio-label.active {
       border-color: var(--primary-blue);
       background-color: #eff6ff;
@@ -186,23 +183,34 @@
       color: var(--success-green);
       font-weight: 900;
     }
+    .btn-gps-fallback {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--primary-blue);
+      background: none;
+      border: none;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 4px;
+      display: inline-block;
+      font-weight: bold;
+    }
     .submit-notice-box {
       margin-top: 26px;
-      padding: 16px 14px;
-      background-color: #f8fafc;
-      border: 2px dashed #94a3b8;
+      padding: 14px;
+      background-color: #fffbeb;
+      border: 2px solid #fde68a;
       border-radius: 12px;
       text-align: center;
       font-size: 0.95rem;
-      color: #334155;
+      color: #92400e;
       line-height: 1.5;
       font-weight: bold;
     }
     .btn-submit {
-      display: none;
       width: 100%;
       height: 60px;
-      margin-top: 26px;
+      margin-top: 16px;
       background-color: var(--primary-blue);
       color: #ffffff;
       font-size: 1.25rem;
@@ -211,13 +219,9 @@
       border-radius: 14px;
       cursor: pointer;
       box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.35);
-      animation: fadeIn 0.3s ease-in-out;
+      transition: all 0.2s;
     }
     .btn-submit:active { background-color: var(--primary-hover); transform: scale(0.98); }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
     .danger-actions-section {
       margin-top: 32px;
       padding-top: 20px;
@@ -294,7 +298,8 @@
   <div class="card">
     <div class="form-group">
       <label>案件番号</label>
-      <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
+      <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
+      <div class="sub-label">※番号を入力すると、お名前と運行区分が自動で読み込まれます</div>
     </div>
 
     <div class="form-group">
@@ -309,7 +314,7 @@
           <span>片道</span>
         </label>
       </div>
-      <div class="sub-label" style="margin-top:8px;">※利用者の希望区分が自動で選択されます。当日の変更があった場合は切り替えてください。</div>
+      <div class="sub-label" style="margin-top:8px;">※利用者の希望が自動選択されます。当日の変更があれば切り替えてください。</div>
     </div>
 
     <div class="form-group">
@@ -319,9 +324,9 @@
 
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
-      <div class="sub-label">※ひらがなでOK</div>
+      <div class="sub-label">※案件番号から自動取得されます（手動変更も可能）</div>
       <div id="passengerContainer" class="passenger-list">
-        <input type="text" id="passenger1" placeholder="お名前を自動取得中..." oninput="handleFieldChange()">
+        <input type="text" id="passenger1" placeholder="乗客1のお名前" oninput="handleFieldChange()">
       </div>
       <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
         ＋ 乗客を追加する
@@ -339,6 +344,9 @@
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
         📍 出発地を記録する
       </button>
+      <button type="button" class="btn-gps-fallback" onclick="manualRecordDeparture()">
+        ※GPSが使えない場合はこちら（現在時刻をセット）
+      </button>
       <div class="lock-notice-box">
         <span>⚠️</span>
         <span>出発ボタンを押したらそのままスマホをロックしてください</span>
@@ -351,13 +359,17 @@
       <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
         📍 到着地を記録する
       </button>
-      <div id="arrStatus" class="status-box">押し忘れたらLINEで伝えてください</div>
+      <button type="button" class="btn-gps-fallback" onclick="manualRecordArrival()">
+        ※GPSが使えない場合はこちら（現在時刻をセット）
+      </button>
+      <div id="arrStatus" class="status-box">押し忘れたら上の「現在時刻をセット」を押してください</div>
     </div>
 
     <div id="submitNoticeBox" class="submit-notice-box">
-      ⏳ 必須項目を入力・到着地を記録すると送信ボタンが表示されます
+      <!-- 不足項目がリアルタイムに表示されます -->
     </div>
 
+    <!-- ★送信ボタンは常時表示 -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
@@ -426,12 +438,13 @@
 </div>
 
 <script>
-  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let questId = '';
   let passengerCount = 1;
   let cachedDriverName = '';
   let isSubmitting = false;
+  let fetchTimer = null;
 
   let runLog = {
     depTime: '', depTimestamp: null, depLat: null, depLng: null,
@@ -439,20 +452,35 @@
     durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
   };
 
+  // ★あらゆるURL形式から qid を確実に抽出
   function extractQuestIdFromUrl() {
     const searchParams = new URLSearchParams(window.location.search);
     let q = searchParams.get('qid');
     if (q) return q.trim();
 
-    const liffState = searchParams.get('liff.state');
-    if (liffState) {
+    let rawState = searchParams.get('liff.state');
+    if (!rawState && window.location.hash) {
+      const hashClean = window.location.hash.replace(/^#\/?/, '');
+      const hashParams = new URLSearchParams(hashClean.includes('?') ? hashClean.split('?')[1] : hashClean);
+      q = hashParams.get('qid');
+      if (q) return q.trim();
+      rawState = hashParams.get('liff.state');
+    }
+
+    if (rawState) {
       try {
-        const decoded = decodeURIComponent(liffState);
-        const stateParams = new URLSearchParams(decoded.includes('?') ? decoded.split('?')[1] : decoded);
+        const decoded = decodeURIComponent(rawState);
+        const qIndex = decoded.indexOf('?');
+        const queryStr = qIndex !== -1 ? decoded.substring(qIndex + 1) : decoded;
+        const stateParams = new URLSearchParams(queryStr);
         q = stateParams.get('qid');
         if (q) return q.trim();
       } catch (e) {}
     }
+
+    const directMatch = window.location.href.match(/[?&#]qid=(\d+)/);
+    if (directMatch) return directMatch[1];
+
     return '';
   }
 
@@ -469,7 +497,6 @@
     handleFieldChange();
   }
 
-  // ★希望運行区分によるラジオボタン自動選択
   function applyTripPlanPreference(tripPlanText) {
     if (!tripPlanText) return;
     const isOneWay = tripPlanText.includes('片道');
@@ -481,6 +508,49 @@
       radRound.checked = true;
     }
     handleTripTypeChange();
+  }
+
+  // ★案件番号の手動入力イベント（入力時に名前を自動取得）
+  function handleQuestIdInput() {
+    handleFieldChange();
+    const qidVal = document.getElementById('questIdInput').value.trim();
+    if (!qidVal) return;
+
+    clearTimeout(fetchTimer);
+    fetchTimer = setTimeout(() => {
+      fetchQuestInfo(qidVal);
+    }, 350);
+  }
+
+  // ★GASから案件詳細（利用者名・運行区分）を取得して自動代入
+  async function fetchQuestInfo(targetQid) {
+    if (!targetQid) return;
+    const p1Input = document.getElementById('passenger1');
+    if (!p1Input.value.trim()) {
+      p1Input.placeholder = '⏳ お名前を取得中...';
+    }
+
+    try {
+      const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(targetQid)}`;
+      const res = await (await fetch(url)).json();
+      const qObj = res.quest || res.data;
+      if (res.success && qObj) {
+        const uName = qObj.userName || qObj.name || '';
+        if (uName) {
+          p1Input.value = uName;
+          p1Input.placeholder = '乗客1（例: さとう はなこ）';
+        }
+        if (qObj.tripPlan) {
+          applyTripPlanPreference(qObj.tripPlan);
+        }
+        saveCurrentDraft();
+        checkSubmitRequirement();
+      } else {
+        p1Input.placeholder = '乗客1のお名前を入力してください';
+      }
+    } catch (e) {
+      p1Input.placeholder = '乗客1のお名前を入力してください';
+    }
   }
 
   function saveCurrentDraft() {
@@ -508,6 +578,7 @@
     checkSubmitRequirement();
   }
 
+  // ★入力状態のリアルタイムチェック
   function checkSubmitRequirement() {
     const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
@@ -521,15 +592,15 @@
     if (!qid) missing.push('案件番号');
     if (!did) missing.push('登録番号');
     if (!p1) missing.push('乗客名');
-    if (!runLog.arrTime) missing.push('到着地');
+    if (!runLog.arrTime) missing.push('到着時刻');
 
     if (missing.length === 0) {
-      btn.style.display = 'block';
       notice.style.display = 'none';
+      btn.style.opacity = '1';
     } else {
-      btn.style.display = 'none';
       notice.style.display = 'block';
-      notice.innerHTML = `⚠️ <strong>${missing.join('・')}</strong> を完了すると送信ボタンが表示されます`;
+      notice.innerHTML = `⚠️ あと【<strong>${missing.join('・')}</strong>】を入力・記録すると完了できます`;
+      btn.style.opacity = '0.85';
     }
   }
 
@@ -566,7 +637,7 @@
           btnDep.style.borderColor = '#15803d'; btnDep.style.color = '#15803d';
           const stDep = document.getElementById('depStatus');
           stDep.className = 'status-box recorded';
-          stDep.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
+          stDep.textContent = `✔ 出発時刻: ${runLog.depTime}`;
         }
         if (runLog.arrTime) {
           const btnArr = document.getElementById('btnArr');
@@ -574,7 +645,7 @@
           btnArr.style.borderColor = '#15803d'; btnArr.style.color = '#15803d';
           const stArr = document.getElementById('arrStatus');
           stArr.className = 'status-box recorded';
-          stArr.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
+          stArr.textContent = `✔ 到着時刻: ${runLog.arrTime}`;
         }
         calcSummaryIfPossible();
       }
@@ -609,7 +680,11 @@
     const hasDraft = restoreDraft();
     checkSubmitRequirement();
 
-    if (!questId && localDriverId) {
+    // 案件番号がある場合、名前を即座に照会
+    if (questId) {
+      fetchQuestInfo(questId);
+    } else if (localDriverId) {
+      // 案件番号がURLになくてもドライバーが受注中の案件を検索
       try {
         const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
         const checkRes = await (await fetch(checkUrl)).json();
@@ -629,32 +704,6 @@
         }
       } catch (e) {}
     }
-
-    const currentP1 = document.getElementById('passenger1').value.trim();
-    if (questId) {
-      try {
-        const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
-        const res = await (await fetch(url)).json();
-        const qObj = res.quest || res.data;
-        if (res.success && qObj) {
-          const uName = qObj.userName || qObj.name || '';
-          if (uName && !currentP1) {
-            document.getElementById('passenger1').value = uName;
-          }
-          if (!hasDraft && qObj.tripPlan) {
-            applyTripPlanPreference(qObj.tripPlan);
-          }
-          saveCurrentDraft();
-          checkSubmitRequirement();
-        }
-      } catch (e) {}
-    }
-
-    if (!document.getElementById('passenger1').value.trim()) {
-      document.getElementById('passenger1').placeholder = '乗客1（例: さとう はなこ）';
-    }
-
-    checkSubmitRequirement();
   });
 
   function addPassengerField(triggerSave = true) {
@@ -675,7 +724,7 @@
   }
 
   function recordDeparture() {
-    if (!navigator.geolocation) { alert('位置情報機能が利用できません。'); return; }
+    if (!navigator.geolocation) { manualRecordDeparture(); return; }
     const btn = document.getElementById('btnDep');
     btn.textContent = '⏳ GPS測位中...';
 
@@ -691,21 +740,38 @@
         btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('depStatus');
         st.className = 'status-box recorded';
-        st.textContent = `✔ 出発地を記録済み（記録時刻: ${runLog.depTime}）`;
+        st.textContent = `✔ 出発時刻: ${runLog.depTime}（GPS取得済）`;
 
         try { calcSummaryIfPossible(); } catch(e) {}
         handleFieldChange();
       },
       () => {
-        alert('位置情報の取得に失敗しました。');
-        btn.textContent = '📍 出発地を記録する';
+        alert('位置情報が取得できなかったため、現在時刻のみ記録します。');
+        manualRecordDeparture();
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 8000 }
     );
   }
 
+  // ★手動出発時刻セット（GPSなし救済）
+  function manualRecordDeparture() {
+    const now = new Date();
+    runLog.depTimestamp = now.getTime();
+    runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    
+    const btn = document.getElementById('btnDep');
+    btn.textContent = '✔ 出発時刻を記録済み';
+    btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+    const st = document.getElementById('depStatus');
+    st.className = 'status-box recorded';
+    st.textContent = `✔ 出発時刻: ${runLog.depTime}（手動セット）`;
+
+    try { calcSummaryIfPossible(); } catch(e) {}
+    handleFieldChange();
+  }
+
   function recordArrival() {
-    if (!navigator.geolocation) { alert('位置情報機能が利用できません。'); return; }
+    if (!navigator.geolocation) { manualRecordArrival(); return; }
     const btn = document.getElementById('btnArr');
     btn.textContent = '⏳ GPS測位中...';
 
@@ -721,17 +787,34 @@
         btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('arrStatus');
         st.className = 'status-box recorded';
-        st.textContent = `✔ 到着地を記録済み（記録時刻: ${runLog.arrTime}）`;
+        st.textContent = `✔ 到着時刻: ${runLog.arrTime}（GPS取得済）`;
 
-        try { calcSummaryIfPossible(); } catch(err) { console.warn('距離計算スキップ:', err); }
+        try { calcSummaryIfPossible(); } catch(err) {}
         handleFieldChange();
       },
       () => {
-        alert('位置情報の取得に失敗しました。');
-        btn.textContent = '📍 到着地を記録する';
+        alert('位置情報が取得できなかったため、現在時刻のみ記録します。');
+        manualRecordArrival();
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 8000 }
     );
+  }
+
+  // ★手動到着時刻セット（GPSなし救済）
+  function manualRecordArrival() {
+    const now = new Date();
+    runLog.arrTimestamp = now.getTime();
+    runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+
+    const btn = document.getElementById('btnArr');
+    btn.textContent = '✔ 到着時刻を記録済み';
+    btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+    const st = document.getElementById('arrStatus');
+    st.className = 'status-box recorded';
+    st.textContent = `✔ 到着時刻: ${runLog.arrTime}（手動セット）`;
+
+    try { calcSummaryIfPossible(); } catch(err) {}
+    handleFieldChange();
   }
 
   function calcSummaryIfPossible() {
@@ -770,58 +853,35 @@
     return d / 1000.0;
   }
 
-  async function cancelThisQuest() {
-    if (isSubmitting) return;
-
-    const qid = document.getElementById('questIdInput').value.trim() || questId;
-    const driverId = document.getElementById('driverId').value.trim();
-
-    if (!qid || !driverId) { alert('案件番号または登録番号が確認できません。'); return; }
-    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) return;
-
-    const btn = document.getElementById('btnDecline');
-    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ キャンセル処理中...';
-
-    try {
-      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
-      const res = await (await fetch(url)).json();
-
-      if (res.success) {
-        clearDraft();
-        document.getElementById('formView').style.display = 'none';
-        document.getElementById('completeView').style.display = 'block';
-
-        document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託をキャンセルしました';
-        document.getElementById('completeHeaderTitle').style.color = '#b45309';
-        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
-        document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>✔ 事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
-
-        window.scrollTo(0, 0);
-      } else {
-        alert('キャンセルエラー: ' + res.message);
-        isSubmitting = false; btn.disabled = false;
-        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
-      }
-    } catch (e) {
-      alert('通信エラー: ' + e.message);
-      isSubmitting = false; btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
-    }
-  }
-
+  // ★活動実績送信処理
   async function submitRecord() {
     if (isSubmitting) return;
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
+    const p1 = document.getElementById('passenger1').value.trim();
+
+    // 未入力バリデーション（具体的に警告）
+    const missing = [];
+    if (!qid) missing.push('案件番号');
+    if (!driverId) missing.push('登録番号');
+    if (!p1) missing.push('乗客名');
+    if (!runLog.arrTime) missing.push('到着時刻の記録（または手動セット）');
+
+    if (missing.length > 0) {
+      alert(`【入力が完了していません】\n以下の項目を入力または記録してください：\n・${missing.join('\n・')}`);
+      return;
+    }
+
     const tripType = document.querySelector('input[name="tripType"]:checked').value;
     const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
     const btn = document.getElementById('btnSubmit');
 
     calcSummaryIfPossible();
 
-    isSubmitting = true; btn.disabled = true; btn.style.opacity = '0.6';
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
     btn.textContent = '⏳ 送信中（そのままお待ちください）...';
 
     const passengers = [];
@@ -890,6 +950,45 @@
       alert('通信エラー: ' + e.message);
       isSubmitting = false; btn.disabled = false; btn.style.opacity = '1';
       btn.textContent = '活動実績を送信';
+    }
+  }
+
+  async function cancelThisQuest() {
+    if (isSubmitting) return;
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+
+    if (!qid || !driverId) { alert('案件番号または登録番号が確認できません。'); return; }
+    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) return;
+
+    const btn = document.getElementById('btnDecline');
+    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ キャンセル処理中...';
+
+    try {
+      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託をキャンセルしました';
+        document.getElementById('completeHeaderTitle').style.color = '#b45309';
+        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
+        document.getElementById('resultStatsArea').style.display = 'none';
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>✔ 事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
+
+        window.scrollTo(0, 0);
+      } else {
+        alert('キャンセルエラー: ' + res.message);
+        isSubmitting = false; btn.disabled = false;
+        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+      isSubmitting = false; btn.disabled = false;
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
     }
   }
 
