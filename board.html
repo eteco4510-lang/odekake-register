@@ -172,6 +172,37 @@
       border-radius: 6px;
       border: 1px solid #fed7aa;
     }
+    /* ★運行区分バッジ */
+    .trip-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+    .trip-plan-badge.oneway {
+      background-color: #eff6ff;
+      color: var(--primary-blue);
+      border: 1.5px solid #93c5fd;
+    }
+    .trip-plan-badge.round-short {
+      background-color: #f0fdf4;
+      color: #15803d;
+      border: 1.5px solid #86efac;
+    }
+    .trip-plan-badge.round-medium {
+      background-color: #fffbeb;
+      color: #b45309;
+      border: 1.5px solid #fcd34d;
+    }
+    .trip-plan-badge.round-long {
+      background-color: #fdf2f8;
+      color: #be185d;
+      border: 1.5px solid #fbcfe8;
+    }
     .quest-datetime-wrap {
       display: flex;
       align-items: center;
@@ -288,7 +319,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
@@ -399,18 +430,22 @@
     }
   }
 
-  /**
-   * ★端末自動判定：iOSはAppleマップ、Android/その他はGoogleマップURLを生成
-   */
-  function getDeviceMapUrl(address) {
-    if (!address) return '#';
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
-    if (isIOS) {
-      return 'https://maps.apple.com/?q=' + encodeURIComponent(address);
+  // ★運行区分バッジのHTML生成関数
+  function createTripBadgeHtml(tripPlan) {
+    const text = String(tripPlan || '往復').trim();
+    if (text.includes('片道')) {
+      return `<div class="trip-plan-badge oneway"><span>➡️</span><span>片道（送り届けのみ）</span></div>`;
     }
-    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+    if (text.includes('30分以内')) {
+      return `<div class="trip-plan-badge round-short"><span>🚗</span><span>往復（待機目安: 30分以内）</span></div>`;
+    }
+    if (text.includes('30分〜1時間') || text.includes('1時間以内')) {
+      return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: 30分〜1時間）</span></div>`;
+    }
+    if (text.includes('1時間〜2時間') || text.includes('2時間')) {
+      return `<div class="trip-plan-badge round-long"><span>🚗</span><span>往復（待機目安: 1〜2時間）</span></div>`;
+    }
+    return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>${text}</span></div>`;
   }
 
   function renderQuests(quests) {
@@ -438,9 +473,9 @@
         timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
       }
 
-      // ★端末別マップURLの取得
-      const pickupMapUrl = getDeviceMapUrl(q.pickup);
-      const dropoffMapUrl = getDeviceMapUrl(q.dropoff);
+      const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
+      const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
+      const tripBadgeHtml = createTripBadgeHtml(q.tripPlan);
 
       card.innerHTML = `
         ${urgentBannerHtml}
@@ -448,6 +483,7 @@
           <span class="quest-id-badge">案件 #${q.id}</span>
           ${agencyTag}
         </div>
+        ${tripBadgeHtml}
         <div class="quest-datetime-wrap">
           <span class="quest-date">📅 ${displayDate}</span>
           ${timeBadgeHtml}
