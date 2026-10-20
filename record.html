@@ -502,7 +502,6 @@
     return 'odekake_draft_' + (qidVal || questId || 'general');
   }
 
-  // ★安全な運行区分取得
   function getSafeTripType() {
     const checked = document.querySelector('input[name="tripType"]:checked');
     if (checked && checked.value) return checked.value;
@@ -853,6 +852,7 @@
     runLog.fee = runLog.fuelFee + otherExp;
   }
 
+  // ★修正箇所：radLon1 - radLon2 に是正
   function calcHubenyDistance(lat1, lon1, lat2, lon2) {
     const radLat1 = lat1 * Math.PI / 180;
     const radLon1 = lon1 * Math.PI / 180;
@@ -870,7 +870,6 @@
     return d / 1000.0;
   }
 
-  // ★完全安全防護版：送信処理
   async function submitRecord() {
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
@@ -878,7 +877,6 @@
     try {
       if (isSubmitting) return;
 
-      // 即時ビジュアルフィードバック
       if (btn) {
         btn.textContent = '🚀 送信処理中...';
         btn.style.opacity = '0.7';
@@ -901,7 +899,6 @@
 
       let p1 = p1Input ? p1Input.value.trim() : '';
 
-      // 必須項目の検証
       const missing = [];
       if (!qid) missing.push('案件番号');
       if (!driverId) missing.push('登録番号');
@@ -919,7 +916,6 @@
         return;
       }
 
-      // 到着・出発の自動補完
       if (!runLog.arrTime) {
         manualRecordArrival();
       }
