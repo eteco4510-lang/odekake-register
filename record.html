@@ -195,22 +195,36 @@
       display: inline-block;
       font-weight: bold;
     }
+    /* 画面内ステータス・案内ボックス */
     .submit-notice-box {
-      margin-top: 26px;
+      margin-top: 24px;
       padding: 14px;
-      background-color: #fffbeb;
-      border: 2px solid #fde68a;
       border-radius: 12px;
       text-align: center;
       font-size: 0.95rem;
-      color: #92400e;
       line-height: 1.5;
       font-weight: bold;
+      transition: all 0.2s;
+    }
+    .submit-notice-box.ready {
+      background-color: #f0fdf4;
+      border: 2px solid #86efac;
+      color: #15803d;
+    }
+    .submit-notice-box.warning {
+      background-color: #fffbeb;
+      border: 2px solid #fde68a;
+      color: #b45309;
+    }
+    .submit-notice-box.error {
+      background-color: #fef2f2;
+      border: 2px solid #fca5a5;
+      color: #b91c1c;
     }
     .btn-submit {
       width: 100%;
       height: 60px;
-      margin-top: 16px;
+      margin-top: 14px;
       background-color: var(--primary-blue);
       color: #ffffff;
       font-size: 1.25rem;
@@ -324,7 +338,7 @@
 
     <div class="form-group">
       <label>乗せた人（最大7名）</label>
-      <div class="sub-label">※案件番号から自動取得されます（手動変更も可能）</div>
+      <div class="sub-label">※案件番号から自動取得されます（手動入力も可能）</div>
       <div id="passengerContainer" class="passenger-list">
         <input type="text" id="passenger1" placeholder="乗客1のお名前" oninput="handleFieldChange()">
       </div>
@@ -362,14 +376,14 @@
       <button type="button" class="btn-gps-fallback" onclick="manualRecordArrival()">
         ※GPSが使えない場合はこちら（現在時刻をセット）
       </button>
-      <div id="arrStatus" class="status-box">押し忘れたら上の「現在時刻をセット」を押してください</div>
+      <div id="arrStatus" class="status-box">押し忘れた場合でも自動で現在時刻が入ります</div>
     </div>
 
-    <div id="submitNoticeBox" class="submit-notice-box">
-      <!-- 不足項目がリアルタイムに表示されます -->
+    <div id="submitNoticeBox" class="submit-notice-box warning">
+      ⏳ 準備中...
     </div>
 
-    <!-- ★送信ボタンは常時表示 -->
+    <!-- 送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
@@ -452,7 +466,6 @@
     durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
   };
 
-  // ★あらゆるURL形式から qid を確実に抽出
   function extractQuestIdFromUrl() {
     const searchParams = new URLSearchParams(window.location.search);
     let q = searchParams.get('qid');
@@ -490,7 +503,8 @@
   }
 
   function handleTripTypeChange() {
-    const isRound = document.querySelector('input[name="tripType"]:checked').value === '往復';
+    const checkedEl = document.querySelector('input[name="tripType"]:checked');
+    const isRound = checkedEl ? (checkedEl.value === '往復') : true;
     document.getElementById('labelRound').className = isRound ? 'radio-label active' : 'radio-label';
     document.getElementById('labelOneWay').className = !isRound ? 'radio-label active' : 'radio-label';
     calcSummaryIfPossible();
@@ -510,7 +524,6 @@
     handleTripTypeChange();
   }
 
-  // ★案件番号の手動入力イベント（入力時に名前を自動取得）
   function handleQuestIdInput() {
     handleFieldChange();
     const qidVal = document.getElementById('questIdInput').value.trim();
@@ -522,7 +535,6 @@
     }, 350);
   }
 
-  // ★GASから案件詳細（利用者名・運行区分）を取得して自動代入
   async function fetchQuestInfo(targetQid) {
     if (!targetQid) return;
     const p1Input = document.getElementById('passenger1');
@@ -560,10 +572,11 @@
         const el = document.getElementById(`passenger${i}`);
         if (el) passengers.push(el.value);
       }
+      const checkedTrip = document.querySelector('input[name="tripType"]:checked');
       const draft = {
         questId: document.getElementById('questIdInput').value.trim(),
         driverId: document.getElementById('driverId').value.trim(),
-        tripType: document.querySelector('input[name="tripType"]:checked').value,
+        tripType: checkedTrip ? checkedTrip.value : '往復',
         otherExpense: document.getElementById('otherExpense').value,
         passengers: passengers,
         passengerCount: passengerCount,
@@ -578,29 +591,30 @@
     checkSubmitRequirement();
   }
 
-  // ★入力状態のリアルタイムチェック
+  // ★リアルタイム状態通知（画面内に表示）
   function checkSubmitRequirement() {
     const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
     const p1 = document.getElementById('passenger1') ? document.getElementById('passenger1').value.trim() : '';
-
-    const btn = document.getElementById('btnSubmit');
     const notice = document.getElementById('submitNoticeBox');
-    if (!btn || !notice) return;
+    if (!notice) return;
 
     const missing = [];
     if (!qid) missing.push('案件番号');
     if (!did) missing.push('登録番号');
     if (!p1) missing.push('乗客名');
-    if (!runLog.arrTime) missing.push('到着時刻');
 
     if (missing.length === 0) {
-      notice.style.display = 'none';
-      btn.style.opacity = '1';
+      if (runLog.arrTime) {
+        notice.className = 'submit-notice-box ready';
+        notice.innerHTML = '✔ 入力完了！「活動実績を送信」を押してください';
+      } else {
+        notice.className = 'submit-notice-box warning';
+        notice.innerHTML = '💡 到着ボタンを押すか、そのまま「活動実績を送信」を押すと現在時刻で送信されます';
+      }
     } else {
-      notice.style.display = 'block';
-      notice.innerHTML = `⚠️ あと【<strong>${missing.join('・')}</strong>】を入力・記録すると完了できます`;
-      btn.style.opacity = '0.85';
+      notice.className = 'submit-notice-box error';
+      notice.innerHTML = `⚠️ 【<strong>${missing.join('・')}</strong>】を入力してください`;
     }
   }
 
@@ -680,11 +694,9 @@
     const hasDraft = restoreDraft();
     checkSubmitRequirement();
 
-    // 案件番号がある場合、名前を即座に照会
     if (questId) {
       fetchQuestInfo(questId);
     } else if (localDriverId) {
-      // 案件番号がURLになくてもドライバーが受注中の案件を検索
       try {
         const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
         const checkRes = await (await fetch(checkUrl)).json();
@@ -742,18 +754,16 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 出発時刻: ${runLog.depTime}（GPS取得済）`;
 
-        try { calcSummaryIfPossible(); } catch(e) {}
+        calcSummaryIfPossible();
         handleFieldChange();
       },
       () => {
-        alert('位置情報が取得できなかったため、現在時刻のみ記録します。');
         manualRecordDeparture();
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 7000 }
     );
   }
 
-  // ★手動出発時刻セット（GPSなし救済）
   function manualRecordDeparture() {
     const now = new Date();
     runLog.depTimestamp = now.getTime();
@@ -766,7 +776,7 @@
     st.className = 'status-box recorded';
     st.textContent = `✔ 出発時刻: ${runLog.depTime}（手動セット）`;
 
-    try { calcSummaryIfPossible(); } catch(e) {}
+    calcSummaryIfPossible();
     handleFieldChange();
   }
 
@@ -789,18 +799,16 @@
         st.className = 'status-box recorded';
         st.textContent = `✔ 到着時刻: ${runLog.arrTime}（GPS取得済）`;
 
-        try { calcSummaryIfPossible(); } catch(err) {}
+        calcSummaryIfPossible();
         handleFieldChange();
       },
       () => {
-        alert('位置情報が取得できなかったため、現在時刻のみ記録します。');
         manualRecordArrival();
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 7000 }
     );
   }
 
-  // ★手動到着時刻セット（GPSなし救済）
   function manualRecordArrival() {
     const now = new Date();
     runLog.arrTimestamp = now.getTime();
@@ -813,7 +821,7 @@
     st.className = 'status-box recorded';
     st.textContent = `✔ 到着時刻: ${runLog.arrTime}（手動セット）`;
 
-    try { calcSummaryIfPossible(); } catch(err) {}
+    calcSummaryIfPossible();
     handleFieldChange();
   }
 
@@ -828,7 +836,8 @@
       runLog.roundTripKm = runLog.oneWayKm * 2;
     }
 
-    const tripType = document.querySelector('input[name="tripType"]:checked') ? document.querySelector('input[name="tripType"]:checked').value : '往復';
+    const checkedTrip = document.querySelector('input[name="tripType"]:checked');
+    const tripType = checkedTrip ? checkedTrip.value : '往復';
     const calcDistance = (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm;
     runLog.fuelFee = calcDistance * 20;
 
@@ -853,36 +862,53 @@
     return d / 1000.0;
   }
 
-  // ★活動実績送信処理
+  // ★活動実績送信処理（完全防御 ＆ 自動補完版）
   async function submitRecord() {
     if (isSubmitting) return;
+
+    const notice = document.getElementById('submitNoticeBox');
+    const btn = document.getElementById('btnSubmit');
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
     const p1 = document.getElementById('passenger1').value.trim();
 
-    // 未入力バリデーション（具体的に警告）
+    // 必須項目の確認
     const missing = [];
     if (!qid) missing.push('案件番号');
     if (!driverId) missing.push('登録番号');
     if (!p1) missing.push('乗客名');
-    if (!runLog.arrTime) missing.push('到着時刻の記録（または手動セット）');
 
     if (missing.length > 0) {
-      alert(`【入力が完了していません】\n以下の項目を入力または記録してください：\n・${missing.join('\n・')}`);
+      if (notice) {
+        notice.className = 'submit-notice-box error';
+        notice.innerHTML = `⚠️ 送信できません：【<strong>${missing.join('・')}</strong>】を入力してください`;
+      }
       return;
     }
 
-    const tripType = document.querySelector('input[name="tripType"]:checked').value;
-    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
-    const btn = document.getElementById('btnSubmit');
+    // ★到着時刻が未記録の場合の自動補完（現在時刻を代入）
+    if (!runLog.arrTime) {
+      manualRecordArrival();
+    }
+    if (!runLog.depTime) {
+      runLog.depTime = runLog.arrTime;
+    }
 
     calcSummaryIfPossible();
+
+    const checkedTrip = document.querySelector('input[name="tripType"]:checked');
+    const tripType = checkedTrip ? checkedTrip.value : '往復';
+    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
 
     isSubmitting = true;
     btn.disabled = true;
     btn.style.opacity = '0.6';
     btn.textContent = '⏳ 送信中（そのままお待ちください）...';
+    if (notice) {
+      notice.className = 'submit-notice-box warning';
+      notice.innerHTML = '📡 スプレッドシートへ送信中...';
+    }
 
     const passengers = [];
     for (let i = 1; i <= 7; i++) {
@@ -942,14 +968,24 @@
 
         window.scrollTo(0, 0);
       } else {
-        alert('保存エラー: ' + res.message);
-        isSubmitting = false; btn.disabled = false; btn.style.opacity = '1';
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.style.opacity = '1';
         btn.textContent = '活動実績を送信';
+        if (notice) {
+          notice.className = 'submit-notice-box error';
+          notice.innerHTML = `⚠️ 保存エラー: ${res.message || 'スプレッドシートの保存に失敗しました'}`;
+        }
       }
     } catch (e) {
-      alert('通信エラー: ' + e.message);
-      isSubmitting = false; btn.disabled = false; btn.style.opacity = '1';
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.style.opacity = '1';
       btn.textContent = '活動実績を送信';
+      if (notice) {
+        notice.className = 'submit-notice-box error';
+        notice.innerHTML = `⚠️ 通信エラー: ${e.message}<br><small>※GAS_API_URLをご確認ください</small>`;
+      }
     }
   }
 
