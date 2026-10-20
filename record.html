@@ -57,8 +57,6 @@
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     .form-group { margin-bottom: 20px; }
-    
-    /* ★見出しラベルのみに限定（ボタン枠に干渉させない） */
     .form-group > label {
       display: block;
       font-size: 1rem;
@@ -67,7 +65,6 @@
       color: var(--text-main);
     }
     .form-group .sub-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
-    
     input[type="text"], input[type="tel"], input[type="number"] {
       width: 100%;
       height: 52px;
@@ -79,8 +76,6 @@
       background-color: #fafafa;
     }
     input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
-    
-    /* ★上下中央・左右中央を完全固定したラジオボタンスタイル */
     .radio-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -124,7 +119,6 @@
       color: var(--primary-blue);
       box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
     }
-
     .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .btn-add-passenger {
       width: 100%;
@@ -224,7 +218,6 @@
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .danger-actions-section {
       margin-top: 32px;
       padding-top: 20px;
@@ -255,7 +248,6 @@
       border-radius: 10px;
       cursor: pointer;
     }
-
     #completeView { display: none; }
     .complete-card {
       background: #ffffff;
@@ -305,7 +297,6 @@
       <input type="text" id="questIdInput" placeholder="自動取得中..." inputmode="numeric" oninput="handleFieldChange()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
     </div>
 
-    <!-- ★中央揃えを完全固定したラジオボタン（往復／片道） -->
     <div class="form-group">
       <label>運行区分</label>
       <div class="radio-group">
@@ -318,7 +309,7 @@
           <span>片道</span>
         </label>
       </div>
-      <div class="sub-label" style="margin-top:8px;">※マニュアル規定：利用者が1人の場合、往復は延べ2人、片道は延べ1人として計算されます</div>
+      <div class="sub-label" style="margin-top:8px;">※利用者の希望区分が自動で選択されます。当日の変更があった場合は切り替えてください。</div>
     </div>
 
     <div class="form-group">
@@ -339,7 +330,7 @@
 
     <div class="form-group">
       <label>その他実費（有料道路・駐車場代の合計）</label>
-      <div class="sub-label">※発生した場合のみ半角数字で入力</div>
+      <div class="sub-label">※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）</div>
       <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()">
     </div>
 
@@ -435,7 +426,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
 
   let questId = '';
   let passengerCount = 1;
@@ -476,6 +467,20 @@
     document.getElementById('labelOneWay').className = !isRound ? 'radio-label active' : 'radio-label';
     calcSummaryIfPossible();
     handleFieldChange();
+  }
+
+  // ★希望運行区分によるラジオボタン自動選択
+  function applyTripPlanPreference(tripPlanText) {
+    if (!tripPlanText) return;
+    const isOneWay = tripPlanText.includes('片道');
+    const radOneWay = document.querySelector('input[name="tripType"][value="片道"]');
+    const radRound = document.querySelector('input[name="tripType"][value="往復"]');
+    if (isOneWay && radOneWay) {
+      radOneWay.checked = true;
+    } else if (!isOneWay && radRound) {
+      radRound.checked = true;
+    }
+    handleTripTypeChange();
   }
 
   function saveCurrentDraft() {
@@ -601,7 +606,7 @@
       } catch (e) {}
     }
 
-    restoreDraft();
+    const hasDraft = restoreDraft();
     checkSubmitRequirement();
 
     if (!questId && localDriverId) {
@@ -616,6 +621,9 @@
           if (uName && !document.getElementById('passenger1').value.trim()) {
             document.getElementById('passenger1').value = uName;
           }
+          if (!hasDraft && qObj.tripPlan) {
+            applyTripPlanPreference(qObj.tripPlan);
+          }
           saveCurrentDraft();
           checkSubmitRequirement();
         }
@@ -623,18 +631,21 @@
     }
 
     const currentP1 = document.getElementById('passenger1').value.trim();
-    if (questId && !currentP1) {
+    if (questId) {
       try {
         const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(questId)}`;
         const res = await (await fetch(url)).json();
         const qObj = res.quest || res.data;
         if (res.success && qObj) {
           const uName = qObj.userName || qObj.name || '';
-          if (uName) {
+          if (uName && !currentP1) {
             document.getElementById('passenger1').value = uName;
-            saveCurrentDraft();
-            checkSubmitRequirement();
           }
+          if (!hasDraft && qObj.tripPlan) {
+            applyTripPlanPreference(qObj.tripPlan);
+          }
+          saveCurrentDraft();
+          checkSubmitRequirement();
         }
       } catch (e) {}
     }
@@ -750,7 +761,7 @@
     const a = 6378137.0;
     const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
-    const lonDiff = radLon1 - radLon2;
+    const lonDiff = radLon1 - lonDiff;
     const latAve = (radLat1 + radLat2) / 2.0;
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
     const m = a * (1.0 - e2) / (w * w * w);
@@ -790,12 +801,12 @@
       } else {
         alert('キャンセルエラー: ' + res.message);
         isSubmitting = false; btn.disabled = false;
-        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする';
+        btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
       isSubmitting = false; btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする';
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
     }
   }
 
@@ -928,11 +939,11 @@
         window.scrollTo(0, 0);
       } else {
         alert('中止処理エラー: ' + res.message);
-        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する';
+        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
       }
     } catch (e) {
       alert('通信エラー: ' + e.message);
-      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する';
+      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
     }
   }
 </script>
