@@ -303,7 +303,7 @@
       font-weight: bold;
     }
 
-    /* ★受託確認モーダル専用スタイル */
+    /* モーダル */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -413,6 +413,15 @@
 </header>
 
 <div class="container">
+  <!-- ★初期表示（読み込み中）インジケーター：JS停止時でも白画面化を防止 -->
+  <div id="initialLoadingBox" class="empty-box" style="margin-top:20px;">
+    ⏳ 掲示板を読み込み中...
+  </div>
+
+  <!-- エラー検知ボックス -->
+  <div id="globalErrorBox" style="display:none; background:#fee2e2; border:2px solid #ef4444; color:#b91c1c; border-radius:12px; padding:16px; margin-bottom:16px; font-weight:bold; font-size:0.95rem;">
+  </div>
+
   <div id="authSection" class="card" style="display:none;">
     <h2 style="font-size:1.15rem; font-weight:800; margin-bottom:12px; text-align:center;">ドライバー認証</h2>
     <div class="form-group">
@@ -435,17 +444,15 @@
   </div>
 </div>
 
-<!-- ★受託確認カスタムモーダル（英語表記を完全排除） -->
+<!-- 受託確認カスタムモーダル -->
 <div id="acceptModalOverlay" class="modal-overlay" style="display:none;" onclick="handleModalOverlayClick(event)">
   <div class="modal-card">
     <h2 class="modal-title">この案件を受託しますか？</h2>
     
     <div class="modal-details-card" id="modalDetailsArea">
-      <!-- 案件詳細が動的に展開されます -->
     </div>
 
     <div id="modalNoteArea">
-      <!-- 特記事項が動的に展開されます -->
     </div>
 
     <div class="modal-notice-box">
@@ -460,6 +467,17 @@
 </div>
 
 <script>
+  // ★安全装置：スクリプトエラーを画面上に表示
+  window.onerror = function(msg, url, line) {
+    var errBox = document.getElementById('globalErrorBox');
+    var loadBox = document.getElementById('initialLoadingBox');
+    if (loadBox) loadBox.style.display = 'none';
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.innerHTML = '⚠️ 画面の読み込み中にエラーが発生しました：<br>' + msg + ' (行: ' + line + ')<br><small>※URLの書き換え箇所をご確認ください。</small>';
+    }
+  };
+
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
@@ -468,26 +486,35 @@
   let isProcessingAccept = false;
   let targetAcceptQid = null;
 
-  window.addEventListener('DOMContentLoaded', () => { checkSavedDriver(); });
+  function hideInitialLoading() {
+    var loadBox = document.getElementById('initialLoadingBox');
+    if (loadBox) loadBox.style.display = 'none';
+  }
 
   function checkSavedDriver() {
+    hideInitialLoading();
     const saved = localStorage.getItem('odekake_driver');
     if (saved) {
       try {
         currentDriver = JSON.parse(saved);
-        if (currentDriver && currentDriver.id) { showBoardView(); return; }
+        if (currentDriver && currentDriver.id) {
+          showBoardView();
+          return;
+        }
       } catch (e) {}
     }
     showAuthView();
   }
 
   function showAuthView() {
+    hideInitialLoading();
     document.getElementById('authSection').style.display = 'block';
     document.getElementById('boardSection').style.display = 'none';
     document.getElementById('driverBadgeArea').style.display = 'none';
   }
 
   function showBoardView() {
+    hideInitialLoading();
     document.getElementById('authSection').style.display = 'none';
     document.getElementById('boardSection').style.display = 'block';
     document.getElementById('driverBadgeArea').style.display = 'flex';
@@ -689,14 +716,12 @@
       .replace(/'/g, '&#039;');
   }
 
-  /* ★受託確認モーダルを開く */
   function openAcceptModal(qid) {
     const target = currentQuests.find(item => String(item.id) === String(qid));
     if (!target) return;
 
     targetAcceptQid = qid;
 
-    // 案件詳細の組み立て
     const detailsHtml = `
       <div class="modal-row"><span class="modal-label">案件番号:</span><span class="modal-value">#${target.id}</span></div>
       <div class="modal-row"><span class="modal-label">運行区分:</span><span class="modal-value" style="color:var(--primary-blue);">${target.tripPlan || '往復'}</span></div>
@@ -707,7 +732,6 @@
     `;
     document.getElementById('modalDetailsArea').innerHTML = detailsHtml;
 
-    // 特記事項の組み立て
     const noteArea = document.getElementById('modalNoteArea');
     if (target.note) {
       noteArea.innerHTML = `
@@ -732,7 +756,6 @@
     document.getElementById('acceptModalOverlay').style.display = 'flex';
   }
 
-  /* ★受託確認モーダルを閉じる */
   function closeAcceptModal() {
     if (isProcessingAccept) return;
     document.getElementById('acceptModalOverlay').style.display = 'none';
@@ -745,7 +768,6 @@
     }
   }
 
-  /* ★受託処理の実行 */
   async function confirmAndExecuteAccept() {
     if (isProcessingAccept || !targetAcceptQid) return;
 
@@ -773,6 +795,13 @@
     } finally {
       isProcessingAccept = false;
     }
+  }
+
+  // ★即時実行ガード：DOMContentLoadedを待たずに即時起動を試行
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkSavedDriver);
+  } else {
+    checkSavedDriver();
   }
 </script>
 </body>
