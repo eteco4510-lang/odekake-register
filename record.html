@@ -861,7 +861,7 @@
     const a = 6378137.0;
     const e2 = 0.00669437999019758;
     const latDiff = radLat1 - radLat2;
-    const lonDiff = radLon1 - lonDiff;
+    const lonDiff = radLon1 - radLon2;
     const latAve = (radLat1 + radLat2) / 2.0;
     const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
     const m = a * (1.0 - e2) / (w * w * w);
