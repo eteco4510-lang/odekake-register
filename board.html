@@ -172,7 +172,6 @@
       border-radius: 6px;
       border: 1px solid #fed7aa;
     }
-    /* ★運行区分バッジ */
     .trip-plan-badge {
       display: inline-flex;
       align-items: center;
@@ -319,7 +318,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "【https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec】";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
@@ -430,22 +429,33 @@
     }
   }
 
-  // ★運行区分バッジのHTML生成関数
+  // ★運行区分バッジの柔軟生成関数
   function createTripBadgeHtml(tripPlan) {
     const text = String(tripPlan || '往復').trim();
     if (text.includes('片道')) {
       return `<div class="trip-plan-badge oneway"><span>➡️</span><span>片道（送り届けのみ）</span></div>`;
     }
-    if (text.includes('30分以内')) {
-      return `<div class="trip-plan-badge round-short"><span>🚗</span><span>往復（待機目安: 30分以内）</span></div>`;
+
+    // 待機時間の数字や目安を正規表現で自動抽出
+    let waitText = '';
+    const m = text.match(/(\d+分[〜～\-]\d+時間|\d+分[〜～\-]\d+分|\d+時間[〜～\-]\d+時間|\d+分以内|\d+時間以上|\d+分|\d+時間)/);
+    if (m) {
+      waitText = m[0];
+    } else if (text.includes('30分以内')) {
+      waitText = '30分以内';
+    } else if (text.includes('30分〜1時間') || text.includes('1時間以内')) {
+      waitText = '30分〜1時間';
+    } else if (text.includes('1時間〜2時間')) {
+      waitText = '1〜2時間';
+    } else if (text.includes('2時間以上')) {
+      waitText = '2時間以上';
     }
-    if (text.includes('30分〜1時間') || text.includes('1時間以内')) {
-      return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: 30分〜1時間）</span></div>`;
+
+    if (waitText) {
+      return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: ${waitText}）</span></div>`;
     }
-    if (text.includes('1時間〜2時間') || text.includes('2時間')) {
-      return `<div class="trip-plan-badge round-long"><span>🚗</span><span>往復（待機目安: 1〜2時間）</span></div>`;
-    }
-    return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>${text}</span></div>`;
+
+    return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機あり）</span></div>`;
   }
 
   function renderQuests(quests) {
