@@ -256,8 +256,31 @@
       align-items: center;
       font-size: 0.95rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       font-weight: 700;
+    }
+    /* ★特記事項ボックス */
+    .note-box {
+      background-color: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 0.9rem;
+      color: #92400e;
+      line-height: 1.45;
+    }
+    .note-box-title {
+      font-weight: 900;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .note-box-body {
+      font-weight: 600;
+      word-break: break-word;
+      white-space: pre-wrap;
     }
     .btn-accept {
       width: 100%;
@@ -322,6 +345,7 @@
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
+  let currentQuests = [];
   let isProcessingAccept = false;
 
   window.addEventListener('DOMContentLoaded', () => { checkSavedDriver(); });
@@ -353,7 +377,10 @@
     if (localCached) {
       try {
         const cachedQuests = JSON.parse(localCached);
-        if (cachedQuests && cachedQuests.length > 0) renderQuests(cachedQuests);
+        if (cachedQuests && cachedQuests.length > 0) {
+          currentQuests = cachedQuests;
+          renderQuests(cachedQuests);
+        }
       } catch (e) {}
     }
     fetchBoardQuests(false);
@@ -411,6 +438,7 @@
       const res = await (await fetch(url)).json();
 
       if (res.success && res.quests) {
+        currentQuests = res.quests;
         localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(res.quests));
         if (res.quests.length > 0) {
           renderQuests(res.quests);
@@ -429,14 +457,12 @@
     }
   }
 
-  // ★運行区分バッジの柔軟生成関数
   function createTripBadgeHtml(tripPlan) {
     const text = String(tripPlan || '往復').trim();
     if (text.includes('片道')) {
       return `<div class="trip-plan-badge oneway"><span>➡️</span><span>片道（送り届けのみ）</span></div>`;
     }
 
-    // 待機時間の数字や目安を正規表現で自動抽出
     let waitText = '';
     const m = text.match(/(\d+分[〜～\-]\d+時間|\d+分[〜～\-]\d+分|\d+時間[〜～\-]\d+時間|\d+分以内|\d+時間以上|\d+分|\d+時間)/);
     if (m) {
@@ -467,7 +493,7 @@
       card.className = q.isUrgent ? 'quest-card urgent-card' : 'quest-card';
 
       const urgentBannerHtml = q.isUrgent
-        ? '<div class="urgent-banner"><span>🚨</span><span>【至急】運行日が迫っています</span></div>'
+        ? '<div class="urgent-banner"><span>🚨</span><span>【至急】運行日が迫っています（直前募集中）</span></div>'
         : '';
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
@@ -486,6 +512,17 @@
       const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
       const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
       const tripBadgeHtml = createTripBadgeHtml(q.tripPlan);
+
+      // ★特記事項ボックスの生成
+      let noteBoxHtml = '';
+      if (q.note) {
+        noteBoxHtml = `
+          <div class="note-box">
+            <div class="note-box-title"><span>📝</span><span>特記事項・介助要件:</span></div>
+            <div class="note-box-body">${escapeHtml(q.note)}</div>
+          </div>
+        `;
+      }
 
       card.innerHTML = `
         ${urgentBannerHtml}
@@ -516,15 +553,33 @@
           <span>乗車人数: ${q.passengers}</span>
           <span>利用者: ${q.userNameMasked}</span>
         </div>
+        ${noteBoxHtml}
         <button type="button" class="btn-accept" onclick="acceptQuest('${q.id}')">この案件を受託する</button>
       `;
       listArea.appendChild(card);
     });
   }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ★受託ボタン押下時の確認処理（特記事項をポップアップ表示）
   async function acceptQuest(qid) {
     if (isProcessingAccept) return;
-    if (!confirm(`【受託確認】\n案件番号 [${qid}] を受託しますか？\n受託すると公式LINEへ運行案内が届きます。`)) return;
+
+    // 現在の案件データから該当案件を取得
+    const target = currentQuests.find(item => String(item.id) === String(qid));
+    const noteText = (target && target.note) ? `\n\n【特記事項・介助要件】\n${target.note}` : '\n\n【特記事項】\n特になし';
+    const confirmMessage = `【受託確認】\n案件番号 [#${qid}] を受託しますか？${noteText}\n\n※受託すると公式LINEへ運行案内が届きます。`;
+
+    if (!confirm(confirmMessage)) return;
 
     isProcessingAccept = true;
     try {
