@@ -195,7 +195,6 @@
       display: inline-block;
       font-weight: bold;
     }
-    /* 画面内ステータス・案内ボックス */
     .submit-notice-box {
       margin-top: 24px;
       padding: 14px;
@@ -223,7 +222,7 @@
     }
     .btn-submit {
       width: 100%;
-      height: 60px;
+      height: 62px;
       margin-top: 14px;
       background-color: var(--primary-blue);
       color: #ffffff;
@@ -234,6 +233,7 @@
       cursor: pointer;
       box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.35);
       transition: all 0.2s;
+      display: block;
     }
     .btn-submit:active { background-color: var(--primary-hover); transform: scale(0.98); }
     .danger-actions-section {
@@ -452,7 +452,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
 
   let questId = '';
   let passengerCount = 1;
@@ -502,9 +502,21 @@
     return 'odekake_draft_' + (qidVal || questId || 'general');
   }
 
+  // ★安全な運行区分取得
+  function getSafeTripType() {
+    const checked = document.querySelector('input[name="tripType"]:checked');
+    if (checked && checked.value) return checked.value;
+    const radRound = document.querySelector('input[name="tripType"][value="往復"]');
+    if (radRound) {
+      radRound.checked = true;
+      document.getElementById('labelRound').className = 'radio-label active';
+      document.getElementById('labelOneWay').className = 'radio-label';
+    }
+    return '往復';
+  }
+
   function handleTripTypeChange() {
-    const checkedEl = document.querySelector('input[name="tripType"]:checked');
-    const isRound = checkedEl ? (checkedEl.value === '往復') : true;
+    const isRound = getSafeTripType() === '往復';
     document.getElementById('labelRound').className = isRound ? 'radio-label active' : 'radio-label';
     document.getElementById('labelOneWay').className = !isRound ? 'radio-label active' : 'radio-label';
     calcSummaryIfPossible();
@@ -513,12 +525,12 @@
 
   function applyTripPlanPreference(tripPlanText) {
     if (!tripPlanText) return;
-    const isOneWay = tripPlanText.includes('片道');
+    const isOneWay = String(tripPlanText).includes('片道');
     const radOneWay = document.querySelector('input[name="tripType"][value="片道"]');
     const radRound = document.querySelector('input[name="tripType"][value="往復"]');
     if (isOneWay && radOneWay) {
       radOneWay.checked = true;
-    } else if (!isOneWay && radRound) {
+    } else if (radRound) {
       radRound.checked = true;
     }
     handleTripTypeChange();
@@ -572,11 +584,10 @@
         const el = document.getElementById(`passenger${i}`);
         if (el) passengers.push(el.value);
       }
-      const checkedTrip = document.querySelector('input[name="tripType"]:checked');
       const draft = {
         questId: document.getElementById('questIdInput').value.trim(),
         driverId: document.getElementById('driverId').value.trim(),
-        tripType: checkedTrip ? checkedTrip.value : '往復',
+        tripType: getSafeTripType(),
         otherExpense: document.getElementById('otherExpense').value,
         passengers: passengers,
         passengerCount: passengerCount,
@@ -591,7 +602,6 @@
     checkSubmitRequirement();
   }
 
-  // ★リアルタイム状態通知（画面内に表示）
   function checkSubmitRequirement() {
     const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
     const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
@@ -607,10 +617,10 @@
     if (missing.length === 0) {
       if (runLog.arrTime) {
         notice.className = 'submit-notice-box ready';
-        notice.innerHTML = '✔ 入力完了！「活動実績を送信」を押してください';
+        notice.innerHTML = '✔ 準備完了！「活動実績を送信」を押してください';
       } else {
         notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '💡 到着ボタンを押すか、そのまま「活動実績を送信」を押すと現在時刻で送信されます';
+        notice.innerHTML = '💡 到着ボタンを押すか、そのまま送信すると現在時刻で自動記録されます';
       }
     } else {
       notice.className = 'submit-notice-box error';
@@ -629,8 +639,7 @@
       if (draft.otherExpense) document.getElementById('otherExpense').value = draft.otherExpense;
 
       if (draft.tripType) {
-        const rad = document.querySelector(`input[name="tripType"][value="${draft.tripType}"]`);
-        if (rad) { rad.checked = true; handleTripTypeChange(); }
+        applyTripPlanPreference(draft.tripType);
       }
 
       if (draft.passengers && draft.passengers.length > 0) {
@@ -836,8 +845,7 @@
       runLog.roundTripKm = runLog.oneWayKm * 2;
     }
 
-    const checkedTrip = document.querySelector('input[name="tripType"]:checked');
-    const tripType = checkedTrip ? checkedTrip.value : '往復';
+    const tripType = getSafeTripType();
     const calcDistance = (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm;
     runLog.fuelFee = calcDistance * 20;
 
@@ -862,79 +870,104 @@
     return d / 1000.0;
   }
 
-  // ★活動実績送信処理（完全防御 ＆ 自動補完版）
+  // ★完全安全防護版：送信処理
   async function submitRecord() {
-    if (isSubmitting) return;
-
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
 
-    const qid = document.getElementById('questIdInput').value.trim() || questId;
-    const driverId = document.getElementById('driverId').value.trim();
-    const p1 = document.getElementById('passenger1').value.trim();
-
-    // 必須項目の確認
-    const missing = [];
-    if (!qid) missing.push('案件番号');
-    if (!driverId) missing.push('登録番号');
-    if (!p1) missing.push('乗客名');
-
-    if (missing.length > 0) {
-      if (notice) {
-        notice.className = 'submit-notice-box error';
-        notice.innerHTML = `⚠️ 送信できません：【<strong>${missing.join('・')}</strong>】を入力してください`;
-      }
-      return;
-    }
-
-    // ★到着時刻が未記録の場合の自動補完（現在時刻を代入）
-    if (!runLog.arrTime) {
-      manualRecordArrival();
-    }
-    if (!runLog.depTime) {
-      runLog.depTime = runLog.arrTime;
-    }
-
-    calcSummaryIfPossible();
-
-    const checkedTrip = document.querySelector('input[name="tripType"]:checked');
-    const tripType = checkedTrip ? checkedTrip.value : '往復';
-    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
-
-    isSubmitting = true;
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.textContent = '⏳ 送信中（そのままお待ちください）...';
-    if (notice) {
-      notice.className = 'submit-notice-box warning';
-      notice.innerHTML = '📡 スプレッドシートへ送信中...';
-    }
-
-    const passengers = [];
-    for (let i = 1; i <= 7; i++) {
-      const el = document.getElementById(`passenger${i}`);
-      passengers.push(el ? el.value.trim() : '');
-    }
-
-    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
-    const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
-
-    const payload = {
-      questId: qid, driverId: driverId, driverName: cachedDriverName,
-      isCancelled: false, tripType: tripType, otherExpense: otherExp,
-      depTime: runLog.depTime, arrTime: runLog.arrTime,
-      duration: runLog.durationMin,
-      oneWayDistance: runLog.oneWayKm,
-      roundTripDistance: (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm,
-      fuelFee: runLog.fuelFee, fee: runLog.fee,
-      depLat: runLog.depLat || '', depLng: runLog.depLng || '',
-      arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
-      depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
-    };
-
     try {
+      if (isSubmitting) return;
+
+      // 即時ビジュアルフィードバック
+      if (btn) {
+        btn.textContent = '🚀 送信処理中...';
+        btn.style.opacity = '0.7';
+      }
+
+      const qidInput = document.getElementById('questIdInput');
+      const driverIdInput = document.getElementById('driverId');
+      const p1Input = document.getElementById('passenger1');
+
+      let qid = qidInput ? qidInput.value.trim() : '';
+      if (!qid) qid = questId;
+
+      let driverId = driverIdInput ? driverIdInput.value.trim() : '';
+      if (!driverId) {
+        const saved = localStorage.getItem('odekake_driver');
+        if (saved) {
+          try { driverId = JSON.parse(saved).id || ''; } catch(e){}
+        }
+      }
+
+      let p1 = p1Input ? p1Input.value.trim() : '';
+
+      // 必須項目の検証
+      const missing = [];
+      if (!qid) missing.push('案件番号');
+      if (!driverId) missing.push('登録番号');
+      if (!p1) missing.push('乗客名');
+
+      if (missing.length > 0) {
+        if (btn) {
+          btn.textContent = '活動実績を送信';
+          btn.style.opacity = '1';
+        }
+        if (notice) {
+          notice.className = 'submit-notice-box error';
+          notice.innerHTML = `⚠️ 送信できません：【<strong>${missing.join('・')}</strong>】を入力してください`;
+        }
+        return;
+      }
+
+      // 到着・出発の自動補完
+      if (!runLog.arrTime) {
+        manualRecordArrival();
+      }
+      if (!runLog.depTime) {
+        runLog.depTime = runLog.arrTime;
+      }
+
+      calcSummaryIfPossible();
+
+      const tripType = getSafeTripType();
+      const otherExpVal = document.getElementById('otherExpense') ? document.getElementById('otherExpense').value : '0';
+      const otherExp = parseInt(otherExpVal || '0', 10) || 0;
+
+      isSubmitting = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ スプレッドシートへ送信中...';
+      }
+      if (notice) {
+        notice.className = 'submit-notice-box warning';
+        notice.innerHTML = '📡 スプレッドシートへ送信中... そのままお待ちください';
+      }
+
+      const passengers = [];
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById(`passenger${i}`);
+        passengers.push(el ? el.value.trim() : '');
+      }
+
+      const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+      const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
+
+      const payload = {
+        questId: qid, driverId: driverId, driverName: cachedDriverName,
+        isCancelled: false, tripType: tripType, otherExpense: otherExp,
+        depTime: runLog.depTime, arrTime: runLog.arrTime,
+        duration: runLog.durationMin,
+        oneWayDistance: runLog.oneWayKm,
+        roundTripDistance: (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm,
+        fuelFee: runLog.fuelFee, fee: runLog.fee,
+        depLat: runLog.depLat || '', depLng: runLog.depLng || '',
+        arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
+        depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
+      };
+
       const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
-      const res = await (await fetch(url)).json();
+      const response = await fetch(url);
+      const res = await response.json();
 
       if (res.success) {
         clearDraft();
@@ -969,22 +1002,26 @@
         window.scrollTo(0, 0);
       } else {
         isSubmitting = false;
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.textContent = '活動実績を送信';
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.textContent = '活動実績を送信';
+        }
         if (notice) {
           notice.className = 'submit-notice-box error';
           notice.innerHTML = `⚠️ 保存エラー: ${res.message || 'スプレッドシートの保存に失敗しました'}`;
         }
       }
-    } catch (e) {
+    } catch (err) {
       isSubmitting = false;
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.textContent = '活動実績を送信';
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.textContent = '活動実績を送信';
+      }
       if (notice) {
         notice.className = 'submit-notice-box error';
-        notice.innerHTML = `⚠️ 通信エラー: ${e.message}<br><small>※GAS_API_URLをご確認ください</small>`;
+        notice.innerHTML = `⚠️ 送信エラーが発生しました：<br>${err.message}<br><small>※電波状況またはGAS_API_URLをご確認ください</small>`;
       }
     }
   }
