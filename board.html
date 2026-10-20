@@ -460,7 +460,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const GAS_API_URL = "【デプロイしたWeb_App_URLを貼り付け】";
   const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
   let currentDriver = null;
@@ -545,4 +545,235 @@
     const statusBar = document.getElementById('syncStatusBar');
     const btnRef = document.getElementById('btnRefresh');
 
-    if (listArea.children.length
+    if (listArea.children.length === 0) {
+      listArea.innerHTML = '<div class="empty-box">⏳ 案件を取得中...</div>';
+    }
+    if (statusBar) statusBar.textContent = '📡 最新情報を取得中...';
+    if (isManualRefresh && btnRef) {
+      btnRef.disabled = true; btnRef.textContent = '🔄 更新中...';
+    }
+
+    try {
+      const url = `${GAS_API_URL}?action=getBoardQuests`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success && res.quests) {
+        currentQuests = res.quests;
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(res.quests));
+        if (res.quests.length > 0) {
+          renderQuests(res.quests);
+        } else {
+          listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
+        }
+        if (statusBar) statusBar.textContent = '✔ 最新の情報に更新済み';
+      }
+    } catch (e) {
+      if (statusBar) statusBar.textContent = '⚠️ 通信エラー';
+    } finally {
+      if (btnRef) {
+        btnRef.disabled = false; btnRef.textContent = '🔄 最新の案件に更新';
+      }
+      setTimeout(() => { if (statusBar) statusBar.textContent = ''; }, 3000);
+    }
+  }
+
+  function createTripBadgeHtml(tripPlan) {
+    const text = String(tripPlan || '往復').trim();
+    if (text.includes('片道')) {
+      return `<div class="trip-plan-badge oneway"><span>➡️</span><span>片道（送り届けのみ）</span></div>`;
+    }
+
+    let waitText = '';
+    const m = text.match(/(\d+分[〜～\-]\d+時間|\d+分[〜～\-]\d+分|\d+時間[〜～\-]\d+時間|\d+分以内|\d+時間以上|\d+分|\d+時間)/);
+    if (m) {
+      waitText = m[0];
+    } else if (text.includes('30分以内')) {
+      waitText = '30分以内';
+    } else if (text.includes('30分〜1時間') || text.includes('1時間以内')) {
+      waitText = '30分〜1時間';
+    } else if (text.includes('1時間〜2時間')) {
+      waitText = '1〜2時間';
+    } else if (text.includes('2時間以上')) {
+      waitText = '2時間以上';
+    }
+
+    if (waitText) {
+      return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: ${waitText}）</span></div>`;
+    }
+
+    return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機あり）</span></div>`;
+  }
+
+  function renderQuests(quests) {
+    const listArea = document.getElementById('questListArea');
+    listArea.innerHTML = '';
+
+    quests.forEach(q => {
+      const card = document.createElement('div');
+      card.className = q.isUrgent ? 'quest-card urgent-card' : 'quest-card';
+
+      const urgentBannerHtml = q.isUrgent
+        ? '<div class="urgent-banner"><span>🚨</span><span>【至急】運行日が迫っています（直前募集中）</span></div>'
+        : '';
+
+      const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
+      let displayDate = q.dateText || '日時指定なし';
+      let timeBadgeHtml = '';
+
+      const timeMatch = displayDate.match(/(\d{1,2}:\d{2})/);
+      if (timeMatch) {
+        const timeVal = timeMatch[1];
+        displayDate = displayDate.replace(timeVal, '').trim();
+        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${timeVal} 集合</span>`;
+      } else if (q.targetTime) {
+        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
+      }
+
+      const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
+      const dropoffMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.dropoff || '');
+      const tripBadgeHtml = createTripBadgeHtml(q.tripPlan);
+
+      let noteBoxHtml = '';
+      if (q.note) {
+        noteBoxHtml = `
+          <div class="note-box">
+            <div class="note-box-title"><span>📝</span><span>特記事項・介助要件:</span></div>
+            <div class="note-box-body">${escapeHtml(q.note)}</div>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        ${urgentBannerHtml}
+        <div class="quest-header">
+          <span class="quest-id-badge">案件 #${q.id}</span>
+          ${agencyTag}
+        </div>
+        ${tripBadgeHtml}
+        <div class="quest-datetime-wrap">
+          <span class="quest-date">📅 ${displayDate}</span>
+          ${timeBadgeHtml}
+        </div>
+        <div class="route-container">
+          <div class="route-row">
+            <span class="route-label">出発地:</span>
+            <a href="${pickupMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+              <span>${q.pickup}</span> <span>🗺️</span>
+            </a>
+          </div>
+          <div class="route-row">
+            <span class="route-label">目的地:</span>
+            <a href="${dropoffMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
+              <span>${q.dropoff}</span> <span>🗺️</span>
+            </a>
+          </div>
+        </div>
+        <div class="quest-meta">
+          <span>乗車人数: ${q.passengers}</span>
+          <span>利用者: ${q.userNameMasked}</span>
+        </div>
+        ${noteBoxHtml}
+        <button type="button" class="btn-accept" onclick="openAcceptModal('${q.id}')">この案件を受託する</button>
+      `;
+      listArea.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /* ★受託確認モーダルを開く */
+  function openAcceptModal(qid) {
+    const target = currentQuests.find(item => String(item.id) === String(qid));
+    if (!target) return;
+
+    targetAcceptQid = qid;
+
+    // 案件詳細の組み立て
+    const detailsHtml = `
+      <div class="modal-row"><span class="modal-label">案件番号:</span><span class="modal-value">#${target.id}</span></div>
+      <div class="modal-row"><span class="modal-label">運行区分:</span><span class="modal-value" style="color:var(--primary-blue);">${target.tripPlan || '往復'}</span></div>
+      <div class="modal-row"><span class="modal-label">集合日時:</span><span class="modal-value">${target.dateText}</span></div>
+      <div class="modal-row"><span class="modal-label">出発地:</span><span class="modal-value">${target.pickup}</span></div>
+      <div class="modal-row"><span class="modal-label">目的地:</span><span class="modal-value">${target.dropoff}</span></div>
+      <div class="modal-row"><span class="modal-label">利用者:</span><span class="modal-value">${target.userNameMasked} (${target.passengers})</span></div>
+    `;
+    document.getElementById('modalDetailsArea').innerHTML = detailsHtml;
+
+    // 特記事項の組み立て
+    const noteArea = document.getElementById('modalNoteArea');
+    if (target.note) {
+      noteArea.innerHTML = `
+        <div class="note-box" style="margin-bottom:16px;">
+          <div class="note-box-title"><span>📝</span><span>特記事項・介助要件:</span></div>
+          <div class="note-box-body">${escapeHtml(target.note)}</div>
+        </div>
+      `;
+    } else {
+      noteArea.innerHTML = `
+        <div class="note-box" style="margin-bottom:16px; background:#f8fafc; border-color:#cbd5e1; color:#64748b;">
+          <div class="note-box-title"><span>📝</span><span>特記事項:</span></div>
+          <div class="note-box-body">特になし</div>
+        </div>
+      `;
+    }
+
+    const confirmBtn = document.getElementById('btnConfirmAccept');
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '受託する';
+
+    document.getElementById('acceptModalOverlay').style.display = 'flex';
+  }
+
+  /* ★受託確認モーダルを閉じる */
+  function closeAcceptModal() {
+    if (isProcessingAccept) return;
+    document.getElementById('acceptModalOverlay').style.display = 'none';
+    targetAcceptQid = null;
+  }
+
+  function handleModalOverlayClick(e) {
+    if (e.target.id === 'acceptModalOverlay') {
+      closeAcceptModal();
+    }
+  }
+
+  /* ★受託処理の実行 */
+  async function confirmAndExecuteAccept() {
+    if (isProcessingAccept || !targetAcceptQid) return;
+
+    isProcessingAccept = true;
+    const confirmBtn = document.getElementById('btnConfirmAccept');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '受託処理中...';
+
+    try {
+      const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(targetAcceptQid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
+      const res = await (await fetch(url)).json();
+      
+      closeAcceptModal();
+
+      if (res.success) {
+        alert('受託が完了しました！\n公式LINEをご確認ください。');
+        fetchBoardQuests(true);
+      } else {
+        alert('受託できませんでした: ' + res.message);
+        fetchBoardQuests(true);
+      }
+    } catch (e) {
+      alert('通信エラー: ' + e.message);
+      closeAcceptModal();
+    } finally {
+      isProcessingAccept = false;
+    }
+  }
+</script>
+</body>
+</html>
