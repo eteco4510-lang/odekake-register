@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>おでかけサポート 運行掲示板</title>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
       /* Apple HIG System Colors (Light Mode) */
@@ -45,7 +47,23 @@
       -moz-osx-font-smoothing: grayscale;
       font-variant-numeric: tabular-nums;
       padding-bottom: calc(env(safe-area-inset-bottom) + 56px);
-      overscroll-behavior-y: contain; /* ネイティブリロードとの衝突を抑制 */
+    }
+
+    /* Lucide Icon 共通クラス */
+    .lucide {
+      width: 1.15em;
+      height: 1.15em;
+      vertical-align: -0.18em;
+      stroke-width: 2.2;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 0.9s linear infinite;
     }
 
     /* HIG Translucent Navigation Bar */
@@ -73,6 +91,9 @@
       font-weight: 700;
       color: var(--text-main);
       letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .driver-badge {
@@ -106,44 +127,10 @@
       transform: scale(0.95);
     }
 
-    /* プル・トゥ・リフレッシュ UI */
-    .ptr-container {
-      overflow: hidden;
-      height: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: height 0.22s var(--ease-spring);
-      color: var(--text-muted);
-      font-size: 0.86rem;
-      font-weight: 600;
-      gap: 8px;
-    }
-
-    .ptr-icon {
-      font-size: 1.1rem;
-      transition: transform 0.2s ease;
-      display: inline-block;
-    }
-
-    .ptr-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(0, 122, 255, 0.25);
-      border-top-color: var(--primary-blue);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     .container {
       max-width: 540px;
       margin: 0 auto;
-      padding: 12px 16px 24px;
+      padding: 16px;
     }
 
     /* HIG Inset Grouped Card */
@@ -205,6 +192,10 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
       transition: all 0.2s var(--ease-spring);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-action:active {
@@ -220,21 +211,21 @@
 
     .btn-refresh {
       width: 100%;
-      height: 46px;
-      background-color: rgba(255, 255, 255, 0.85);
+      height: 48px;
+      background-color: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 0.5px solid var(--border-color);
       border-radius: 14px;
-      font-size: 0.92rem;
-      font-weight: 600;
+      font-size: 0.94rem;
+      font-weight: 700;
       color: var(--primary-blue);
       cursor: pointer;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       transition: all 0.2s var(--ease-spring);
     }
@@ -250,10 +241,11 @@
       color: var(--text-muted);
       text-align: center;
       margin-bottom: 14px;
-      height: 18px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
     }
 
     /* Quest Cards */
@@ -284,7 +276,7 @@
       margin-bottom: 14px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .quest-header {
@@ -357,14 +349,17 @@
     }
 
     .quest-date {
-      font-size: 1.2rem;
+      font-size: 1.18rem;
       font-weight: 700;
       color: var(--text-main);
       letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .quest-time-badge {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 700;
       color: #B25000;
       background-color: rgba(255, 149, 0, 0.14);
@@ -373,6 +368,7 @@
       border-radius: 9999px;
       display: inline-flex;
       align-items: center;
+      gap: 6px;
     }
 
     /* HIG Grouped Route Box */
@@ -410,7 +406,7 @@
     }
 
     .route-link {
-      font-size: 1.08rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary-blue);
       text-decoration: none;
@@ -440,6 +436,12 @@
       margin-bottom: 14px;
       padding: 0 4px;
       font-weight: 600;
+    }
+
+    .quest-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .note-box {
@@ -472,13 +474,17 @@
       height: 54px;
       background-color: var(--system-green-Accessible);
       color: #FFFFFF;
-      font-size: 1.1rem;
+      font-size: 1.08rem;
       font-weight: 700;
       border: none;
       border-radius: 14px;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(36, 138, 61, 0.25);
       transition: all 0.2s var(--ease-spring);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-accept:active {
@@ -496,6 +502,11 @@
       box-shadow: var(--shadow-card);
       font-weight: 600;
       font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
     /* HIG Modal Sheet / Alert */
@@ -614,6 +625,10 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(36, 138, 61, 0.28);
       transition: all 0.2s var(--ease-spring);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .btn-modal-confirm:active {
@@ -637,7 +652,10 @@
 
 <header>
   <div class="header-content">
-    <div class="header-title">🚗 運行掲示板</div>
+    <div class="header-title">
+      <i data-lucide="car"></i>
+      <span>運行掲示板</span>
+    </div>
     <div id="driverBadgeArea" style="display:none;" class="driver-badge">
       <span id="dispDriverName">ドライバー</span>
       <button class="btn-logout" onclick="logoutDriver()">解除</button>
@@ -645,17 +663,11 @@
   </div>
 </header>
 
-<!-- ★プル・トゥ・リフレッシュ 表示エリア -->
-<div id="ptrContainer" class="ptr-container">
-  <span id="ptrIcon" class="ptr-icon">↓</span>
-  <span id="ptrSpinner" class="ptr-spinner"></span>
-  <span id="ptrText">引いて最新に更新</span>
-</div>
-
 <div class="container">
   <!-- 初期表示（読み込み中）インジケーター -->
   <div id="initialLoadingBox" class="empty-box" style="margin-top:20px;">
-    ⏳ 掲示板を読み込み中...
+    <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue);"></i>
+    <span>掲示板を読み込み中...</span>
   </div>
 
   <!-- エラー検知ボックス -->
@@ -672,12 +684,16 @@
       <label>登録電話番号（下4桁）</label>
       <input type="tel" id="authPhone4" placeholder="例: 1234" maxlength="4" inputmode="numeric">
     </div>
-    <button type="button" class="btn-action" id="btnAuth" onclick="executeAuth()">認証する</button>
+    <button type="button" class="btn-action" id="btnAuth" onclick="executeAuth()">
+      <i data-lucide="key"></i>
+      <span>認証する</span>
+    </button>
   </div>
 
   <div id="boardSection" style="display:none;">
     <button type="button" class="btn-refresh" id="btnRefresh" onclick="fetchBoardQuests(true)">
-      🔄 最新の案件に更新
+      <i data-lucide="rotate-cw" id="refreshIcon"></i>
+      <span>最新の案件に更新</span>
     </button>
     <div id="syncStatusBar" class="sync-status-bar"></div>
     <div id="questListArea"></div>
@@ -695,15 +711,18 @@
     </div>
     <div class="modal-buttons">
       <button type="button" class="btn-modal-cancel" onclick="closeAcceptModal()">やめる</button>
-      <button type="button" class="btn-modal-confirm" id="btnConfirmAccept" onclick="confirmAndExecuteAccept()">受託する</button>
+      <button type="button" class="btn-modal-confirm" id="btnConfirmAccept" onclick="confirmAndExecuteAccept()">
+        <i data-lucide="check"></i>
+        <span>受託する</span>
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ★【新規】Githubホスト名を出さないiOS風カスタムダイアログ（通知・確認・完了） -->
+<!-- Githubダイアログを出さない完全カスタムモーダル（通知・確認・完了） -->
 <div id="customDialogOverlay" class="modal-overlay" style="display:none;" onclick="handleCustomDialogOverlayClick(event)">
   <div class="modal-card" style="max-width:360px; text-align:center;">
-    <div id="customDialogIcon" style="font-size:2.2rem; margin-bottom:10px;">✔</div>
+    <div id="customDialogIconArea" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
     <h3 id="customDialogTitle" class="modal-title" style="margin-bottom:10px; font-size:1.15rem;">通知</h3>
     <div id="customDialogMessage" style="font-size:0.95rem; color:var(--text-main); margin-bottom:20px; line-height:1.55; white-space:pre-wrap; text-align:left; background:var(--surface-secondary); padding:14px; border-radius:14px; font-weight:500;"></div>
     <div class="modal-buttons" id="customDialogButtons">
@@ -720,7 +739,7 @@
     if (loadBox) loadBox.style.display = 'none';
     if (errBox) {
       errBox.style.display = 'block';
-      errBox.innerHTML = '⚠️ 画面の読み込み中にエラーが発生しました：<br>' + msg + ' (行: ' + line + ')<br><small>※URLの書き換え箇所をご確認ください。</small>';
+      errBox.innerHTML = '画面の読み込み中にエラーが発生しました：<br>' + msg + ' (行: ' + line + ')<br><small>※URLの書き換え箇所をご確認ください。</small>';
     }
   };
 
@@ -732,14 +751,21 @@
   let isProcessingAccept = false;
   let targetAcceptQid = null;
 
+  function refreshLucide() {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  }
+
   // ==========================================
-  // ★Githubダイアログを出さないカスタムモーダル制御
+  // Githubダイアログを出さないカスタムモーダル制御
   // ==========================================
   let customDialogResolve = null;
 
-  function showCustomAlert(message, title = 'お知らせ', icon = 'ℹ️') {
+  function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
     return new Promise((resolve) => {
-      document.getElementById('customDialogIcon').textContent = icon;
+      document.getElementById('customDialogIconArea').innerHTML =
+        `<i data-lucide="${iconName}" style="width:46px; height:46px; stroke-width:2.2; color:${iconColor};"></i>`;
       document.getElementById('customDialogTitle').textContent = title;
       document.getElementById('customDialogMessage').textContent = message;
 
@@ -752,12 +778,14 @@
 
       customDialogResolve = resolve;
       document.getElementById('customDialogOverlay').style.display = 'flex';
+      refreshLucide();
     });
   }
 
-  function showCustomConfirm(message, title = 'ご確認', icon = '❓') {
+  function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--primary-blue)') {
     return new Promise((resolve) => {
-      document.getElementById('customDialogIcon').textContent = icon;
+      document.getElementById('customDialogIconArea').innerHTML =
+        `<i data-lucide="${iconName}" style="width:46px; height:46px; stroke-width:2.2; color:${iconColor};"></i>`;
       document.getElementById('customDialogTitle').textContent = title;
       document.getElementById('customDialogMessage').textContent = message;
 
@@ -770,6 +798,7 @@
 
       customDialogResolve = resolve;
       document.getElementById('customDialogOverlay').style.display = 'flex';
+      refreshLucide();
     });
   }
 
@@ -816,6 +845,7 @@
     document.getElementById('authSection').style.display = 'block';
     document.getElementById('boardSection').style.display = 'none';
     document.getElementById('driverBadgeArea').style.display = 'none';
+    refreshLucide();
   }
 
   function showBoardView() {
@@ -836,10 +866,16 @@
       } catch (e) {}
     }
     fetchBoardQuests(false);
+    refreshLucide();
   }
 
   async function logoutDriver() {
-    const ok = await showCustomConfirm('登録情報の連携を解除しますか？\n（再度ログインする際は登録番号と下4桁が必要になります）', '連携解除の確認', '⚠️');
+    const ok = await showCustomConfirm(
+      '登録情報の連携を解除しますか？\n（再度ログインする際は登録番号と下4桁が必要になります）',
+      '連携解除の確認',
+      'alert-triangle',
+      'var(--danger-red)'
+    );
     if (ok) {
       localStorage.removeItem('odekake_driver');
       localStorage.removeItem(LOCAL_CACHE_KEY);
@@ -852,12 +888,14 @@
     const driverId = document.getElementById('authDriverId').value.trim();
     const phone4 = document.getElementById('authPhone4').value.trim();
     if (!driverId || !phone4) {
-      await showCustomAlert('ドライバー登録番号と電話番号の下4桁を入力してください。', '入力エラー', '⚠️');
+      await showCustomAlert('ドライバー登録番号と電話番号の下4桁を入力してください。', '入力エラー', 'alert-circle', 'var(--warn-amber)');
       return;
     }
 
     const btn = document.getElementById('btnAuth');
-    btn.disabled = true; btn.textContent = '認証中...';
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>認証中...</span>';
+    refreshLucide();
 
     try {
       const url = `${GAS_API_URL}?action=authDriver&driverId=${encodeURIComponent(driverId)}&phone4=${encodeURIComponent(phone4)}`;
@@ -867,12 +905,16 @@
         localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
         showBoardView();
       } else {
-        await showCustomAlert(res.message || '登録情報と一致しませんでした。番号をお確かめください。', '認証エラー', '⚠️');
-        btn.disabled = false; btn.textContent = '認証する';
+        await showCustomAlert(res.message || '登録情報と一致しませんでした。番号をお確かめください。', '認証エラー', 'alert-circle', 'var(--danger-red)');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="key"></i><span>認証する</span>';
+        refreshLucide();
       }
     } catch (e) {
-      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', '⚠️');
-      btn.disabled = false; btn.textContent = '認証する';
+      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="key"></i><span>認証する</span>';
+      refreshLucide();
     }
   }
 
@@ -883,13 +925,25 @@
     const listArea = document.getElementById('questListArea');
     const statusBar = document.getElementById('syncStatusBar');
     const btnRef = document.getElementById('btnRefresh');
+    const refIcon = document.getElementById('refreshIcon');
 
     if (listArea.children.length === 0) {
-      listArea.innerHTML = '<div class="empty-box">⏳ 案件を取得中...</div>';
+      listArea.innerHTML = `
+        <div class="empty-box">
+          <i data-lucide="loader-2" class="animate-spin" style="width:28px; height:28px; color:var(--primary-blue);"></i>
+          <span>案件を取得中...</span>
+        </div>
+      `;
+      refreshLucide();
     }
-    if (statusBar) statusBar.textContent = '📡 最新情報を取得中...';
+
+    if (statusBar) {
+      statusBar.innerHTML = '<i data-lucide="radio" class="animate-spin"></i><span>最新情報を取得中...</span>';
+      refreshLucide();
+    }
     if (isManualRefresh && btnRef) {
-      btnRef.disabled = true; btnRef.textContent = '🔄 更新中...';
+      btnRef.disabled = true;
+      if (refIcon) refIcon.classList.add('animate-spin');
     }
 
     try {
@@ -902,24 +956,37 @@
         if (res.quests.length > 0) {
           renderQuests(res.quests);
         } else {
-          listArea.innerHTML = '<div class="empty-box">現在募集中の運行案件はありません。</div>';
+          listArea.innerHTML = `
+            <div class="empty-box">
+              <i data-lucide="inbox" style="width:36px; height:36px; stroke-width:1.5;"></i>
+              <span>現在募集中の運行案件はありません。</span>
+            </div>
+          `;
+          refreshLucide();
         }
-        if (statusBar) statusBar.textContent = '✔ 最新の情報に更新済み';
+        if (statusBar) {
+          statusBar.innerHTML = '<i data-lucide="check-circle" style="color:var(--system-green-Accessible);"></i><span>最新の情報に更新済み</span>';
+          refreshLucide();
+        }
       }
     } catch (e) {
-      if (statusBar) statusBar.textContent = '⚠️ 通信エラー';
+      if (statusBar) {
+        statusBar.innerHTML = '<i data-lucide="alert-circle" style="color:var(--danger-red);"></i><span>通信エラー</span>';
+        refreshLucide();
+      }
     } finally {
       if (btnRef) {
-        btnRef.disabled = false; btnRef.textContent = '🔄 最新の案件に更新';
+        btnRef.disabled = false;
+        if (refIcon) refIcon.classList.remove('animate-spin');
       }
-      setTimeout(() => { if (statusBar) statusBar.textContent = ''; }, 3000);
+      setTimeout(() => { if (statusBar) statusBar.innerHTML = ''; }, 3200);
     }
   }
 
   function createTripBadgeHtml(tripPlan) {
     const text = String(tripPlan || '往復').trim();
     if (text.includes('片道')) {
-      return `<div class="trip-plan-badge oneway"><span>➡️</span><span>片道（送り届けのみ）</span></div>`;
+      return `<div class="trip-plan-badge oneway"><i data-lucide="arrow-right"></i><span>片道（送り届けのみ）</span></div>`;
     }
 
     let waitText = '';
@@ -937,9 +1004,9 @@
     }
 
     if (waitText) {
-      return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: ${waitText}）</span></div>`;
+      return `<div class="trip-plan-badge round-medium"><i data-lucide="repeat"></i><span>往復（待機目安: ${waitText}）</span></div>`;
     }
-    return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機あり）</span></div>`;
+    return `<div class="trip-plan-badge round-medium"><i data-lucide="repeat"></i><span>往復（待機あり）</span></div>`;
   }
 
   function renderQuests(quests) {
@@ -951,7 +1018,7 @@
       card.className = q.isUrgent ? 'quest-card urgent-card' : 'quest-card';
 
       const urgentBannerHtml = q.isUrgent
-        ? '<div class="urgent-banner"><span>🚨</span><span>【至急】運行日が迫っています（直前募集中）</span></div>'
+        ? '<div class="urgent-banner"><i data-lucide="alert-triangle"></i><span>【至急】運行日が迫っています（直前募集中）</span></div>'
         : '';
 
       const agencyTag = q.isAgency ? '<span class="agency-tag">ケアマネ等代理</span>' : '';
@@ -962,9 +1029,9 @@
       if (timeMatch) {
         const timeVal = timeMatch[1];
         displayDate = displayDate.replace(timeVal, '').trim();
-        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${timeVal} 集合</span>`;
+        timeBadgeHtml = `<span class="quest-time-badge"><i data-lucide="clock"></i><span>${timeVal} 集合</span></span>`;
       } else if (q.targetTime) {
-        timeBadgeHtml = `<span class="quest-time-badge">⏰ ${q.targetTime} 集合</span>`;
+        timeBadgeHtml = `<span class="quest-time-badge"><i data-lucide="clock"></i><span>${q.targetTime} 集合</span></span>`;
       }
 
       const pickupMapUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.pickup || '');
@@ -975,7 +1042,7 @@
       if (q.note) {
         noteBoxHtml = `
           <div class="note-box">
-            <div class="note-box-title"><span>📝</span><span>特記事項・介助要件:</span></div>
+            <div class="note-box-title"><i data-lucide="file-text"></i><span>特記事項・介助要件:</span></div>
             <div class="note-box-body">${escapeHtml(q.note)}</div>
           </div>
         `;
@@ -989,32 +1056,37 @@
         </div>
         ${tripBadgeHtml}
         <div class="quest-datetime-wrap">
-          <span class="quest-date">📅 ${displayDate}</span>
+          <span class="quest-date"><i data-lucide="calendar"></i><span>${displayDate}</span></span>
           ${timeBadgeHtml}
         </div>
         <div class="route-container">
           <div class="route-row">
             <span class="route-label">出発地:</span>
             <a href="${pickupMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
-              <span>${q.pickup}</span> <span>🗺️</span>
+              <span>${q.pickup}</span> <i data-lucide="map-pin"></i>
             </a>
           </div>
           <div class="route-row">
             <span class="route-label">目的地:</span>
             <a href="${dropoffMapUrl}" target="_blank" rel="noopener noreferrer" class="route-link">
-              <span>${q.dropoff}</span> <span>🗺️</span>
+              <span>${q.dropoff}</span> <i data-lucide="map-pin"></i>
             </a>
           </div>
         </div>
         <div class="quest-meta">
-          <span>乗車人数: ${q.passengers}</span>
-          <span>利用者: ${q.userNameMasked}</span>
+          <span class="quest-meta-item"><i data-lucide="users"></i><span>乗車人数: ${q.passengers}</span></span>
+          <span class="quest-meta-item"><i data-lucide="user"></i><span>利用者: ${q.userNameMasked}</span></span>
         </div>
         ${noteBoxHtml}
-        <button type="button" class="btn-accept" onclick="openAcceptModal('${q.id}')">この案件を受託する</button>
+        <button type="button" class="btn-accept" onclick="openAcceptModal('${q.id}')">
+          <i data-lucide="check-circle-2"></i>
+          <span>この案件を受託する</span>
+        </button>
       `;
       listArea.appendChild(card);
     });
+
+    refreshLucide();
   }
 
   function escapeHtml(str) {
@@ -1050,14 +1122,14 @@
     if (target.note) {
       noteArea.innerHTML = `
         <div class="note-box" style="margin-bottom:16px;">
-          <div class="note-box-title"><span>📝</span><span>特記事項・介助要件:</span></div>
+          <div class="note-box-title"><i data-lucide="file-text"></i><span>特記事項・介助要件:</span></div>
           <div class="note-box-body">${escapeHtml(target.note)}</div>
         </div>
       `;
     } else {
       noteArea.innerHTML = `
         <div class="note-box" style="margin-bottom:16px; background:#f8fafc; border-color:#cbd5e1; color:#64748b;">
-          <div class="note-box-title"><span>📝</span><span>特記事項:</span></div>
+          <div class="note-box-title"><i data-lucide="file-text"></i><span>特記事項:</span></div>
           <div class="note-box-body">特になし</div>
         </div>
       `;
@@ -1065,9 +1137,10 @@
 
     const confirmBtn = document.getElementById('btnConfirmAccept');
     confirmBtn.disabled = false;
-    confirmBtn.textContent = '受託する';
+    confirmBtn.innerHTML = '<i data-lucide="check"></i><span>受託する</span>';
 
     document.getElementById('acceptModalOverlay').style.display = 'flex';
+    refreshLucide();
   }
 
   function closeAcceptModal() {
@@ -1088,7 +1161,8 @@
     isProcessingAccept = true;
     const confirmBtn = document.getElementById('btnConfirmAccept');
     confirmBtn.disabled = true;
-    confirmBtn.textContent = '受託処理中...';
+    confirmBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>受託処理中...</span>';
+    refreshLucide();
 
     const reqQid = targetAcceptQid;
 
@@ -1102,100 +1176,26 @@
         await showCustomAlert(
           `案件 [#${reqQid}] の受託が完了しました！\n\n公式LINEへ集合時間や活動記録のリンクをお送りしましたのでご確認ください。安全運転でお願いいたします。`,
           '受託完了',
-          '🎉'
+          'check-circle-2',
+          'var(--system-green-Accessible)'
         );
         fetchBoardQuests(true);
       } else {
-        await showCustomAlert(`受託できませんでした:\n${res.message || 'すでに受託されたか、募集が締め切られています。'}`, '受託不可', '⚠️');
+        await showCustomAlert(
+          `受託できませんでした:\n${res.message || 'すでに受託されたか、募集が締め切られています。'}`,
+          '受託不可',
+          'alert-triangle',
+          'var(--warn-amber)'
+        );
         fetchBoardQuests(true);
       }
     } catch (e) {
       closeAcceptModal();
-      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', '⚠️');
+      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
     } finally {
       isProcessingAccept = false;
     }
   }
-
-  // ==========================================
-  // ★プル・トゥ・リフレッシュ（Pull-to-Refresh）実装
-  // ==========================================
-  let ptrStartY = 0;
-  let ptrCurrentY = 0;
-  let isPtrPulling = false;
-  let isPtrBusy = false;
-  const PTR_LIMIT = 68; // しきい値(px)
-
-  const ptrContainer = document.getElementById('ptrContainer');
-  const ptrIcon = document.getElementById('ptrIcon');
-  const ptrSpinner = document.getElementById('ptrSpinner');
-  const ptrText = document.getElementById('ptrText');
-
-  window.addEventListener('touchstart', (e) => {
-    // 画面が一番上にある時のみプルを検知
-    if (window.scrollY <= 0 && !isPtrBusy && document.getElementById('boardSection').style.display !== 'none') {
-      ptrStartY = e.touches[0].clientY;
-      isPtrPulling = true;
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    if (!isPtrPulling || isPtrBusy) return;
-    ptrCurrentY = e.touches[0].clientY;
-    const diff = ptrCurrentY - ptrStartY;
-
-    if (diff > 0 && window.scrollY <= 0) {
-      const pullDistance = Math.min(diff * 0.45, 95);
-      ptrContainer.style.height = pullDistance + 'px';
-
-      if (pullDistance >= PTR_LIMIT) {
-        ptrText.textContent = '指を離して更新';
-        ptrIcon.style.transform = 'rotate(180deg)';
-      } else {
-        ptrText.textContent = '引いて最新に更新';
-        ptrIcon.style.transform = 'rotate(0deg)';
-      }
-    } else {
-      ptrContainer.style.height = '0px';
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchend', async () => {
-    if (!isPtrPulling || isPtrBusy) return;
-    isPtrPulling = false;
-
-    const diff = ptrCurrentY - ptrStartY;
-    const pullDistance = diff * 0.45;
-
-    if (pullDistance >= PTR_LIMIT && window.scrollY <= 0) {
-      isPtrBusy = true;
-      ptrContainer.style.height = '48px';
-      ptrIcon.style.display = 'none';
-      ptrSpinner.style.display = 'inline-block';
-      ptrText.textContent = '最新の案件を取得中...';
-
-      try {
-        await fetchBoardQuests(true);
-      } finally {
-        setTimeout(() => {
-          ptrContainer.style.height = '0px';
-          setTimeout(() => {
-            ptrSpinner.style.display = 'none';
-            ptrIcon.style.display = 'inline-block';
-            ptrIcon.style.transform = 'rotate(0deg)';
-            ptrText.textContent = '引いて最新に更新';
-            isPtrBusy = false;
-            ptrStartY = 0;
-            ptrCurrentY = 0;
-          }, 220);
-        }, 400);
-      }
-    } else {
-      ptrContainer.style.height = '0px';
-      ptrStartY = 0;
-      ptrCurrentY = 0;
-    }
-  });
 
   // 即時実行ガード
   if (document.readyState === 'loading') {
