@@ -1406,9 +1406,9 @@
     }
 
     const confirmMsg =
-      '10分待機しても利用者が来られないため、送迎を中止しますか？\n\n' +
+      '送迎を中止しますか？（集合時間から10分経過を確認後）\n\n' +
       '・現在地（お迎え先）のGPSを取得し、自宅からの往復走行距離を記録します。\n' +
-      '・利用者は不乗車のため、実費請求（利用者負担額）は0円となります。';
+      '・利用者は不乗車のため、利用者負担額は0円となります。';
 
     const confirmed = await showCustomConfirm(confirmMsg, '送迎中止（利用者不在）の確認', 'ban', 'var(--danger-red)');
     if (!confirmed) return;
@@ -1503,7 +1503,7 @@
 
         document.getElementById('completeMsg').innerHTML =
           '利用者が来られなかったため、送迎中止として実績を記録しました。<br>' +
-          '自宅〜現場までの往復走行距離が活動記録に反映されました。';
+          '自宅〜現場までの往復走行距離は記録されました。';
 
         const finalOneWay = (res.oneWayDistance !== undefined) ? res.oneWayDistance : estimatedOneWay;
         const finalRoundTrip = (res.roundTripDistance !== undefined) ? res.roundTripDistance : estimatedRoundTrip;
@@ -1519,7 +1519,7 @@
         noticeEl.innerHTML =
           '<strong>【ご案内】</strong><br>' +
           '利用者が乗車されなかったため、写真の送信や領収書提出は不要です。<br>' +
-          '今回の往復走行距離（' + finalRoundTrip + ' km）は、団体の活動経費・ガソリン代補填の実績として記録されました。<br>' +
+          '今回の往復走行距離（' + finalRoundTrip + ' km）は、実費補填いたします。<br>' +
           'どうぞお気をつけて自宅へお戻りください。';
 
         window.scrollTo(0, 0);
@@ -1535,7 +1535,7 @@
       await showCustomAlert('通信エラーが発生しました: ' + err.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
       isSubmitting = false;
       btnAbort.disabled = false;
-      btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する（現場での中止）</span>';
+      btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する</span>';
       refreshLucide();
     }
   }
@@ -1578,19 +1578,19 @@
 
         document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
         document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。`;
         window.scrollTo(0, 0);
         refreshLucide();
       } else {
         await showCustomAlert('キャンセルエラー: ' + res.message, 'エラー', 'alert-circle', 'var(--danger-red)');
         isSubmitting = false; btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
+        btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする</span>';
         refreshLucide();
       }
     } catch (e) {
       await showCustomAlert('通信エラー: ' + e.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
       isSubmitting = false; btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする</span>';
       refreshLucide();
     }
   }
