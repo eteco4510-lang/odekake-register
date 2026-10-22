@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>おでかけサポート 活動記録</title>
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
       --primary-blue: #007AFF;
@@ -25,6 +27,7 @@
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
     .form-group .sub-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    .auto-badge { display: inline-block; background: #DCFCE7; color: #166534; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: 700; }
     input[type="text"], input[type="tel"], input[type="number"] {
       width: 100%; height: 44px; border: 1.5px solid #E5E5EA; border-radius: 10px; padding: 0 12px; font-size: 1rem; color: var(--text-main); background: #FAFAFA; outline: none; transition: border-color 0.2s;
     }
@@ -79,7 +82,7 @@
     <div class="form-group">
       <label>案件番号</label>
       <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
-      <div class="sub-label">※番号を入力すると、お名前と運行区分が自動で読み込まれます</div>
+      <div class="sub-label">※番号を入力すると、お名前・運行区分・ドライバー情報が自動で読み込まれます</div>
     </div>
 
     <div class="form-group">
@@ -95,8 +98,12 @@
     </div>
 
     <div class="form-group">
-      <label>登録番号（半角数字）</label>
-      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="handleFieldChange()">
+      <label>
+        ドライバー登録番号（半角数字）
+        <span id="driverAutoBadge" class="auto-badge" style="display:none;">✔ 自動取得済</span>
+      </label>
+      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="handleDriverIdManualChange()">
+      <div id="driverNameDesc" class="sub-label">※受託情報から自動セットされます（手動変更も可能）</div>
     </div>
 
     <div class="form-group">
@@ -216,10 +223,13 @@
 <script>
   // ★GASのWeb App URL
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  // ★活動記録用LIFF ID
+  const LIFF_ID = "2011743949-unqD1uQo";
 
   let questId = '';
   let passengerCount = 1;
   let cachedDriverName = '';
+  let lineUserId = '';
   let isSubmitting = false;
   let fetchTimer = null;
 
@@ -280,6 +290,41 @@
     handleFieldChange();
   }
 
+  function handleDriverIdManualChange() {
+    const dVal = document.getElementById('driverId').value.trim();
+    if (dVal) {
+      localStorage.setItem('odekake_driver_id', dVal);
+    }
+    handleFieldChange();
+  }
+
+  function setDriverIdAutomatically(driverId, driverName) {
+    if (!driverId) return;
+    const dInput = document.getElementById('driverId');
+    if (dInput) {
+      dInput.value = driverId;
+      dInput.style.backgroundColor = '#f0fdf4';
+      dInput.style.borderColor = '#86efac';
+      dInput.style.fontWeight = 'bold';
+    }
+    if (driverName) {
+      cachedDriverName = driverName;
+      const descEl = document.getElementById('driverNameDesc');
+      if (descEl) descEl.textContent = `✔ 担当ドライバー: ${driverName} 様`;
+    }
+    const badge = document.getElementById('driverAutoBadge');
+    if (badge) badge.style.display = 'inline-block';
+
+    localStorage.setItem('odekake_driver_id', driverId);
+    if (driverName) {
+      try {
+        localStorage.setItem('odekake_driver', JSON.stringify({ id: driverId, name: driverName }));
+      } catch (e) {}
+    }
+    checkSubmitRequirement();
+  }
+
+  // ★案件番号から利用者名・運行区分・受託ドライバー番号を自動取得
   async function fetchQuestInfo(targetQid) {
     if (!targetQid) return;
     const p1Input = document.getElementById('passenger1');
@@ -295,6 +340,12 @@
           p1Input.placeholder = '乗客1（例: さとう はなこ）';
         }
         if (qObj.tripPlan) applyTripPlanPreference(qObj.tripPlan);
+
+        // ★案件情報から受託ドライバー登録番号・氏名を自動セット
+        if (qObj.driverId) {
+          setDriverIdAutomatically(qObj.driverId, qObj.driverName);
+        }
+
         saveCurrentDraft();
         checkSubmitRequirement();
       } else {
@@ -303,6 +354,28 @@
     } catch (e) {
       p1Input.placeholder = '乗客1のお名前を入力してください';
     }
+  }
+
+  // ★LINE IDからドライバー登録番号を逆引き照合
+  async function fetchDriverInfoByLineId(uid) {
+    if (!uid) return;
+    try {
+      const url = `${GAS_API_URL}?action=getDriverByLineId&lineUserId=${encodeURIComponent(uid)}`;
+      const res = await (await fetch(url)).json();
+      if (res.success && res.driver && res.driver.id) {
+        const curDid = document.getElementById('driverId').value.trim();
+        if (!curDid) {
+          setDriverIdAutomatically(res.driver.id, res.driver.name);
+        }
+        // もし案件番号が未入力で、受託中の最新案件があれば自動セット
+        const curQid = document.getElementById('questIdInput').value.trim();
+        if (!curQid && res.activeQuest && res.activeQuest.id) {
+          document.getElementById('questIdInput').value = res.activeQuest.id;
+          questId = String(res.activeQuest.id).trim();
+          fetchQuestInfo(questId);
+        }
+      }
+    } catch (e) {}
   }
 
   function addPassengerField(triggerSave = true) {
@@ -377,7 +450,7 @@
       if (!raw) return false;
       const draft = JSON.parse(raw);
       if (draft.questId) document.getElementById('questIdInput').value = draft.questId;
-      if (draft.driverId) document.getElementById('driverId').value = draft.driverId;
+      if (draft.driverId) setDriverIdAutomatically(draft.driverId, cachedDriverName);
       if (draft.otherExpense) document.getElementById('otherExpense').value = draft.otherExpense;
       if (draft.tripType) applyTripPlanPreference(draft.tripType);
       if (draft.passengers && draft.passengers.length > 0) {
@@ -518,7 +591,7 @@
     }
   }
 
-  // ★通常運行の実績送信
+  // 通常運行の実績送信
   async function submitRecord() {
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
@@ -620,7 +693,7 @@
     }
   }
 
-  // ★【改修】現場での送迎中止（GPS測位・走行距離反映）
+  // 現場での送迎中止（GPS実走距離反映）
   async function abortTrip() {
     if (isSubmitting) return;
 
@@ -631,11 +704,10 @@
       return;
     }
 
-    // 自宅出発記録の有無を確認
     if (!runLog.depTime) {
       const confirmDep = confirm(
         '⚠️ 自宅出発時の記録がありません。\n' +
-        '出発記録がない場合、走行距離を計算できません。\n' +
+        '出発記録がない場合、走行距離を正確に計算できません。\n' +
         '現在時刻を出発時刻として処理を継続しますか？'
       );
       if (!confirmDep) return;
@@ -657,12 +729,9 @@
     btnAbort.disabled = true;
     btnAbort.textContent = '⏳ 現場GPS測位中...';
 
-    // 現場のGPSを取得
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          executeAbort(pos.coords.latitude, pos.coords.longitude, reason);
-        },
+        (pos) => { executeAbort(pos.coords.latitude, pos.coords.longitude, reason); },
         (err) => {
           console.warn('GPS取得失敗:', err);
           alert('GPS取得に失敗しました。現在時刻のみで中止処理を記録します。');
@@ -705,24 +774,24 @@
       questId: qid,
       driverId: driverId,
       driverName: cachedDriverName,
-      isCancelled: true,             // ★中止フラグ
-      abortReason: reason,           // ★中止理由
+      isCancelled: true,
+      abortReason: reason,
       tripType: '送迎中止',
-      otherExpense: 0,               // 実費0円
+      otherExpense: 0,
       depTime: runLog.depTime,
       arrTime: runLog.arrTime,
       duration: runLog.durationMin,
       oneWayDistance: estimatedOneWay,
       roundTripDistance: estimatedRoundTrip,
-      fuelFee: 0,                    // 利用者請求0円
-      fee: 0,                        // 合計実費弁償額0円
+      fuelFee: 0,
+      fee: 0,
       depLat: runLog.depLat || '',
       depLng: runLog.depLng || '',
       arrLat: arrLat || '',
       arrLng: arrLng || '',
       depMapUrl: depMapUrl,
       arrMapUrl: arrMapUrl,
-      passengers: []                 // 乗客0人
+      passengers: []
     };
 
     try {
@@ -735,7 +804,6 @@
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
-        // 完了画面を送迎中止用に変更
         document.getElementById('completeHeaderTitle').textContent = '🚫 送迎中止を記録しました';
         document.getElementById('completeHeaderTitle').style.color = '#DC2626';
         document.getElementById('completeMsg').innerHTML =
@@ -774,7 +842,7 @@
     }
   }
 
-  // ★ドライバー受託キャンセル（再募集へ戻す）
+  // 受託キャンセル
   async function cancelThisQuest() {
     if (isSubmitting) return;
     const qid = document.getElementById('questIdInput').value.trim() || questId;
@@ -809,21 +877,44 @@
     }
   }
 
-  // 初期化
-  window.addEventListener('DOMContentLoaded', () => {
+  // ★画面初期化処理（LIFF・URL・端末キャッシュ連携でドライバー番号を完全自動取得）
+  window.addEventListener('DOMContentLoaded', async () => {
+    // 1. ローカルストレージからの即時復元
+    const savedDriver = localStorage.getItem('odekake_driver');
+    if (savedDriver) {
+      try {
+        const d = JSON.parse(savedDriver);
+        if (d.id) setDriverIdAutomatically(d.id, d.name);
+      } catch (e) {}
+    } else {
+      const rawId = localStorage.getItem('odekake_driver_id');
+      if (rawId) setDriverIdAutomatically(rawId, '');
+    }
+
+    // 2. LIFF SDK初期化
+    try {
+      if (window.liff) {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          lineUserId = profile.userId;
+        }
+      }
+    } catch (e) {
+      console.warn('LIFF初期化スキップ:', e);
+    }
+
+    // 3. 案件番号の抽出と案件情報の取得（最優先）
     questId = extractQuestIdFromUrl();
     if (questId) {
       const qInput = document.getElementById('questIdInput');
-      if (qInput) {
-        qInput.value = questId;
-        fetchQuestInfo(questId);
-      }
+      if (qInput) qInput.value = questId;
+      await fetchQuestInfo(questId);
+    } else if (lineUserId) {
+      // 案件番号がない場合はLINE IDからドライバー情報および受注中案件を自動取得
+      await fetchDriverInfoByLineId(lineUserId);
     }
-    const savedDriverId = localStorage.getItem('odekake_driver_id');
-    if (savedDriverId) {
-      const dInput = document.getElementById('driverId');
-      if (dInput && !dInput.value) dInput.value = savedDriverId;
-    }
+
     restoreDraft();
     checkSubmitRequirement();
   });
