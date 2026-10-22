@@ -104,7 +104,6 @@
       line-height: 1.4;
     }
 
-    /* ★1か所に集約した自動取得バッジ */
     .unified-auto-badge {
       display: inline-flex;
       align-items: center;
@@ -260,7 +259,6 @@
       font-weight: 700;
     }
 
-    /* ★実績送信直前に配置される「その他実費」用強調カード */
     .expense-highlight-card {
       background: #F0FDF4;
       border: 1.5px solid #BBF7D0;
@@ -422,7 +420,7 @@
       line-height: 1.5;
     }
 
-    /* カスタムダイアログ共通 */
+    /* モーダル・オーバーレイ */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -477,6 +475,33 @@
       color: #FFF;
       cursor: pointer;
     }
+
+    /* ★操作ブロック用全画面ローディングモーダル */
+    .blocking-loading-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+      max-width: 280px;
+      width: 80%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .blocking-loading-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .blocking-loading-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.96); }
       to { opacity: 1; transform: scale(1); }
@@ -492,6 +517,15 @@
   </h1>
 </header>
 
+<!-- ★情報取得中（他操作完全ブロック用）モーダル -->
+<div id="loadingOverlay" class="modal-overlay" style="display:none; z-index:300;">
+  <div class="blocking-loading-card">
+    <i data-lucide="loader-2" class="animate-spin" style="width:42px; height:42px; color:var(--primary-blue);"></i>
+    <div class="blocking-loading-title">情報取得中</div>
+    <div class="blocking-loading-desc">依頼情報を読み込んでいます...<br>少々お待ちください</div>
+  </div>
+</div>
+
 <div class="container" id="formView">
   <div class="card">
     <!-- 案件番号入力 -->
@@ -501,7 +535,7 @@
         <span>案件番号</span>
       </label>
       <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
-      <!-- ★ここに1か所のみ集約表示される自動取得バッジ -->
+      <!-- 1か所に集約した自動取得バッジ -->
       <div id="unifiedAutoBadge" class="unified-auto-badge" style="display:none;">
         <i data-lucide="check-circle-2"></i>
         <span>依頼情報から自動取得</span>
@@ -595,7 +629,7 @@
       </div>
     </div>
 
-    <!-- ★改修：実績送信ボタンのすぐ上に移動した「その他実費」入力欄 -->
+    <!-- その他実費 -->
     <div class="expense-highlight-card">
       <div class="form-group" style="margin-bottom:0;">
         <label style="color:#166534;">
@@ -748,9 +782,19 @@
     }
   }
 
-  // ==========================================
+  // ★全画面ローディングオーバーレイの表示・非表示
+  function showLoadingOverlay() {
+    const el = document.getElementById('loadingOverlay');
+    if (el) el.style.display = 'flex';
+    refreshLucide();
+  }
+
+  function hideLoadingOverlay() {
+    const el = document.getElementById('loadingOverlay');
+    if (el) el.style.display = 'none';
+  }
+
   // カスタムモーダル制御
-  // ==========================================
   let customDialogResolve = null;
 
   function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
@@ -838,9 +882,7 @@
     }
   }
 
-  // ==========================================
   // 下書き・URL・入力管理
-  // ==========================================
   function getDraftKey() {
     return 'odekake_draft_' + (questId || 'general');
   }
@@ -926,10 +968,15 @@
     checkSubmitRequirement();
   }
 
+  // ★情報取得処理（取得中は全画面ブロックローディングを表示）
   async function fetchQuestInfo(targetQid) {
     if (!targetQid) return;
     const p1Input = document.getElementById('passenger1');
     if (!p1Input.value.trim()) p1Input.placeholder = 'お名前を取得中...';
+
+    // 操作をブロックしてローディング表示
+    showLoadingOverlay();
+
     try {
       const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(targetQid)}`;
       const res = await (await fetch(url)).json();
@@ -945,13 +992,11 @@
           setDriverIdAutomatically(qObj.driverId, qObj.driverName);
         }
 
-        // ★1か所に集約した自動取得バッジを表示
         const autoBadge = document.getElementById('unifiedAutoBadge');
         if (autoBadge) autoBadge.style.display = 'inline-flex';
 
         saveCurrentDraft();
         checkSubmitRequirement();
-        refreshLucide();
       } else {
         p1Input.placeholder = '乗客1のお名前を入力してください';
         document.getElementById('unifiedAutoBadge').style.display = 'none';
@@ -959,11 +1004,16 @@
     } catch (e) {
       p1Input.placeholder = '乗客1のお名前を入力してください';
       document.getElementById('unifiedAutoBadge').style.display = 'none';
+    } finally {
+      // 完了時にブロック解除
+      hideLoadingOverlay();
+      refreshLucide();
     }
   }
 
   async function fetchDriverInfoByLineId(uid) {
     if (!uid) return;
+    showLoadingOverlay();
     try {
       const url = `${GAS_API_URL}?action=getDriverByLineId&lineUserId=${encodeURIComponent(uid)}`;
       const res = await (await fetch(url)).json();
@@ -976,10 +1026,14 @@
         if (!curQid && res.activeQuest && res.activeQuest.id) {
           document.getElementById('questIdInput').value = res.activeQuest.id;
           questId = String(res.activeQuest.id).trim();
-          fetchQuestInfo(questId);
+          await fetchQuestInfo(questId);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      hideLoadingOverlay();
+      refreshLucide();
+    }
   }
 
   function addPassengerField(triggerSave = true) {
@@ -1106,9 +1160,7 @@
     } catch (e) {}
   }
 
-  // ==========================================
   // GPS・時刻記録
-  // ==========================================
   function recordDeparture() {
     if (!navigator.geolocation) { manualRecordDeparture(); return; }
     const btn = document.getElementById('btnDep');
@@ -1215,9 +1267,7 @@
     }
   }
 
-  // ==========================================
   // 実績送信
-  // ==========================================
   async function submitRecord() {
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
@@ -1333,9 +1383,7 @@
     }
   }
 
-  // ==========================================
   // 送迎中止（GPS実走距離反映）
-  // ==========================================
   async function abortTrip() {
     if (isSubmitting) return;
 
@@ -1492,9 +1540,7 @@
     }
   }
 
-  // ==========================================
   // 受託キャンセル
-  // ==========================================
   async function cancelThisQuest() {
     if (isSubmitting) return;
     const qid = document.getElementById('questIdInput').value.trim() || questId;
@@ -1549,9 +1595,7 @@
     }
   }
 
-  // ==========================================
   // 初期化処理
-  // ==========================================
   window.addEventListener('DOMContentLoaded', async () => {
     refreshLucide();
 
