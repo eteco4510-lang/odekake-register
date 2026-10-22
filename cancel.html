@@ -7,127 +7,242 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
-      --primary-blue: #1d4ed8;
-      --bg-base: #f1f5f9;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #cbd5e1;
-      --warn-amber: #b45309;
-      --warn-bg: #fffbeb;
-      --danger-red: #b91c1c;
-      --danger-hover: #991b1b;
-      --danger-bg: #fef2f2;
-      --success-green: #15803d;
+      /* Apple HIG System Palette */
+      --primary-blue: #007AFF;
+      --system-red: #FF3B30;
+      --system-red-hover: #D70015;
+      --system-red-bg: rgba(255, 59, 48, 0.08);
+      --system-amber: #FF9500;
+      --system-amber-bg: rgba(255, 149, 0, 0.1);
+      --system-green: #34C759;
+      --bg-base: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --surface-secondary: #F2F2F7;
+      --text-main: #1C1C1E;
+      --text-muted: #8E8E93;
+      --border-color: rgba(60, 60, 67, 0.12);
+      --separator: rgba(60, 60, 67, 0.1);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+      --shadow-danger: 0 4px 14px rgba(255, 59, 48, 0.28);
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-main);
       line-height: 1.5;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 40px);
+      letter-spacing: -0.015em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-variant-numeric: tabular-nums;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 48px);
     }
+
+    /* HIG Translucent Navigation Bar */
     header {
-      background-color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      padding: 16px;
+      background-color: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 20;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    header h1 { font-size: 1.15rem; font-weight: 800; color: var(--danger-red); }
-    .container { max-width: 480px; margin: 0 auto; padding: 14px 16px; }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--system-red-hover);
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* HIG Inset Grouped Card */
     .card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 20px 18px;
+      border-radius: 20px;
+      padding: 24px 20px;
       margin-bottom: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
+
+    /* Warning Banner with HIG Amber Material */
     .caution-banner {
-      background-color: var(--warn-bg);
-      border: 2px solid #f59e0b;
-      border-radius: 12px;
+      background-color: var(--system-amber-bg);
+      border: 1px solid rgba(255, 149, 0, 0.28);
+      border-radius: 14px;
       padding: 14px 16px;
-      margin-bottom: 18px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: var(--warn-amber);
-      line-height: 1.5;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #944500;
+      line-height: 1.55;
     }
+
+    .caution-banner strong {
+      font-weight: 700;
+      color: #7A3900;
+    }
+
+    /* HIG Grouped List / Form Style Table */
     .quest-summary-table {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      font-size: 0.95rem;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 24px;
+      background: var(--surface-secondary);
+      border-radius: 16px;
+      overflow: hidden;
     }
+
     .quest-summary-table tr {
-      border-bottom: 1px solid #e2e8f0;
+      border: none;
     }
-    .quest-summary-table tr:last-child { border-bottom: none; }
-    .quest-summary-table th {
-      width: 32%;
-      padding: 10px 0;
-      text-align: left;
-      color: var(--text-muted);
-      font-weight: 700;
-      vertical-align: top;
-    }
+
+    .quest-summary-table th,
     .quest-summary-table td {
-      padding: 10px 0 10px 8px;
-      font-weight: 800;
-      color: var(--text-main);
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--separator);
+      font-size: 0.95rem;
+      vertical-align: middle;
     }
+
+    .quest-summary-table tr:last-child th,
+    .quest-summary-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .quest-summary-table th {
+      width: 38%;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .quest-summary-table td {
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: right;
+    }
+
+    /* HIG Pill Style Badge */
     .status-badge {
       display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 800;
-      background: #eff6ff;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: rgba(0, 122, 255, 0.12);
       color: var(--primary-blue);
-      border: 1px solid #bfdbfe;
+      border: none;
+      letter-spacing: 0.01em;
     }
+
+    /* HIG Destructive Action Button */
     .btn-cancel {
       width: 100%;
-      height: 56px;
-      background-color: var(--danger-red);
-      color: #ffffff;
-      font-size: 1.15rem;
-      font-weight: 900;
+      height: 54px;
+      background-color: var(--system-red);
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      font-weight: 700;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 6px -1px rgba(185, 28, 28, 0.3);
+      box-shadow: var(--shadow-danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+      transition: all 0.2s var(--ease-spring);
+    }
+
+    .btn-cancel:active {
+      background-color: var(--system-red-hover);
+      transform: scale(0.98);
+    }
+
+    .btn-cancel:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #completeView {
+      display: none;
+      animation: fadeIn 0.3s var(--ease-spring);
+    }
+
+    .complete-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 32px 22px;
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      text-align: center;
+    }
+
+    .complete-header {
+      color: var(--text-main);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
-    .btn-cancel:active { background-color: var(--danger-hover); transform: scale(0.98); }
-    #completeView { display: none; }
-    .complete-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px 18px;
-      border: 2px solid var(--danger-red);
-      text-align: center;
-    }
-    .complete-header { color: var(--danger-red); font-size: 1.45rem; font-weight: 900; margin-bottom: 8px; }
+
     .close-instruction-banner {
-      background: var(--danger-bg);
-      border: 3px solid #ef4444;
-      border-radius: 12px;
-      padding: 16px 14px;
-      margin: 20px 0;
+      background: var(--system-red-bg);
+      border: 1px solid rgba(255, 59, 48, 0.25);
+      border-radius: 18px;
+      padding: 20px 16px;
+      margin: 22px 0 10px;
       text-align: center;
     }
-    .close-instruction-title { font-size: 1.25rem; font-weight: 900; color: var(--danger-red); margin-bottom: 4px; }
-    .close-instruction-desc { font-size: 0.95rem; font-weight: 800; color: #7f1d1d; }
+
+    .close-instruction-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--system-red-hover);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .close-instruction-desc {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #7F1D1D;
+      line-height: 1.45;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -143,7 +258,7 @@
       直前のキャンセルは、ボランティアドライバーへのご負担となりますので極力ご遠慮くださいますようお願いいたします。やむを得ない事情がある場合のみ、下記よりキャンセルを実行してください。
     </div>
 
-    <div id="loadingArea" style="text-align:center; padding:20px; font-weight:bold; color:var(--text-muted);">
+    <div id="loadingArea" style="text-align:center; padding:28px 16px; font-weight:600; color:var(--text-muted);">
       ⏳ 予約情報を確認中...
     </div>
 
@@ -185,7 +300,7 @@
 <div class="container" id="completeView">
   <div class="complete-card">
     <div class="complete-header">✔ キャンセル完了</div>
-    <p id="completeDesc" style="font-size:0.95rem; color:var(--text-muted); font-weight:600; margin-bottom:12px;">
+    <p id="completeDesc" style="font-size:0.95rem; color:var(--text-muted); font-weight:500; margin-bottom:14px; line-height:1.5;">
       送迎予約のキャンセルを受け付けました。
     </p>
 
