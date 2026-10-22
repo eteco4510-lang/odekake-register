@@ -8,235 +8,306 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
-      --primary-blue: #1d4ed8;
-      --primary-hover: #1e40af;
-      --bg-base: #f1f5f9;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #cbd5e1;
-      --success-green: #15803d;
-      --success-bg: #f0fdf4;
-      --danger-red: #b91c1c;
-      --danger-bg: #fef2f2;
+      /* Apple HIG System Palette (Light Mode) */
+      --primary-blue: #007AFF;
+      --primary-hover: #0056B3;
+      --bg-base: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --surface-secondary: #F2F2F7;
+      --text-main: #1C1C1E;
+      --text-muted: #6C6C70;
+      --border-color: rgba(60, 60, 67, 0.12);
+      --success-green: #248A3D;
+      --success-bg: rgba(52, 199, 89, 0.1);
+      --danger-red: #D70015;
+      --danger-bg: rgba(255, 59, 48, 0.08);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+      --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-main);
       line-height: 1.5;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 40px);
+      letter-spacing: -0.015em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-variant-numeric: tabular-nums;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 48px);
     }
+
+    /* HIG Translucent Navigation Bar */
     header {
-      background-color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      padding: 16px;
+      background-color: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 20;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
+
     header h1 {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1.12rem;
+      font-weight: 700;
       color: var(--text-main);
+      letter-spacing: -0.02em;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
+
     .container {
       max-width: 480px;
       margin: 0 auto;
-      padding: 14px 16px;
+      padding: 18px 16px;
     }
+
+    /* HIG Inset Grouped Card */
     .card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 22px 18px;
+      border-radius: 22px;
+      padding: 26px 20px;
       margin-bottom: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
+
     .form-group {
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
+
     /* ★見出しラベルのみに限定（ボタン枠に干渉させない） */
     .form-group > label {
       display: block;
-      font-size: 1rem;
-      font-weight: 800;
+      font-size: 0.95rem;
+      font-weight: 700;
       margin-bottom: 6px;
+      padding-left: 2px;
       color: var(--text-main);
     }
+
     .form-group .sub-label {
       font-size: 0.82rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
-      line-height: 1.4;
+      margin-bottom: 10px;
+      padding-left: 2px;
+      line-height: 1.45;
     }
+
+    /* HIG Text Field */
     input[type="text"], input[type="tel"] {
       width: 100%;
       height: 52px;
-      padding: 0 14px;
-      border: 2px solid var(--border-color);
-      border-radius: 10px;
+      padding: 0 16px;
+      border: 1.5px solid transparent;
+      border-radius: 14px;
       font-size: 1.05rem;
+      font-weight: 500;
       color: var(--text-main);
-      background-color: #fafafa;
-      transition: border-color 0.2s, background-color 0.2s;
+      background-color: var(--surface-secondary);
+      transition: all 0.2s var(--ease-spring);
     }
+
+    input[type="text"]::placeholder,
+    input[type="tel"]::placeholder {
+      color: #AEAEB2;
+    }
+
     input[type="text"]:focus, input[type="tel"]:focus {
-      background-color: #ffffff;
+      background-color: #FFFFFF;
       border-color: var(--primary-blue);
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
       outline: none;
     }
 
-    /* ★上下中央・左右中央を完全固定したラジオボタンスタイル */
+    /* ★上下中央・左右中央を完全固定しつつHIG Segmented Control風に昇華したラジオボタンスタイル */
     .radio-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 6px;
       margin-top: 8px;
+      background-color: rgba(118, 118, 128, 0.12);
+      padding: 4px;
+      border-radius: 14px;
     }
+
     .radio-group .radio-label {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 8px !important;
-      height: 50px !important;
+      height: 46px !important;
       margin: 0 !important;
-      padding: 0 8px !important;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 0.95rem;
+      padding: 0 10px !important;
+      border: 1.5px solid transparent;
+      border-radius: 11px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--text-muted);
       cursor: pointer;
-      background-color: #f8fafc;
-      transition: all 0.2s;
+      background-color: transparent;
+      transition: all 0.22s var(--ease-spring);
       user-select: none;
       white-space: nowrap;
     }
+
     .radio-group .radio-label input[type="radio"] {
-      width: 20px !important;
-      height: 20px !important;
+      width: 18px !important;
+      height: 18px !important;
       margin: 0 !important;
       padding: 0 !important;
       flex-shrink: 0;
       accent-color: var(--primary-blue);
       cursor: pointer;
     }
+
     .radio-group .radio-label span {
       display: inline-block;
       line-height: 1;
     }
+
     .radio-group .radio-label.active {
-      border-color: var(--primary-blue);
-      background-color: #eff6ff;
+      background-color: #FFFFFF;
       color: var(--primary-blue);
-      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
+      font-weight: 700;
+      box-shadow: var(--shadow-segment);
     }
 
+    /* HIG Primary Button */
     .btn-submit {
       width: 100%;
-      height: 56px;
-      margin-top: 10px;
+      height: 54px;
+      margin-top: 8px;
       background-color: var(--primary-blue);
-      color: #ffffff;
-      font-size: 1.15rem;
-      font-weight: 800;
+      color: #FFFFFF;
+      font-size: 1.08rem;
+      font-weight: 700;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.3);
-      transition: all 0.15s ease-in-out;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+      transition: all 0.2s var(--ease-spring);
       display: flex;
       align-items: center;
       justify-content: center;
+      letter-spacing: -0.01em;
     }
+
     .btn-submit:active {
       background-color: var(--primary-hover);
       transform: scale(0.98);
     }
 
-    /* 完了画面 */
-    #completeView { display: none; }
-    .complete-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px 18px;
-      border: 2px solid var(--success-green);
-      text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    .btn-submit:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
     }
+
+    /* 完了画面 */
+    #completeView {
+      display: none;
+      animation: fadeIn 0.3s var(--ease-spring);
+    }
+
+    .complete-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 30px 22px;
+      border: 0.5px solid var(--border-color);
+      text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+
     .complete-header {
       color: var(--success-green);
-      font-size: 1.45rem;
-      font-weight: 900;
-      margin-bottom: 6px;
-    }
-    .number-display-card {
-      background: #eff6ff;
-      border: 2px solid #3b82f6;
-      border-radius: 14px;
-      padding: 20px 14px;
-      margin: 20px 0;
-      text-align: center;
-    }
-    .number-display-label {
-      font-size: 1rem;
+      font-size: 1.4rem;
       font-weight: 800;
-      color: var(--primary-hover);
+      letter-spacing: -0.02em;
       margin-bottom: 8px;
     }
+
+    .number-display-card {
+      background: rgba(0, 122, 255, 0.06);
+      border: 1px solid rgba(0, 122, 255, 0.2);
+      border-radius: 18px;
+      padding: 24px 16px;
+      margin: 22px 0;
+      text-align: center;
+    }
+
+    .number-display-label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
     .number-display-value {
       font-size: 2.6rem;
-      font-weight: 900;
-      letter-spacing: 2px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
       color: var(--primary-blue);
       line-height: 1.1;
     }
+
     .number-notice {
-      font-size: 0.85rem;
-      color: #475569;
-      margin-top: 10px;
-      font-weight: bold;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      font-weight: 600;
     }
+
     .close-instruction-banner {
       background: var(--danger-bg);
-      border: 3px solid #ef4444;
-      border-radius: 12px;
-      padding: 16px 14px;
-      margin: 18px 0 6px 0;
+      border: 1.5px solid rgba(255, 59, 48, 0.3);
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin: 18px 0 4px 0;
       text-align: center;
-      animation: pulse 2s infinite;
+      animation: pulse 2.4s infinite ease-in-out;
     }
+
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-      70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.25); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
     }
+
     .close-instruction-title {
-      font-size: 1.25rem;
-      font-weight: 900;
+      font-size: 1.15rem;
+      font-weight: 700;
       color: var(--danger-red);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
+
     .close-instruction-desc {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #7f1d1d;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #7F1D1D;
+      line-height: 1.45;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
@@ -260,7 +331,7 @@
           <span>ケアマネ等代理</span>
         </label>
       </div>
-      <div class="sub-label" style="margin-top:8px;">
+      <div class="sub-label" style="margin-top:10px;">
         ※ご自身で乗車・申請される方は「本人申請」、ご家族やケアマネジャー等として代理で申請を行いたい方は「ケアマネ等代理」を選択してください。
       </div>
     </div>
