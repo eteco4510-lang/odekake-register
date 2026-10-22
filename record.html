@@ -6,515 +6,70 @@
   <title>おでかけサポート 活動記録</title>
   <style>
     :root {
-      /* Apple HIG System Palette (Light Mode) */
       --primary-blue: #007AFF;
       --primary-hover: #0056B3;
       --bg-base: #F2F2F7;
       --card-bg: #FFFFFF;
-      --surface-secondary: #F2F2F7;
       --text-main: #1C1C1E;
       --text-muted: #6C6C70;
-      --border-color: rgba(60, 60, 67, 0.12);
-      --separator: rgba(60, 60, 67, 0.1);
-      --success-green: #248A3D;
-      --success-bg: rgba(52, 199, 89, 0.1);
-      --warn-amber: #B25000;
-      --warn-bg: rgba(255, 149, 0, 0.1);
-      --danger-red: #D70015;
-      --danger-bg: rgba(255, 59, 48, 0.08);
-      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-      --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
-      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+      --danger-red: #DC2626;
+      --warning-amber: #D97706;
+      --success-green: #15803D;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      line-height: 1.5;
-      letter-spacing: -0.015em;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      font-variant-numeric: tabular-nums;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 56px);
-    }
-
-    /* HIG Translucent Navigation Bar */
-    header {
-      background-color: rgba(255, 255, 255, 0.78);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
-      padding: 14px 16px;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    header h1 {
-      font-size: 1.12rem;
-      font-weight: 700;
-      color: var(--text-main);
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 18px 16px;
-    }
-
-    /* HIG Inset Grouped Card */
-    .card {
-      background: var(--card-bg);
-      border-radius: 22px;
-      padding: 26px 20px;
-      margin-bottom: 16px;
-      border: 0.5px solid var(--border-color);
-      box-shadow: var(--shadow-card);
-    }
-
-    .form-group {
-      margin-bottom: 22px;
-    }
-
-    .form-group > label {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      padding-left: 2px;
-      color: var(--text-main);
-    }
-
-    .form-group .sub-label {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      margin-top: 6px;
-      padding-left: 2px;
-      line-height: 1.45;
-    }
-
-    /* HIG Text Field */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); padding-bottom: 40px; }
+    header { background: #FFFFFF; border-bottom: 1px solid #E5E5EA; padding: 14px 16px; text-align: center; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 1.1rem; font-weight: 700; }
+    .container { max-width: 540px; margin: 0 auto; padding: 16px; }
+    .card { background: var(--card-bg); border-radius: 16px; padding: 20px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
+    .form-group .sub-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
     input[type="text"], input[type="tel"], input[type="number"] {
-      width: 100%;
-      height: 52px;
-      padding: 0 16px;
-      border: 1.5px solid transparent;
-      border-radius: 14px;
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: var(--text-main);
-      background-color: var(--surface-secondary);
-      transition: all 0.2s var(--ease-spring);
+      width: 100%; height: 44px; border: 1.5px solid #E5E5EA; border-radius: 10px; padding: 0 12px; font-size: 1rem; color: var(--text-main); background: #FAFAFA; outline: none; transition: border-color 0.2s;
     }
-
-    input[type="text"]::placeholder,
-    input[type="tel"]::placeholder,
-    input[type="number"]::placeholder {
-      color: #AEAEB2;
+    input:focus { border-color: var(--primary-blue); background: #FFF; }
+    .radio-group { display: flex; gap: 10px; }
+    .radio-label {
+      flex: 1; text-align: center; padding: 10px; border-radius: 10px; border: 1.5px solid #E5E5EA; font-weight: 700; font-size: 0.95rem; cursor: pointer; background: #FAFAFA; transition: all 0.2s;
     }
-
-    input:focus {
-      background-color: #FFFFFF !important;
-      border-color: var(--primary-blue) !important;
-      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
-      outline: none;
-    }
-
-    /* HIG Segmented Control Style Radio Group */
-    .radio-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin-top: 8px;
-      background-color: rgba(118, 118, 128, 0.12);
-      padding: 4px;
-      border-radius: 14px;
-    }
-
-    .radio-group .radio-label {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 8px !important;
-      height: 46px !important;
-      margin: 0 !important;
-      padding: 0 8px !important;
-      border: 1.5px solid transparent;
-      border-radius: 11px;
-      font-weight: 600;
-      font-size: 0.96rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      background-color: transparent;
-      transition: all 0.22s var(--ease-spring);
-      user-select: none;
-      white-space: nowrap;
-    }
-
-    .radio-group .radio-label input[type="radio"] {
-      width: 18px !important;
-      height: 18px !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      flex-shrink: 0;
-      accent-color: var(--primary-blue);
-      cursor: pointer;
-    }
-
-    .radio-group .radio-label span {
-      display: inline-block;
-      line-height: 1;
-    }
-
-    .radio-group .radio-label.active {
-      background-color: #FFFFFF;
-      color: var(--primary-blue);
-      font-weight: 700;
-      box-shadow: var(--shadow-segment);
-    }
-
-    .passenger-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    /* HIG Tinted Secondary Button */
-    .btn-add-passenger {
-      width: 100%;
-      height: 48px;
-      background-color: rgba(0, 122, 255, 0.08);
-      border: 1px dashed rgba(0, 122, 255, 0.35);
-      border-radius: 14px;
-      color: var(--primary-blue);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s var(--ease-spring);
-    }
-
-    .btn-add-passenger:active {
-      background-color: rgba(0, 122, 255, 0.16);
-      transform: scale(0.98);
-    }
-
-    /* Step Section */
-    .step-section {
-      margin-top: 26px;
-      border-top: 0.5px solid var(--separator);
-      padding-top: 22px;
-    }
-
-    .step-title {
-      font-size: 1.02rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 12px;
-      letter-spacing: -0.01em;
-    }
-
+    .radio-label.active { border-color: var(--primary-blue); background: #EFF6FF; color: var(--primary-blue); }
+    .radio-group input[type="radio"] { display: none; }
+    .passenger-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .btn-add-passenger { background: none; border: 1px dashed var(--primary-blue); color: var(--primary-blue); width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+    .step-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+    .step-title { font-size: 0.92rem; font-weight: 800; color: #1E293B; margin-bottom: 10px; }
     .btn-gps-trigger {
-      width: 100%;
-      height: 56px;
-      font-size: 1.08rem;
-      font-weight: 700;
-      border-radius: 14px;
-      border: 1.5px solid var(--primary-blue);
-      background-color: rgba(0, 122, 255, 0.05);
-      color: var(--primary-blue);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s var(--ease-spring);
+      width: 100%; height: 48px; border-radius: 10px; font-size: 1rem; font-weight: 700; border: 1.5px solid var(--primary-blue); background: #FFFFFF; color: var(--primary-blue); cursor: pointer; transition: all 0.2s;
     }
-
-    .btn-gps-trigger:active {
-      background-color: rgba(0, 122, 255, 0.14);
-      transform: scale(0.98);
-    }
-
-    .lock-notice-box {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      background-color: var(--warn-bg);
-      border: 1px solid rgba(255, 149, 0, 0.25);
-      color: var(--warn-amber);
-      font-size: 0.88rem;
-      font-weight: 600;
-      line-height: 1.45;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-box {
-      margin-top: 10px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 0.88rem;
-      background-color: var(--surface-secondary);
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .status-box.recorded {
-      background-color: var(--success-bg);
-      border: 1px solid rgba(52, 199, 89, 0.3);
-      color: var(--success-green);
-      font-weight: 700;
-    }
-
-    .btn-gps-fallback {
-      margin-top: 8px;
-      font-size: 0.84rem;
-      color: var(--primary-blue);
-      background: none;
-      border: none;
-      text-decoration: none;
-      cursor: pointer;
-      padding: 6px 4px;
-      display: inline-block;
-      font-weight: 600;
-      transition: opacity 0.15s;
-    }
-
-    .btn-gps-fallback:active {
-      opacity: 0.6;
-    }
-
-    .submit-notice-box {
-      margin-top: 26px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      text-align: center;
-      font-size: 0.92rem;
-      line-height: 1.5;
-      font-weight: 600;
-      transition: all 0.2s var(--ease-spring);
-    }
-
-    .submit-notice-box.ready {
-      background-color: var(--success-bg);
-      border: 1px solid rgba(52, 199, 89, 0.3);
-      color: var(--success-green);
-    }
-
-    .submit-notice-box.warning {
-      background-color: var(--warn-bg);
-      border: 1px solid rgba(255, 149, 0, 0.25);
-      color: var(--warn-amber);
-    }
-
-    .submit-notice-box.error {
-      background-color: var(--danger-bg);
-      border: 1px solid rgba(255, 59, 48, 0.25);
-      color: var(--danger-red);
-    }
-
-    /* HIG Primary Action Button */
+    .btn-gps-trigger:active { background: #EFF6FF; }
+    .btn-gps-fallback { width: 100%; margin-top: 6px; background: none; border: none; color: var(--text-muted); font-size: 0.78rem; text-decoration: underline; cursor: pointer; padding: 4px 0; }
+    .lock-notice-box { margin-top: 8px; font-size: 0.78rem; color: #B45309; background: #FEF3C7; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
+    .status-box { margin-top: 8px; font-size: 0.82rem; color: var(--text-muted); }
+    .status-box.recorded { color: var(--success-green); font-weight: 700; }
+    .submit-notice-box { padding: 10px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; text-align: center; }
+    .submit-notice-box.warning { background: #FEF3C7; color: #B45309; }
+    .submit-notice-box.ready { background: #DCFCE7; color: #166534; }
+    .submit-notice-box.error { background: #FEE2E2; color: #991B1B; }
     .btn-submit {
-      width: 100%;
-      height: 58px;
-      margin-top: 14px;
-      background-color: var(--primary-blue);
-      color: #FFFFFF;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 122, 255, 0.28);
-      transition: all 0.2s var(--ease-spring);
-      display: block;
-      letter-spacing: -0.01em;
+      width: 100%; height: 50px; border-radius: 12px; font-size: 1.05rem; font-weight: 800; border: none; background: var(--primary-blue); color: #FFF; cursor: pointer; box-shadow: 0 4px 12px rgba(0,122,255,0.25); transition: background 0.2s;
     }
-
-    .btn-submit:active {
-      background-color: var(--primary-hover);
-      transform: scale(0.98);
-    }
-
-    .btn-submit:disabled {
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    /* Secondary / Destructive Action Group */
-    .danger-actions-section {
-      margin-top: 32px;
-      padding-top: 22px;
-      border-top: 0.5px solid var(--separator);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .btn-decline {
-      width: 100%;
-      height: 48px;
-      background-color: var(--warn-bg);
-      border: 1px solid rgba(255, 149, 0, 0.25);
-      color: var(--warn-amber);
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
-    }
-
-    .btn-decline:active {
-      background-color: rgba(255, 149, 0, 0.18);
-      transform: scale(0.98);
-    }
-
-    .btn-abort {
-      width: 100%;
-      height: 48px;
-      background-color: var(--danger-bg);
-      border: 1px solid rgba(255, 59, 48, 0.22);
-      color: var(--danger-red);
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
-    }
-
-    .btn-abort:active {
-      background-color: rgba(255, 59, 48, 0.16);
-      transform: scale(0.98);
-    }
-
-    /* Complete View */
-    #completeView {
-      display: none;
-      animation: fadeIn 0.3s var(--ease-spring);
-    }
-
-    .complete-card {
-      background: #FFFFFF;
-      border-radius: 24px;
-      padding: 30px 20px;
-      border: 0.5px solid var(--border-color);
-      box-shadow: var(--shadow-card);
-      text-align: center;
-    }
-
-    .complete-header {
-      color: var(--success-green);
-      font-size: 1.45rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-    }
-
-    .close-instruction-banner {
-      background: var(--danger-bg);
-      border: 1.5px solid rgba(255, 59, 48, 0.3);
-      border-radius: 16px;
-      padding: 18px 14px;
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    .close-instruction-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--danger-red);
-      margin-bottom: 6px;
-    }
-
-    .close-instruction-desc {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #7F1D1D;
-    }
-
-    /* HIG Grouped Summary List */
-    .result-stats-box {
-      background: var(--surface-secondary);
-      border: none;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 18px;
-      text-align: left;
-    }
-
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.92rem;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .result-row span:last-child {
-      color: var(--text-main);
-      font-weight: 700;
-    }
-
-    .result-row:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      padding-top: 4px;
-      border-bottom: none;
-      font-weight: 800;
-      color: var(--text-main);
-      font-size: 1.1rem;
-    }
-
-    .result-row:last-child span:last-child {
-      color: var(--warn-amber);
-      font-size: 1.2rem;
-      font-weight: 800;
-    }
-
-    .photo-callout {
-      background: #FFFBF0;
-      border: 1px solid rgba(255, 149, 0, 0.28);
-      border-radius: 16px;
-      padding: 16px;
-      font-size: 0.9rem;
-      text-align: left;
-      color: #7A4100;
-      line-height: 1.55;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.97); }
-      to { opacity: 1; transform: scale(1); }
-    }
+    .btn-submit:active { background: var(--primary-hover); }
+    .danger-actions-section { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #E5E5EA; padding-top: 20px; }
+    .btn-decline { width: 100%; padding: 12px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; border: 1.5px solid #F59E0B; background: #FFFBEB; color: #B45309; cursor: pointer; }
+    .btn-abort { width: 100%; padding: 12px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; border: 1.5px solid #EF4444; background: #FEF2F2; color: #B91C1C; cursor: pointer; }
+    .complete-card { background: #FFF; border-radius: 16px; padding: 24px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .complete-header { font-size: 1.4rem; font-weight: 800; color: var(--success-green); margin-bottom: 8px; }
+    .close-instruction-banner { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; padding: 12px; margin: 16px 0; }
+    .close-instruction-title { font-weight: 800; color: #991B1B; font-size: 0.95rem; }
+    .close-instruction-desc { font-size: 0.82rem; color: #7F1D1D; margin-top: 4px; }
+    .result-stats-box { background: #F8FAFC; border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 16px; border: 1px solid #E2E8F0; }
+    .result-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 6px 0; border-bottom: 1px dashed #E2E8F0; }
+    .result-row:last-child { border-bottom: none; font-weight: 800; font-size: 1rem; color: var(--primary-blue); }
+    .photo-callout { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 12px; font-size: 0.85rem; color: #1E40AF; text-align: left; }
   </style>
 </head>
 <body>
-
 <header>
   <h1>🚗 おでかけサポート 活動記録</h1>
 </header>
@@ -531,15 +86,12 @@
       <label>運行区分</label>
       <div class="radio-group">
         <label class="radio-label active" id="labelRound">
-          <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
-          <span>往復</span>
+          <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()"> 往復
         </label>
         <label class="radio-label" id="labelOneWay">
-          <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
-          <span>片道</span>
+          <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()"> 片道
         </label>
       </div>
-      <div class="sub-label" style="margin-top:8px;">※利用者の希望が自動選択されます。当日の変更があれば切り替えてください。</div>
     </div>
 
     <div class="form-group">
@@ -565,7 +117,7 @@
     </div>
 
     <div class="step-section">
-      <div class="step-title">1. 出発時</div>
+      <div class="step-title">1. 出発時（自宅）</div>
       <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
         📍 出発地を記録する
       </button>
@@ -594,7 +146,6 @@
       ⏳ 準備中...
     </div>
 
-    <!-- 送信ボタン -->
     <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
       活動実績を送信
     </button>
@@ -610,7 +161,7 @@
   </div>
 </div>
 
-<div class="container" id="completeView">
+<div class="container" id="completeView" style="display:none;">
   <div class="complete-card">
     <div class="complete-header" id="completeHeaderTitle">✔ 送信完了</div>
     <p id="completeMsg" style="font-size:1rem; color:var(--text-muted); margin-bottom:10px; font-weight:600;">
@@ -663,6 +214,7 @@
 </div>
 
 <script>
+  // ★GASのWeb App URL
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
   let questId = '';
@@ -677,65 +229,37 @@
     durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
   };
 
+  function getDraftKey() {
+    return 'odekake_draft_' + (questId || 'general');
+  }
+
   function extractQuestIdFromUrl() {
     const searchParams = new URLSearchParams(window.location.search);
     let q = searchParams.get('qid');
     if (q) return q.trim();
-
     let rawState = searchParams.get('liff.state');
-    if (!rawState && window.location.hash) {
-      const hashClean = window.location.hash.replace(/^#\/?/, '');
-      const hashParams = new URLSearchParams(hashClean.includes('?') ? hashClean.split('?')[1] : hashClean);
-      q = hashParams.get('qid');
-      if (q) return q.trim();
-      rawState = hashParams.get('liff.state');
-    }
-
     if (rawState) {
-      try {
-        const decoded = decodeURIComponent(rawState);
-        const qIndex = decoded.indexOf('?');
-        const queryStr = qIndex !== -1 ? decoded.substring(qIndex + 1) : decoded;
-        const stateParams = new URLSearchParams(queryStr);
-        q = stateParams.get('qid');
-        if (q) return q.trim();
-      } catch (e) {}
+      if (rawState.startsWith('?')) rawState = rawState.substring(1);
+      const stateParams = new URLSearchParams(rawState);
+      q = stateParams.get('qid');
+      if (q) return q.trim();
     }
-
-    const directMatch = window.location.href.match(/[?&#]qid=(\d+)/);
-    if (directMatch) return directMatch[1];
-
     return '';
   }
 
-  function getDraftKey() {
-    const qidVal = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
-    return 'odekake_draft_' + (qidVal || questId || 'general');
-  }
-
-  function getSafeTripType() {
-    const checked = document.querySelector('input[name="tripType"]:checked');
-    if (checked && checked.value) return checked.value;
-    const radRound = document.querySelector('input[name="tripType"][value="往復"]');
-    if (radRound) {
-      radRound.checked = true;
-      document.getElementById('labelRound').className = 'radio-label active';
-      document.getElementById('labelOneWay').className = 'radio-label';
-    }
-    return '往復';
-  }
-
   function handleTripTypeChange() {
-    const isRound = getSafeTripType() === '往復';
-    document.getElementById('labelRound').className = isRound ? 'radio-label active' : 'radio-label';
-    document.getElementById('labelOneWay').className = !isRound ? 'radio-label active' : 'radio-label';
+    const checked = document.querySelector('input[name="tripType"]:checked');
+    if (!checked) return;
+    const val = checked.value;
+    document.getElementById('labelRound').className = (val === '往復') ? 'radio-label active' : 'radio-label';
+    document.getElementById('labelOneWay').className = (val === '片道') ? 'radio-label active' : 'radio-label';
+    saveCurrentDraft();
     calcSummaryIfPossible();
-    handleFieldChange();
   }
 
-  function applyTripPlanPreference(tripPlanText) {
-    if (!tripPlanText) return;
-    const isOneWay = String(tripPlanText).includes('片道');
+  function applyTripPlanPreference(planText) {
+    const text = String(planText || '').trim();
+    const isOneWay = text.includes('片道');
     const radOneWay = document.querySelector('input[name="tripType"][value="片道"]');
     const radRound = document.querySelector('input[name="tripType"][value="往復"]');
     if (isOneWay && radOneWay) {
@@ -747,23 +271,19 @@
   }
 
   function handleQuestIdInput() {
+    const val = document.getElementById('questIdInput').value.trim();
+    questId = val;
+    if (fetchTimer) clearTimeout(fetchTimer);
+    if (val.length >= 4) {
+      fetchTimer = setTimeout(() => { fetchQuestInfo(val); }, 400);
+    }
     handleFieldChange();
-    const qidVal = document.getElementById('questIdInput').value.trim();
-    if (!qidVal) return;
-
-    clearTimeout(fetchTimer);
-    fetchTimer = setTimeout(() => {
-      fetchQuestInfo(qidVal);
-    }, 350);
   }
 
   async function fetchQuestInfo(targetQid) {
     if (!targetQid) return;
     const p1Input = document.getElementById('passenger1');
-    if (!p1Input.value.trim()) {
-      p1Input.placeholder = '⏳ お名前を取得中...';
-    }
-
+    if (!p1Input.value.trim()) p1Input.placeholder = '⏳ お名前を取得中...';
     try {
       const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(targetQid)}`;
       const res = await (await fetch(url)).json();
@@ -774,9 +294,7 @@
           p1Input.value = uName;
           p1Input.placeholder = '乗客1（例: さとう はなこ）';
         }
-        if (qObj.tripPlan) {
-          applyTripPlanPreference(qObj.tripPlan);
-        }
+        if (qObj.tripPlan) applyTripPlanPreference(qObj.tripPlan);
         saveCurrentDraft();
         checkSubmitRequirement();
       } else {
@@ -787,6 +305,23 @@
     }
   }
 
+  function addPassengerField(triggerSave = true) {
+    if (passengerCount >= 7) { alert('同乗者は最大7名までです。'); return; }
+    passengerCount++;
+    const container = document.getElementById('passengerContainer');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `passenger${passengerCount}`;
+    input.placeholder = `乗客${passengerCount}のお名前`;
+    input.oninput = handleFieldChange;
+    container.appendChild(input);
+    if (passengerCount >= 7) {
+      const btn = document.getElementById('btnAddPassenger');
+      if (btn) btn.style.display = 'none';
+    }
+    if (triggerSave) saveCurrentDraft();
+  }
+
   function saveCurrentDraft() {
     try {
       const passengers = [];
@@ -795,12 +330,11 @@
         if (el) passengers.push(el.value);
       }
       const draft = {
-        questId: document.getElementById('questIdInput').value.trim(),
-        driverId: document.getElementById('driverId').value.trim(),
-        tripType: getSafeTripType(),
+        questId: document.getElementById('questIdInput').value,
+        driverId: document.getElementById('driverId').value,
+        tripType: document.querySelector('input[name="tripType"]:checked')?.value || '往復',
         otherExpense: document.getElementById('otherExpense').value,
         passengers: passengers,
-        passengerCount: passengerCount,
         runLog: runLog
       };
       localStorage.setItem(getDraftKey(), JSON.stringify(draft));
@@ -818,7 +352,6 @@
     const p1 = document.getElementById('passenger1') ? document.getElementById('passenger1').value.trim() : '';
     const notice = document.getElementById('submitNoticeBox');
     if (!notice) return;
-
     const missing = [];
     if (!qid) missing.push('案件番号');
     if (!did) missing.push('登録番号');
@@ -843,15 +376,10 @@
       const raw = localStorage.getItem(getDraftKey());
       if (!raw) return false;
       const draft = JSON.parse(raw);
-
       if (draft.questId) document.getElementById('questIdInput').value = draft.questId;
       if (draft.driverId) document.getElementById('driverId').value = draft.driverId;
       if (draft.otherExpense) document.getElementById('otherExpense').value = draft.otherExpense;
-
-      if (draft.tripType) {
-        applyTripPlanPreference(draft.tripType);
-      }
-
+      if (draft.tripType) applyTripPlanPreference(draft.tripType);
       if (draft.passengers && draft.passengers.length > 0) {
         while (passengerCount < draft.passengers.length && passengerCount < 7) {
           addPassengerField(false);
@@ -861,7 +389,6 @@
           if (el && val) el.value = val;
         });
       }
-
       if (draft.runLog) {
         runLog = draft.runLog;
         if (runLog.depTime) {
@@ -893,72 +420,10 @@
     } catch (e) {}
   }
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    questId = extractQuestIdFromUrl();
-    if (questId) document.getElementById('questIdInput').value = questId;
-
-    let localDriverId = '';
-    const savedDriver = localStorage.getItem('odekake_driver');
-    if (savedDriver) {
-      try {
-        const d = JSON.parse(savedDriver);
-        if (d.id) {
-          document.getElementById('driverId').value = d.id;
-          localDriverId = d.id;
-        }
-        if (d.name) cachedDriverName = d.name;
-      } catch (e) {}
-    }
-
-    const hasDraft = restoreDraft();
-    checkSubmitRequirement();
-
-    if (questId) {
-      fetchQuestInfo(questId);
-    } else if (localDriverId) {
-      try {
-        const checkUrl = `${GAS_API_URL}?action=getActiveQuestForDriver&driverId=${encodeURIComponent(localDriverId)}`;
-        const checkRes = await (await fetch(checkUrl)).json();
-        const qObj = checkRes.quest || checkRes.data;
-        if (checkRes.success && qObj && qObj.id) {
-          questId = String(qObj.id).trim();
-          document.getElementById('questIdInput').value = questId;
-          const uName = qObj.userName || qObj.name || '';
-          if (uName && !document.getElementById('passenger1').value.trim()) {
-            document.getElementById('passenger1').value = uName;
-          }
-          if (!hasDraft && qObj.tripPlan) {
-            applyTripPlanPreference(qObj.tripPlan);
-          }
-          saveCurrentDraft();
-          checkSubmitRequirement();
-        }
-      } catch (e) {}
-    }
-  });
-
-  function addPassengerField(triggerSave = true) {
-    if (passengerCount >= 7) return;
-    passengerCount++;
-    const container = document.getElementById('passengerContainer');
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = `passenger${passengerCount}`;
-    input.placeholder = `乗客${passengerCount}（例: すずき いちろう）`;
-    input.oninput = handleFieldChange;
-    container.appendChild(input);
-
-    if (passengerCount >= 7) {
-      document.getElementById('btnAddPassenger').style.display = 'none';
-    }
-    if (triggerSave) handleFieldChange();
-  }
-
   function recordDeparture() {
     if (!navigator.geolocation) { manualRecordDeparture(); return; }
     const btn = document.getElementById('btnDep');
     btn.textContent = '⏳ GPS測位中...';
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
@@ -966,19 +431,15 @@
         runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
         runLog.depLat = pos.coords.latitude;
         runLog.depLng = pos.coords.longitude;
-
         btn.textContent = '✔ 出発地を記録済み';
         btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('depStatus');
         st.className = 'status-box recorded';
         st.textContent = `✔ 出発時刻: ${runLog.depTime}（GPS取得済）`;
-
         calcSummaryIfPossible();
         handleFieldChange();
       },
-      () => {
-        manualRecordDeparture();
-      },
+      () => { manualRecordDeparture(); },
       { enableHighAccuracy: true, timeout: 7000 }
     );
   }
@@ -987,14 +448,12 @@
     const now = new Date();
     runLog.depTimestamp = now.getTime();
     runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-    
     const btn = document.getElementById('btnDep');
     btn.textContent = '✔ 出発時刻を記録済み';
     btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
     const st = document.getElementById('depStatus');
     st.className = 'status-box recorded';
     st.textContent = `✔ 出発時刻: ${runLog.depTime}（手動セット）`;
-
     calcSummaryIfPossible();
     handleFieldChange();
   }
@@ -1003,7 +462,6 @@
     if (!navigator.geolocation) { manualRecordArrival(); return; }
     const btn = document.getElementById('btnArr');
     btn.textContent = '⏳ GPS測位中...';
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const now = new Date();
@@ -1011,19 +469,15 @@
         runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
         runLog.arrLat = pos.coords.latitude;
         runLog.arrLng = pos.coords.longitude;
-
         btn.textContent = '✔ 到着地を記録済み';
         btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
         const st = document.getElementById('arrStatus');
         st.className = 'status-box recorded';
         st.textContent = `✔ 到着時刻: ${runLog.arrTime}（GPS取得済）`;
-
         calcSummaryIfPossible();
         handleFieldChange();
       },
-      () => {
-        manualRecordArrival();
-      },
+      () => { manualRecordArrival(); },
       { enableHighAccuracy: true, timeout: 7000 }
     );
   }
@@ -1032,83 +486,49 @@
     const now = new Date();
     runLog.arrTimestamp = now.getTime();
     runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-
     const btn = document.getElementById('btnArr');
     btn.textContent = '✔ 到着時刻を記録済み';
     btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
     const st = document.getElementById('arrStatus');
     st.className = 'status-box recorded';
     st.textContent = `✔ 到着時刻: ${runLog.arrTime}（手動セット）`;
-
     calcSummaryIfPossible();
     handleFieldChange();
   }
 
+  function calcCrow(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
   function calcSummaryIfPossible() {
     if (runLog.depTimestamp && runLog.arrTimestamp) {
-      const diffMs = runLog.arrTimestamp - runLog.depTimestamp;
-      runLog.durationMin = Math.max(1, Math.round(diffMs / (1000 * 60)));
+      runLog.durationMin = Math.max(1, Math.round((runLog.arrTimestamp - runLog.depTimestamp) / (1000 * 60)));
     }
     if (runLog.depLat && runLog.depLng && runLog.arrLat && runLog.arrLng) {
-      const distKm = calcHubenyDistance(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
-      runLog.oneWayKm = Math.round(distKm);
-      runLog.roundTripKm = runLog.oneWayKm * 2;
+      const crow = calcCrow(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
+      runLog.oneWayKm = Math.round(crow * 1.3 * 10) / 10;
+      runLog.roundTripKm = Math.round(runLog.oneWayKm * 2 * 10) / 10;
     }
-
-    const tripType = getSafeTripType();
-    const calcDistance = (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm;
-    runLog.fuelFee = calcDistance * 20;
-
-    const otherExp = parseInt(document.getElementById('otherExpense').value || '0', 10) || 0;
-    runLog.fee = runLog.fuelFee + otherExp;
   }
 
-  // ★修正箇所：radLon1 - radLon2 に是正
-  function calcHubenyDistance(lat1, lon1, lat2, lon2) {
-    const radLat1 = lat1 * Math.PI / 180;
-    const radLon1 = lon1 * Math.PI / 180;
-    const radLat2 = lat2 * Math.PI / 180;
-    const radLon2 = lon2 * Math.PI / 180;
-    const a = 6378137.0;
-    const e2 = 0.00669437999019758;
-    const latDiff = radLat1 - radLat2;
-    const lonDiff = radLon1 - radLon2;
-    const latAve = (radLat1 + radLat2) / 2.0;
-    const w = Math.sqrt(1.0 - e2 * Math.sin(latAve) * Math.sin(latAve));
-    const m = a * (1.0 - e2) / (w * w * w);
-    const n = a / w;
-    const d = Math.sqrt(Math.pow(latDiff * m, 2) + Math.pow(lonDiff * n * Math.cos(latAve), 2));
-    return d / 1000.0;
-  }
-
+  // ★通常運行の実績送信
   async function submitRecord() {
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
-
     try {
       if (isSubmitting) return;
-
-      if (btn) {
-        btn.textContent = '🚀 送信処理中...';
-        btn.style.opacity = '0.7';
-      }
-
-      const qidInput = document.getElementById('questIdInput');
-      const driverIdInput = document.getElementById('driverId');
-      const p1Input = document.getElementById('passenger1');
-
-      let qid = qidInput ? qidInput.value.trim() : '';
-      if (!qid) qid = questId;
-
-      let driverId = driverIdInput ? driverIdInput.value.trim() : '';
-      if (!driverId) {
-        const saved = localStorage.getItem('odekake_driver');
-        if (saved) {
-          try { driverId = JSON.parse(saved).id || ''; } catch(e){}
-        }
-      }
-
-      let p1 = p1Input ? p1Input.value.trim() : '';
+      const qid = document.getElementById('questIdInput').value.trim();
+      const driverId = document.getElementById('driverId').value.trim();
+      const p1 = document.getElementById('passenger1').value.trim();
+      const otherExp = Number(document.getElementById('otherExpense').value || 0);
+      const tripType = document.querySelector('input[name="tripType"]:checked')?.value || '往復';
 
       const missing = [];
       if (!qid) missing.push('案件番号');
@@ -1116,10 +536,6 @@
       if (!p1) missing.push('乗客名');
 
       if (missing.length > 0) {
-        if (btn) {
-          btn.textContent = '活動実績を送信';
-          btn.style.opacity = '1';
-        }
         if (notice) {
           notice.className = 'submit-notice-box error';
           notice.innerHTML = `⚠️ 送信できません：【<strong>${missing.join('・')}</strong>】を入力してください`;
@@ -1127,28 +543,13 @@
         return;
       }
 
-      if (!runLog.arrTime) {
-        manualRecordArrival();
-      }
-      if (!runLog.depTime) {
-        runLog.depTime = runLog.arrTime;
-      }
+      isSubmitting = true;
+      if (btn) { btn.textContent = '🚀 送信処理中...'; btn.style.opacity = '0.7'; }
+
+      if (!runLog.arrTime) manualRecordArrival();
+      if (!runLog.depTime) runLog.depTime = runLog.arrTime;
 
       calcSummaryIfPossible();
-
-      const tripType = getSafeTripType();
-      const otherExpVal = document.getElementById('otherExpense') ? document.getElementById('otherExpense').value : '0';
-      const otherExp = parseInt(otherExpVal || '0', 10) || 0;
-
-      isSubmitting = true;
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = '⏳ スプレッドシートへ送信中...';
-      }
-      if (notice) {
-        notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '📡 スプレッドシートへ送信中... そのままお待ちください';
-      }
 
       const passengers = [];
       for (let i = 1; i <= 7; i++) {
@@ -1166,7 +567,6 @@
         duration: runLog.durationMin,
         oneWayDistance: runLog.oneWayKm,
         roundTripDistance: (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm,
-        fuelFee: runLog.fuelFee, fee: runLog.fee,
         depLat: runLog.depLat || '', depLng: runLog.depLng || '',
         arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
         depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
@@ -1197,23 +597,14 @@
 
         const noticeEl = document.getElementById('dispPhotoNotice');
         if (otherExp > 0) {
-          noticeEl.innerHTML = `
-            右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br>
-            <strong style="color:#b91c1c;">【有料道路・駐車場代のレシート（領収書）の写真】</strong>をトーク画面に送信してください。<br>
-            <span style="font-size:0.8rem; color:#78350f;">※相模原市マニュアル規定により、レシート原本は5年間保管が必要です。</span>
-          `;
+          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br><strong style="color:#b91c1c;">【有料道路・駐車場代のレシートの写真】</strong>をトーク画面に送信してください。<br><span style="font-size:0.8rem; color:#78350f;">※相模原市マニュアル規定により、レシート原本は5年間保管が必要です。</span>`;
         } else {
           noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。`;
         }
-
         window.scrollTo(0, 0);
       } else {
         isSubmitting = false;
-        if (btn) {
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          btn.textContent = '活動実績を送信';
-        }
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '活動実績を送信'; }
         if (notice) {
           notice.className = 'submit-notice-box error';
           notice.innerHTML = `⚠️ 保存エラー: ${res.message || 'スプレッドシートの保存に失敗しました'}`;
@@ -1221,44 +612,190 @@
       }
     } catch (err) {
       isSubmitting = false;
-      if (btn) {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.textContent = '活動実績を送信';
-      }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '活動実績を送信'; }
       if (notice) {
         notice.className = 'submit-notice-box error';
-        notice.innerHTML = `⚠️ 送信エラーが発生しました：<br>${err.message}<br><small>※電波状況またはGAS_API_URLをご確認ください</small>`;
+        notice.innerHTML = `⚠️ 送信エラー: ${err.message}`;
       }
     }
   }
 
-  async function cancelThisQuest() {
+  // ★【改修】現場での送迎中止（GPS測位・走行距離反映）
+  async function abortTrip() {
     if (isSubmitting) return;
+
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+    if (!qid || !driverId) {
+      alert('案件番号または登録番号が入力されていません。');
+      return;
+    }
+
+    // 自宅出発記録の有無を確認
+    if (!runLog.depTime) {
+      const confirmDep = confirm(
+        '⚠️ 自宅出発時の記録がありません。\n' +
+        '出発記録がない場合、走行距離を計算できません。\n' +
+        '現在時刻を出発時刻として処理を継続しますか？'
+      );
+      if (!confirmDep) return;
+      manualRecordDeparture();
+    }
+
+    const confirmMsg =
+      '【送迎中止（利用者不在）の確認】\n\n' +
+      '10分待機しても利用者が来られないため、送迎を中止しますか？\n\n' +
+      '※現在地（お迎え先）のGPSを取得し、自宅からの往復走行距離を記録します。\n' +
+      '※利用者は不乗車のため、実費請求（利用者負担額）は0円となります。';
+
+    if (!confirm(confirmMsg)) return;
+
+    const reason = prompt('中止理由を入力してください（シート備考欄に追記されます）', '10分待機も不在');
+    if (reason === null) return;
+
+    const btnAbort = document.getElementById('btnAbort');
+    btnAbort.disabled = true;
+    btnAbort.textContent = '⏳ 現場GPS測位中...';
+
+    // 現場のGPSを取得
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          executeAbort(pos.coords.latitude, pos.coords.longitude, reason);
+        },
+        (err) => {
+          console.warn('GPS取得失敗:', err);
+          alert('GPS取得に失敗しました。現在時刻のみで中止処理を記録します。');
+          executeAbort(null, null, reason);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      executeAbort(null, null, reason);
+    }
+  }
+
+  async function executeAbort(arrLat, arrLng, reason) {
+    isSubmitting = true;
+    const btnAbort = document.getElementById('btnAbort');
+    btnAbort.textContent = '🚀 送信処理中...';
+
+    const now = new Date();
+    runLog.arrTimestamp = now.getTime();
+    runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    runLog.arrLat = arrLat;
+    runLog.arrLng = arrLng;
+
+    const depTimeMs = runLog.depTimestamp || (now.getTime() - 10 * 60 * 1000);
+    runLog.durationMin = Math.max(1, Math.round((now.getTime() - depTimeMs) / (1000 * 60)));
+
+    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+    const arrMapUrl = (arrLat && arrLng) ? `https://www.google.com/maps?q=${arrLat},${arrLng}` : '';
+
+    let estimatedOneWay = 0;
+    if (runLog.depLat && runLog.depLng && arrLat && arrLng) {
+      estimatedOneWay = Math.round(calcCrow(runLog.depLat, runLog.depLng, arrLat, arrLng) * 1.3 * 10) / 10;
+    }
+    const estimatedRoundTrip = Math.round(estimatedOneWay * 2 * 10) / 10;
+
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
 
-    if (!qid || !driverId) { alert('案件番号または登録番号が確認できません。'); return; }
-    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) return;
-
-    const btn = document.getElementById('btnDecline');
-    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ キャンセル処理中...';
+    const payload = {
+      questId: qid,
+      driverId: driverId,
+      driverName: cachedDriverName,
+      isCancelled: true,             // ★中止フラグ
+      abortReason: reason,           // ★中止理由
+      tripType: '送迎中止',
+      otherExpense: 0,               // 実費0円
+      depTime: runLog.depTime,
+      arrTime: runLog.arrTime,
+      duration: runLog.durationMin,
+      oneWayDistance: estimatedOneWay,
+      roundTripDistance: estimatedRoundTrip,
+      fuelFee: 0,                    // 利用者請求0円
+      fee: 0,                        // 合計実費弁償額0円
+      depLat: runLog.depLat || '',
+      depLng: runLog.depLng || '',
+      arrLat: arrLat || '',
+      arrLng: arrLng || '',
+      depMapUrl: depMapUrl,
+      arrMapUrl: arrMapUrl,
+      passengers: []                 // 乗客0人
+    };
 
     try {
-      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
-      const res = await (await fetch(url)).json();
+      const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
+      const response = await fetch(url);
+      const res = await response.json();
 
       if (res.success) {
         clearDraft();
         document.getElementById('formView').style.display = 'none';
         document.getElementById('completeView').style.display = 'block';
 
+        // 完了画面を送迎中止用に変更
+        document.getElementById('completeHeaderTitle').textContent = '🚫 送迎中止を記録しました';
+        document.getElementById('completeHeaderTitle').style.color = '#DC2626';
+        document.getElementById('completeMsg').innerHTML =
+          '利用者が来られなかったため、送迎中止として実績を記録しました。<br>' +
+          '自宅〜現場までの往復走行距離が活動記録に反映されました。';
+
+        const finalOneWay = (res.oneWayDistance !== undefined) ? res.oneWayDistance : estimatedOneWay;
+        const finalRoundTrip = (res.roundTripDistance !== undefined) ? res.roundTripDistance : estimatedRoundTrip;
+
+        document.getElementById('dispTripInfo').textContent = `送迎中止 / ${runLog.durationMin} 分`;
+        document.getElementById('dispDistance').textContent = `${finalOneWay} km (往復換算: ${finalRoundTrip} km)`;
+        document.getElementById('dispPassengerCount').textContent = '片道 0 人 / 延べ 0 人 (人回)';
+        document.getElementById('dispFuelFee').textContent = '0 円 (不乗車)';
+        document.getElementById('dispOtherExpense').textContent = '0 円';
+        document.getElementById('dispFee').textContent = '0 円 (請求なし)';
+
+        const noticeEl = document.getElementById('dispPhotoNotice');
+        noticeEl.innerHTML =
+          '<strong>【ご案内】</strong><br>' +
+          '利用者が乗車されなかったため、写真の送信や領収書提出は不要です。<br>' +
+          '今回の往復走行距離（' + finalRoundTrip + ' km）は、団体の活動経費・ガソリン代補填の実績として記録されました。<br>' +
+          'どうぞお気をつけて自宅へお戻りください。';
+
+        window.scrollTo(0, 0);
+      } else {
+        alert('保存エラー: ' + (res.message || 'スプレッドシートの保存に失敗しました'));
+        isSubmitting = false;
+        btnAbort.disabled = false;
+        btnAbort.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
+      }
+    } catch (err) {
+      alert('通信エラーが発生しました: ' + err.message);
+      isSubmitting = false;
+      btnAbort.disabled = false;
+      btnAbort.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
+    }
+  }
+
+  // ★ドライバー受託キャンセル（再募集へ戻す）
+  async function cancelThisQuest() {
+    if (isSubmitting) return;
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+    if (!qid || !driverId) { alert('案件番号または登録番号が確認できません。'); return; }
+    if (!confirm(`【受託キャンセルの確認】\n案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`)) return;
+
+    const btn = document.getElementById('btnDecline');
+    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ キャンセル処理中...';
+    try {
+      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
+      const res = await (await fetch(url)).json();
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
         document.getElementById('completeHeaderTitle').textContent = '⚠️ 受託をキャンセルしました';
         document.getElementById('completeHeaderTitle').style.color = '#b45309';
         document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
         document.getElementById('resultStatsArea').style.display = 'none';
         document.getElementById('infoCalloutArea').innerHTML = `<strong>✔ 事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
-
         window.scrollTo(0, 0);
       } else {
         alert('キャンセルエラー: ' + res.message);
@@ -1268,4 +805,28 @@
     } catch (e) {
       alert('通信エラー: ' + e.message);
       isSubmitting = false; btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託をキャンセル
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
+    }
+  }
+
+  // 初期化
+  window.addEventListener('DOMContentLoaded', () => {
+    questId = extractQuestIdFromUrl();
+    if (questId) {
+      const qInput = document.getElementById('questIdInput');
+      if (qInput) {
+        qInput.value = questId;
+        fetchQuestInfo(questId);
+      }
+    }
+    const savedDriverId = localStorage.getItem('odekake_driver_id');
+    if (savedDriverId) {
+      const dInput = document.getElementById('driverId');
+      if (dInput && !dInput.value) dInput.value = savedDriverId;
+    }
+    restoreDraft();
+    checkSubmitRequirement();
+  });
+</script>
+</body>
+</html>
