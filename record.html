@@ -3,54 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>おでかけサポート 予約キャンセル</title>
+  <title>おでかけサポート 活動記録</title>
   <!-- LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      /* Apple HIG System Palette */
       --primary-blue: #007AFF;
-      --system-red: #FF3B30;
-      --system-red-hover: #D70015;
-      --system-red-bg: rgba(255, 59, 48, 0.08);
-      --system-amber: #FF9500;
-      --system-amber-bg: rgba(255, 149, 0, 0.1);
-      --system-green: #34C759;
+      --primary-hover: #0056B3;
       --bg-base: #F2F2F7;
       --card-bg: #FFFFFF;
       --surface-secondary: #F2F2F7;
       --text-main: #1C1C1E;
-      --text-muted: #8E8E93;
+      --text-muted: #6C6C70;
+      --danger-red: #DC2626;
+      --danger-bg: #FEF2F2;
+      --warning-amber: #D97706;
+      --warning-bg: #FEF3C7;
+      --success-green: #15803D;
+      --success-bg: #DCFCE7;
       --border-color: rgba(60, 60, 67, 0.12);
-      --separator: rgba(60, 60, 67, 0.1);
-      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-      --shadow-danger: 0 4px 14px rgba(255, 59, 48, 0.28);
-      --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
       --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
-      background-color: var(--bg-base);
+      background: var(--bg-base);
       color: var(--text-main);
+      padding-bottom: 40px;
       line-height: 1.5;
-      letter-spacing: -0.015em;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      font-variant-numeric: tabular-nums;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 48px);
     }
 
-    /* Lucide Icon 共通クラス */
     .lucide {
       width: 1.15em;
       height: 1.15em;
@@ -58,7 +48,6 @@
       stroke-width: 2.2;
       display: inline-block;
     }
-
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -67,221 +56,373 @@
       animation: spin 0.9s linear infinite;
     }
 
-    /* HIG Translucent Navigation Bar */
     header {
-      background-color: rgba(255, 255, 255, 0.78);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      background: #FFFFFF;
+      border-bottom: 1px solid #E5E5EA;
       padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 100;
     }
-
     header h1 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: var(--system-red-hover);
-      letter-spacing: -0.02em;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
-
     .container {
-      max-width: 480px;
+      max-width: 540px;
       margin: 0 auto;
       padding: 16px;
     }
-
-    /* HIG Inset Grouped Card */
     .card {
       background: var(--card-bg);
       border-radius: 20px;
-      padding: 24px 20px;
-      margin-bottom: 16px;
+      padding: 22px 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
       border: 0.5px solid var(--border-color);
-      box-shadow: var(--shadow-card);
     }
-
-    /* Warning Banner with HIG Amber Material */
-    .caution-banner {
-      background-color: var(--system-amber-bg);
-      border: 1px solid rgba(255, 149, 0, 0.28);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #944500;
-      line-height: 1.55;
+    .form-group {
+      margin-bottom: 18px;
     }
-
-    .caution-header {
+    .form-group label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      font-size: 0.9rem;
       font-weight: 700;
-      color: #7A3900;
       margin-bottom: 6px;
-      font-size: 0.92rem;
-    }
-
-    /* HIG Grouped List / Form Style Table */
-    .quest-summary-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-bottom: 24px;
-      background: var(--surface-secondary);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .quest-summary-table tr {
-      border: none;
-    }
-
-    .quest-summary-table th,
-    .quest-summary-table td {
-      padding: 13px 16px;
-      border-bottom: 0.5px solid var(--separator);
-      font-size: 0.95rem;
-      vertical-align: middle;
-    }
-
-    .quest-summary-table tr:last-child th,
-    .quest-summary-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .quest-summary-table th {
-      width: 38%;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-align: left;
-    }
-
-    .quest-summary-table td {
-      font-weight: 600;
       color: var(--text-main);
-      text-align: right;
+      gap: 6px;
+    }
+    .form-group .sub-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
     }
 
-    /* HIG Pill Style Badge */
-    .status-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      background: rgba(0, 122, 255, 0.12);
-      color: var(--primary-blue);
-      border: none;
-      letter-spacing: 0.01em;
-    }
-
-    /* HIG Destructive Action Button */
-    .btn-cancel {
-      width: 100%;
-      height: 54px;
-      background-color: var(--system-red);
-      color: #FFFFFF;
-      font-size: 1.05rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: var(--shadow-danger);
-      display: flex;
+    /* ★1か所に集約した自動取得バッジ */
+    .unified-auto-badge {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      letter-spacing: -0.01em;
+      gap: 5px;
+      background: var(--success-bg);
+      color: var(--success-green);
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-weight: 700;
+      border: 1px solid #bbf7d0;
+    }
+
+    input[type="text"], input[type="tel"], input[type="number"] {
+      width: 100%;
+      height: 46px;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 12px;
+      padding: 0 14px;
+      font-size: 1rem;
+      color: var(--text-main);
+      background: #FAFAFA;
+      outline: none;
       transition: all 0.2s var(--ease-spring);
     }
-
-    .btn-cancel:active {
-      background-color: var(--system-red-hover);
-      transform: scale(0.98);
+    input:focus {
+      border-color: var(--primary-blue);
+      background: #FFF;
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
     }
-
-    .btn-cancel:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .empty-state-box {
-      text-align: center;
-      padding: 32px 16px;
-      color: var(--text-muted);
-      font-weight: 600;
+    .radio-group {
       display: flex;
-      flex-direction: column;
+      gap: 10px;
+    }
+    .radio-label {
+      flex: 1;
+      text-align: center;
+      padding: 11px;
+      border-radius: 12px;
+      border: 1.5px solid #E5E5EA;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: #FAFAFA;
+      transition: all 0.2s;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 6px;
     }
-
-    #completeView {
+    .radio-label.active {
+      border-color: var(--primary-blue);
+      background: #EFF6FF;
+      color: var(--primary-blue);
+    }
+    .radio-group input[type="radio"] {
       display: none;
-      animation: fadeIn 0.3s var(--ease-spring);
     }
-
-    .complete-card {
-      background: #FFFFFF;
-      border-radius: 24px;
-      padding: 32px 22px;
-      border: 0.5px solid var(--border-color);
-      box-shadow: var(--shadow-card);
-      text-align: center;
+    .passenger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
     }
-
-    .complete-header {
-      color: var(--text-main);
-      font-size: 1.4rem;
+    .btn-add-passenger {
+      background: none;
+      border: 1.5px dashed var(--primary-blue);
+      color: var(--primary-blue);
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-add-passenger:active {
+      background: #EFF6FF;
+    }
+    .step-section {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 15px;
+      margin-bottom: 16px;
+    }
+    .step-title {
+      font-size: 0.94rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      color: #1E293B;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
+      gap: 6px;
+    }
+    .btn-gps-trigger {
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: 1.5px solid var(--primary-blue);
+      background: #FFFFFF;
+      color: var(--primary-blue);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
       justify-content: center;
       gap: 8px;
     }
-
-    .close-instruction-banner {
-      background: var(--system-red-bg);
-      border: 1px solid rgba(255, 59, 48, 0.25);
-      border-radius: 18px;
-      padding: 18px 16px;
-      margin: 22px 0 10px;
-      text-align: center;
+    .btn-gps-trigger:active {
+      background: #EFF6FF;
+    }
+    .btn-gps-fallback {
+      width: 100%;
+      margin-top: 6px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .lock-notice-box {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #B45309;
+      background: var(--warning-bg);
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .status-box {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-box.recorded {
+      color: var(--success-green);
+      font-weight: 700;
     }
 
-    .close-instruction-title {
-      font-size: 1.12rem;
+    /* ★実績送信直前に配置される「その他実費」用強調カード */
+    .expense-highlight-card {
+      background: #F0FDF4;
+      border: 1.5px solid #BBF7D0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .submit-notice-box {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .submit-notice-box.warning {
+      background: var(--warning-bg);
+      color: #B45309;
+    }
+    .submit-notice-box.ready {
+      background: var(--success-bg);
+      color: #166534;
+    }
+    .submit-notice-box.error {
+      background: var(--danger-bg);
+      color: #991B1B;
+    }
+    .btn-submit {
+      width: 100%;
+      height: 52px;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border: none;
+      background: var(--primary-blue);
+      color: #FFF;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:active {
+      background: var(--primary-hover);
+    }
+    .danger-actions-section {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid #E5E5EA;
+      padding-top: 20px;
+    }
+    .btn-decline {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 0.88rem;
       font-weight: 700;
-      color: var(--system-red-hover);
-      margin-bottom: 6px;
-      letter-spacing: -0.01em;
+      border: 1.5px solid #F59E0B;
+      background: #FFFBEB;
+      color: #B45309;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-abort {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1.5px solid #EF4444;
+      background: #FEF2F2;
+      color: #B91C1C;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .complete-card {
+      background: #FFF;
+      border-radius: 20px;
+      padding: 26px 18px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 0.5px solid var(--border-color);
+    }
+    .complete-header {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--success-green);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .close-instruction-banner {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+    }
+    .close-instruction-title {
+      font-weight: 800;
+      color: #991B1B;
+      font-size: 0.95rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
-
     .close-instruction-desc {
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.84rem;
       color: #7F1D1D;
-      line-height: 1.45;
+      margin-top: 4px;
+    }
+    .result-stats-box {
+      background: #F8FAFC;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: left;
+      margin-bottom: 16px;
+      border: 1px solid #E2E8F0;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      padding: 7px 0;
+      border-bottom: 1px dashed #E2E8F0;
+    }
+    .result-row:last-child {
+      border-bottom: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--primary-blue);
+    }
+    .photo-callout {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.86rem;
+      color: #1E40AF;
+      text-align: left;
+      line-height: 1.5;
     }
 
-    /* カスタムダイアログ（モーダル）共通 */
+    /* カスタムダイアログ共通 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -301,9 +442,8 @@
       width: 100%;
       max-width: 380px;
       padding: 24px 20px;
-      box-shadow: var(--shadow-modal);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
       border: 0.5px solid rgba(255, 255, 255, 0.5);
-      text-align: center;
     }
     .modal-title {
       font-size: 1.2rem;
@@ -329,16 +469,14 @@
     }
     .btn-modal-confirm {
       height: 48px;
-      background: var(--system-red);
+      background: var(--primary-blue);
       border: none;
       border-radius: 12px;
       font-size: 0.98rem;
       font-weight: 700;
       color: #FFF;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.28);
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.96); }
       to { opacity: 1; transform: scale(1); }
@@ -349,70 +487,162 @@
 
 <header>
   <h1>
-    <i data-lucide="calendar-x"></i>
-    <span>送迎予約のキャンセル</span>
+    <i data-lucide="car"></i>
+    <span>おでかけサポート 活動記録</span>
   </h1>
 </header>
 
 <div class="container" id="formView">
   <div class="card">
-    <div class="caution-banner">
-      <div class="caution-header">
-        <i data-lucide="alert-triangle"></i>
-        <span>直前キャンセルのご注意</span>
+    <!-- 案件番号入力 -->
+    <div class="form-group">
+      <label>
+        <i data-lucide="hash"></i>
+        <span>案件番号</span>
+      </label>
+      <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
+      <!-- ★ここに1か所のみ集約表示される自動取得バッジ -->
+      <div id="unifiedAutoBadge" class="unified-auto-badge" style="display:none;">
+        <i data-lucide="check-circle-2"></i>
+        <span>依頼情報から自動取得</span>
       </div>
-      直前のキャンセルは、ボランティアドライバーへのご負担となりますので極力ご遠慮くださいますようお願いいたします。やむを得ない事情がある場合のみ、下記よりキャンセルを実行してください。
     </div>
 
-    <div id="loadingArea" class="empty-state-box">
-      <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue);"></i>
-      <span>予約情報を確認中...</span>
+    <!-- 運行区分 -->
+    <div class="form-group">
+      <label>
+        <i data-lucide="repeat"></i>
+        <span>運行区分</span>
+      </label>
+      <div class="radio-group">
+        <label class="radio-label active" id="labelRound">
+          <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
+          <i data-lucide="repeat"></i>
+          <span>往復</span>
+        </label>
+        <label class="radio-label" id="labelOneWay">
+          <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
+          <i data-lucide="arrow-right"></i>
+          <span>片道</span>
+        </label>
+      </div>
     </div>
 
-    <div id="detailArea" style="display:none;">
-      <table class="quest-summary-table">
-        <tr>
-          <th>案件番号</th>
-          <td id="dispQid">#----</td>
-        </tr>
-        <tr>
-          <th>現在の状況</th>
-          <td><span id="dispStatus" class="status-badge">確認中</span></td>
-        </tr>
-        <tr>
-          <th>運行日時</th>
-          <td id="dispDate">----</td>
-        </tr>
-        <tr>
-          <th>お迎え場所</th>
-          <td id="dispPickup">----</td>
-        </tr>
-        <tr>
-          <th>行先（目的地）</th>
-          <td id="dispDropoff">----</td>
-        </tr>
-        <tr id="rowDriver" style="display:none;">
-          <th>担当ボランティア</th>
-          <td id="dispDriver" style="color:var(--primary-blue);">未定</td>
-        </tr>
-      </table>
+    <!-- ドライバー登録番号 -->
+    <div class="form-group">
+      <label>
+        <i data-lucide="badge-check"></i>
+        <span>ドライバー登録番号（半角数字）</span>
+      </label>
+      <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="handleDriverIdManualChange()">
+      <div id="driverNameDesc" class="sub-label"></div>
+    </div>
 
-      <button type="button" class="btn-cancel" id="btnCancel" onclick="executeCancel()">
-        <i data-lucide="trash-2"></i>
-        <span>この送迎予約をキャンセルする</span>
+    <!-- 乗客枠 -->
+    <div class="form-group">
+      <label>
+        <i data-lucide="users"></i>
+        <span>乗せた人（最大7名）</span>
+      </label>
+      <div id="passengerContainer" class="passenger-list">
+        <input type="text" id="passenger1" placeholder="乗客1のお名前" oninput="handleFieldChange()">
+      </div>
+      <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
+        <i data-lucide="user-plus"></i>
+        <span>乗客を追加する</span>
+      </button>
+    </div>
+
+    <!-- 1. 出発時 -->
+    <div class="step-section">
+      <div class="step-title">
+        <i data-lucide="home"></i>
+        <span>1. 出発時（自宅）</span>
+      </div>
+      <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
+        <i data-lucide="map-pin"></i>
+        <span>出発地を記録する</span>
+      </button>
+      <button type="button" class="btn-gps-fallback" onclick="manualRecordDeparture()">
+        ※GPSが使えない場合はこちら（現在時刻をセット）
+      </button>
+      <div class="lock-notice-box">
+        <i data-lucide="alert-triangle" style="flex-shrink:0;"></i>
+        <span>出発ボタンを押したらそのままスマホをロックしてください</span>
+      </div>
+      <div id="depStatus" class="status-box">
+        <i data-lucide="info"></i>
+        <span>押し忘れたら到着だけ記録してください</span>
+      </div>
+    </div>
+
+    <!-- 2. 到着時 -->
+    <div class="step-section">
+      <div class="step-title">
+        <i data-lucide="flag"></i>
+        <span>2. 到着時</span>
+      </div>
+      <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
+        <i data-lucide="map-pin"></i>
+        <span>到着地を記録する</span>
+      </button>
+      <button type="button" class="btn-gps-fallback" onclick="manualRecordArrival()">
+        ※GPSが使えない場合はこちら（現在時刻をセット）
+      </button>
+      <div id="arrStatus" class="status-box">
+        <i data-lucide="info"></i>
+        <span>押し忘れた場合でも自動で現在時刻が入ります</span>
+      </div>
+    </div>
+
+    <!-- ★改修：実績送信ボタンのすぐ上に移動した「その他実費」入力欄 -->
+    <div class="expense-highlight-card">
+      <div class="form-group" style="margin-bottom:0;">
+        <label style="color:#166534;">
+          <i data-lucide="receipt"></i>
+          <span>その他実費（有料道路・駐車場代の合計）</span>
+        </label>
+        <div class="sub-label" style="color:#15803D; margin-bottom:8px;">
+          ※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）
+        </div>
+        <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()" style="background:#FFF; border-color:#86EFAC;">
+      </div>
+    </div>
+
+    <!-- 送信準備通知ボックス -->
+    <div id="submitNoticeBox" class="submit-notice-box warning">
+      <i data-lucide="clock"></i>
+      <span>準備中...</span>
+    </div>
+
+    <!-- 実績送信ボタン -->
+    <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
+      <i data-lucide="send"></i>
+      <span>活動実績を送信</span>
+    </button>
+
+    <!-- キャンセル・送迎中止エリア -->
+    <div class="danger-actions-section">
+      <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
+        <i data-lucide="alert-triangle"></i>
+        <span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>
+      </button>
+      <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
+        <i data-lucide="ban"></i>
+        <span>利用者不在などで送迎を中止する（現場での中止）</span>
       </button>
     </div>
   </div>
 </div>
 
-<div class="container" id="completeView">
+<div class="container" id="completeView" style="display:none;">
   <div class="complete-card">
-    <div class="complete-header">
-      <i data-lucide="check-circle-2" style="color:var(--system-green);"></i>
-      <span>キャンセル完了</span>
+    <div class="complete-header" id="completeHeaderTitle">
+      <i data-lucide="check-circle-2"></i>
+      <span>送信完了</span>
     </div>
-    <p id="completeDesc" style="font-size:0.95rem; color:var(--text-muted); font-weight:500; margin-bottom:14px; line-height:1.5;">
-      送迎予約のキャンセルを受け付けました。
+    <p id="completeMsg" style="font-size:0.98rem; color:var(--text-muted); margin-bottom:10px; font-weight:600;">
+      活動実績を記録しました。安全運転お疲れ様でした！
     </p>
 
     <div class="close-instruction-banner">
@@ -421,32 +651,96 @@
         <span>画面右上の「 × 」で閉じてください</span>
       </div>
       <div class="close-instruction-desc">
-        LINEのトーク画面にもキャンセル完了の通知をお送りしました。
+        右上の「×」ボタンを押すと、LINEのトーク画面に戻ります。
       </div>
+    </div>
+
+    <div class="result-stats-box" id="resultStatsArea">
+      <div class="result-row">
+        <span>運行区分 / 所要時間:</span>
+        <span id="dispTripInfo">往復 / 0 分</span>
+      </div>
+      <div class="result-row">
+        <span>計算対象距離:</span>
+        <span id="dispDistance">0 km</span>
+      </div>
+      <div class="result-row">
+        <span>乗車人数（片道 / 延べ）:</span>
+        <span id="dispPassengerCount">1 人 / 2 人</span>
+      </div>
+      <div class="result-row">
+        <span>燃料費相当（20円/km）:</span>
+        <span id="dispFuelFee">0 円</span>
+      </div>
+      <div class="result-row" id="rowOtherExpense">
+        <span>その他実費（有料道路・駐車場）:</span>
+        <span id="dispOtherExpense">0 円</span>
+      </div>
+      <div class="result-row">
+        <span>合計実費弁償額:</span>
+        <span id="dispFee">0 円</span>
+      </div>
+    </div>
+
+    <div class="photo-callout" id="infoCalloutArea">
+      <div style="font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+        <i data-lucide="camera"></i>
+        <span>最後のステップ（写真送信）:</span>
+      </div>
+      <span id="dispPhotoNotice">
+        右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。
+      </span>
     </div>
   </div>
 </div>
 
-<!-- Githubダイアログを出さない完全カスタムモーダル（通知・確認） -->
+<!-- 完全カスタム通知・確認モーダル -->
 <div id="customDialogOverlay" class="modal-overlay" style="display:none;" onclick="handleCustomDialogOverlayClick(event)">
-  <div class="modal-card">
+  <div class="modal-card" style="text-align:center;">
     <div id="customDialogIconArea" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
     <h3 id="customDialogTitle" class="modal-title">通知</h3>
     <div id="customDialogMessage" style="font-size:0.95rem; color:var(--text-main); margin-bottom:20px; line-height:1.55; white-space:pre-wrap; text-align:left; background:var(--surface-secondary); padding:14px; border-radius:14px; font-weight:500;"></div>
     <div class="modal-buttons" id="customDialogButtons">
-      <button type="button" class="btn-modal-cancel" id="btnCustomDialogCancel" onclick="closeCustomDialog(false)">戻る</button>
+      <button type="button" class="btn-modal-cancel" id="btnCustomDialogCancel" onclick="closeCustomDialog(false)">キャンセル</button>
       <button type="button" class="btn-modal-confirm" id="btnCustomDialogOk" onclick="closeCustomDialog(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- 完全カスタムPromptモーダル（中止理由入力） -->
+<div id="customPromptOverlay" class="modal-overlay" style="display:none;" onclick="handleCustomPromptOverlayClick(event)">
+  <div class="modal-card" style="text-align:center;">
+    <div id="customPromptIconArea" style="display:flex; justify-content:center; margin-bottom:12px;">
+      <i data-lucide="help-circle" style="width:44px; height:44px; color:var(--primary-blue);"></i>
+    </div>
+    <h3 id="customPromptTitle" class="modal-title">中止理由の入力</h3>
+    <div id="customPromptMessage" style="font-size:0.86rem; color:var(--text-muted); margin-bottom:12px; text-align:left; font-weight:600; line-height:1.4;">
+      理由を入力してください（シートのシステム情報欄に追記されます）:
+    </div>
+    <input type="text" id="customPromptInput" style="width:100%; height:46px; margin-bottom:18px; border:1.5px solid #CBD5E1; border-radius:12px; padding:0 12px; font-size:1rem; outline:none; background:#FFF;" />
+    <div class="modal-buttons">
+      <button type="button" class="btn-modal-cancel" onclick="closeCustomPrompt(null)">キャンセル</button>
+      <button type="button" class="btn-modal-confirm" onclick="closeCustomPrompt(document.getElementById('customPromptInput').value)">決定</button>
     </div>
   </div>
 </div>
 
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-  const LIFF_ID     = "2011784961-QoryA7zc";
+  const LIFF_ID = "2011743949-unqD1uQo";
 
   let questId = '';
+  let passengerCount = 1;
+  let cachedDriverName = '';
   let lineUserId = '';
   let isSubmitting = false;
+  let fetchTimer = null;
+
+  let runLog = {
+    depTime: '', depTimestamp: null, depLat: null, depLng: null,
+    arrTime: '', arrTimestamp: null, arrLat: null, arrLng: null,
+    durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
+  };
 
   function refreshLucide() {
     if (window.lucide) {
@@ -455,7 +749,7 @@
   }
 
   // ==========================================
-  // Githubダイアログを出さないカスタムモーダル制御
+  // カスタムモーダル制御
   // ==========================================
   let customDialogResolve = null;
 
@@ -472,7 +766,6 @@
       okBtn.style.gridColumn = '1 / -1';
       okBtn.textContent = '閉じる';
       okBtn.style.backgroundColor = 'var(--primary-blue)';
-      okBtn.style.boxShadow = 'none';
 
       customDialogResolve = resolve;
       document.getElementById('customDialogOverlay').style.display = 'flex';
@@ -480,7 +773,7 @@
     });
   }
 
-  function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--system-red)') {
+  function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--primary-blue)') {
     return new Promise((resolve) => {
       document.getElementById('customDialogIconArea').innerHTML =
         `<i data-lucide="${iconName}" style="width:46px; height:46px; color:${iconColor};"></i>`;
@@ -491,9 +784,8 @@
       const okBtn = document.getElementById('btnCustomDialogOk');
       cancelBtn.style.display = 'block';
       okBtn.style.gridColumn = '';
-      okBtn.textContent = 'キャンセル実行';
-      okBtn.style.backgroundColor = 'var(--system-red)';
-      okBtn.style.boxShadow = '0 4px 12px rgba(255, 59, 48, 0.28)';
+      okBtn.textContent = 'はい';
+      okBtn.style.backgroundColor = 'var(--primary-blue)';
 
       customDialogResolve = resolve;
       document.getElementById('customDialogOverlay').style.display = 'flex';
@@ -516,29 +808,763 @@
     }
   }
 
-  // ==========================================
-  // パラメータ抽出・初期化
-  // ==========================================
-  function extractQuestId() {
-    const params = new URLSearchParams(window.location.search);
-    let q = params.get('qid');
-    if (q) return q.trim();
+  let customPromptResolve = null;
 
-    const liffState = params.get('liff.state');
-    if (liffState) {
-      try {
-        const decoded = decodeURIComponent(liffState);
-        const stateParams = new URLSearchParams(decoded.includes('?') ? decoded.split('?')[1] : decoded);
-        q = stateParams.get('qid');
-        if (q) return q.trim();
-      } catch (e) {}
+  function showCustomPrompt(message, defaultValue = '', title = '入力') {
+    return new Promise((resolve) => {
+      document.getElementById('customPromptTitle').textContent = title;
+      document.getElementById('customPromptMessage').textContent = message;
+      const inputEl = document.getElementById('customPromptInput');
+      inputEl.value = defaultValue;
+      customPromptResolve = resolve;
+      document.getElementById('customPromptOverlay').style.display = 'flex';
+      refreshLucide();
+      setTimeout(() => inputEl.focus(), 150);
+    });
+  }
+
+  function closeCustomPrompt(result) {
+    document.getElementById('customPromptOverlay').style.display = 'none';
+    if (customPromptResolve) {
+      const cb = customPromptResolve;
+      customPromptResolve = null;
+      cb(result);
+    }
+  }
+
+  function handleCustomPromptOverlayClick(e) {
+    if (e.target.id === 'customPromptOverlay') {
+      closeCustomPrompt(null);
+    }
+  }
+
+  // ==========================================
+  // 下書き・URL・入力管理
+  // ==========================================
+  function getDraftKey() {
+    return 'odekake_draft_' + (questId || 'general');
+  }
+
+  function extractQuestIdFromUrl() {
+    const searchParams = new URLSearchParams(window.location.search);
+    let q = searchParams.get('qid');
+    if (q) return q.trim();
+    let rawState = searchParams.get('liff.state');
+    if (rawState) {
+      if (rawState.startsWith('?')) rawState = rawState.substring(1);
+      const stateParams = new URLSearchParams(rawState);
+      q = stateParams.get('qid');
+      if (q) return q.trim();
     }
     return '';
   }
 
+  function handleTripTypeChange() {
+    const checked = document.querySelector('input[name="tripType"]:checked');
+    if (!checked) return;
+    const val = checked.value;
+    document.getElementById('labelRound').className = (val === '往復') ? 'radio-label active' : 'radio-label';
+    document.getElementById('labelOneWay').className = (val === '片道') ? 'radio-label active' : 'radio-label';
+    saveCurrentDraft();
+    calcSummaryIfPossible();
+  }
+
+  function applyTripPlanPreference(planText) {
+    const text = String(planText || '').trim();
+    const isOneWay = text.includes('片道');
+    const radOneWay = document.querySelector('input[name="tripType"][value="片道"]');
+    const radRound = document.querySelector('input[name="tripType"][value="往復"]');
+    if (isOneWay && radOneWay) {
+      radOneWay.checked = true;
+    } else if (radRound) {
+      radRound.checked = true;
+    }
+    handleTripTypeChange();
+  }
+
+  function handleQuestIdInput() {
+    const val = document.getElementById('questIdInput').value.trim();
+    questId = val;
+    if (fetchTimer) clearTimeout(fetchTimer);
+    if (val.length >= 4) {
+      fetchTimer = setTimeout(() => { fetchQuestInfo(val); }, 400);
+    } else {
+      document.getElementById('unifiedAutoBadge').style.display = 'none';
+    }
+    handleFieldChange();
+  }
+
+  function handleDriverIdManualChange() {
+    const dVal = document.getElementById('driverId').value.trim();
+    if (dVal) {
+      localStorage.setItem('odekake_driver_id', dVal);
+    }
+    handleFieldChange();
+  }
+
+  function setDriverIdAutomatically(driverId, driverName) {
+    if (!driverId) return;
+    const dInput = document.getElementById('driverId');
+    if (dInput) {
+      dInput.value = driverId;
+      dInput.style.backgroundColor = '#f0fdf4';
+      dInput.style.borderColor = '#86efac';
+      dInput.style.fontWeight = 'bold';
+    }
+    if (driverName) {
+      cachedDriverName = driverName;
+      const descEl = document.getElementById('driverNameDesc');
+      if (descEl) descEl.textContent = `担当: ${driverName} 様`;
+    }
+
+    localStorage.setItem('odekake_driver_id', driverId);
+    if (driverName) {
+      try {
+        localStorage.setItem('odekake_driver', JSON.stringify({ id: driverId, name: driverName }));
+      } catch (e) {}
+    }
+    checkSubmitRequirement();
+  }
+
+  async function fetchQuestInfo(targetQid) {
+    if (!targetQid) return;
+    const p1Input = document.getElementById('passenger1');
+    if (!p1Input.value.trim()) p1Input.placeholder = 'お名前を取得中...';
+    try {
+      const url = `${GAS_API_URL}?action=getQuestForRecord&qid=${encodeURIComponent(targetQid)}`;
+      const res = await (await fetch(url)).json();
+      const qObj = res.quest || res.data;
+      if (res.success && qObj) {
+        const uName = qObj.userName || qObj.name || '';
+        if (uName) {
+          p1Input.value = uName;
+          p1Input.placeholder = '乗客1（例: さとう はなこ）';
+        }
+        if (qObj.tripPlan) applyTripPlanPreference(qObj.tripPlan);
+        if (qObj.driverId) {
+          setDriverIdAutomatically(qObj.driverId, qObj.driverName);
+        }
+
+        // ★1か所に集約した自動取得バッジを表示
+        const autoBadge = document.getElementById('unifiedAutoBadge');
+        if (autoBadge) autoBadge.style.display = 'inline-flex';
+
+        saveCurrentDraft();
+        checkSubmitRequirement();
+        refreshLucide();
+      } else {
+        p1Input.placeholder = '乗客1のお名前を入力してください';
+        document.getElementById('unifiedAutoBadge').style.display = 'none';
+      }
+    } catch (e) {
+      p1Input.placeholder = '乗客1のお名前を入力してください';
+      document.getElementById('unifiedAutoBadge').style.display = 'none';
+    }
+  }
+
+  async function fetchDriverInfoByLineId(uid) {
+    if (!uid) return;
+    try {
+      const url = `${GAS_API_URL}?action=getDriverByLineId&lineUserId=${encodeURIComponent(uid)}`;
+      const res = await (await fetch(url)).json();
+      if (res.success && res.driver && res.driver.id) {
+        const curDid = document.getElementById('driverId').value.trim();
+        if (!curDid) {
+          setDriverIdAutomatically(res.driver.id, res.driver.name);
+        }
+        const curQid = document.getElementById('questIdInput').value.trim();
+        if (!curQid && res.activeQuest && res.activeQuest.id) {
+          document.getElementById('questIdInput').value = res.activeQuest.id;
+          questId = String(res.activeQuest.id).trim();
+          fetchQuestInfo(questId);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function addPassengerField(triggerSave = true) {
+    if (passengerCount >= 7) {
+      showCustomAlert('同乗者は最大7名までです。', '人数上限', 'users', 'var(--warn-amber)');
+      return;
+    }
+    passengerCount++;
+    const container = document.getElementById('passengerContainer');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `passenger${passengerCount}`;
+    input.placeholder = `乗客${passengerCount}のお名前`;
+    input.oninput = handleFieldChange;
+    container.appendChild(input);
+    if (passengerCount >= 7) {
+      const btn = document.getElementById('btnAddPassenger');
+      if (btn) btn.style.display = 'none';
+    }
+    if (triggerSave) saveCurrentDraft();
+  }
+
+  function saveCurrentDraft() {
+    try {
+      const passengers = [];
+      for (let i = 1; i <= passengerCount; i++) {
+        const el = document.getElementById(`passenger${i}`);
+        if (el) passengers.push(el.value);
+      }
+      const draft = {
+        questId: document.getElementById('questIdInput').value,
+        driverId: document.getElementById('driverId').value,
+        tripType: document.querySelector('input[name="tripType"]:checked')?.value || '往復',
+        otherExpense: document.getElementById('otherExpense').value,
+        passengers: passengers,
+        runLog: runLog
+      };
+      localStorage.setItem(getDraftKey(), JSON.stringify(draft));
+    } catch (e) {}
+  }
+
+  function handleFieldChange() {
+    saveCurrentDraft();
+    checkSubmitRequirement();
+  }
+
+  function checkSubmitRequirement() {
+    const qid = document.getElementById('questIdInput') ? document.getElementById('questIdInput').value.trim() : '';
+    const did = document.getElementById('driverId') ? document.getElementById('driverId').value.trim() : '';
+    const p1 = document.getElementById('passenger1') ? document.getElementById('passenger1').value.trim() : '';
+    const notice = document.getElementById('submitNoticeBox');
+    if (!notice) return;
+    const missing = [];
+    if (!qid) missing.push('案件番号');
+    if (!did) missing.push('登録番号');
+    if (!p1) missing.push('乗客名');
+
+    if (missing.length === 0) {
+      if (runLog.arrTime) {
+        notice.className = 'submit-notice-box ready';
+        notice.innerHTML = '<i data-lucide="check-circle-2"></i><span>準備完了！「活動実績を送信」を押してください</span>';
+      } else {
+        notice.className = 'submit-notice-box warning';
+        notice.innerHTML = '<i data-lucide="info"></i><span>到着ボタンを押すか、そのまま送信すると現在時刻で自動記録されます</span>';
+      }
+    } else {
+      notice.className = 'submit-notice-box error';
+      notice.innerHTML = `<i data-lucide="alert-circle"></i><span>【<strong>${missing.join('・')}</strong>】を入力してください</span>`;
+    }
+    refreshLucide();
+  }
+
+  function restoreDraft() {
+    try {
+      const raw = localStorage.getItem(getDraftKey());
+      if (!raw) return false;
+      const draft = JSON.parse(raw);
+      if (draft.questId) document.getElementById('questIdInput').value = draft.questId;
+      if (draft.driverId) setDriverIdAutomatically(draft.driverId, cachedDriverName);
+      if (draft.otherExpense) document.getElementById('otherExpense').value = draft.otherExpense;
+      if (draft.tripType) applyTripPlanPreference(draft.tripType);
+      if (draft.passengers && draft.passengers.length > 0) {
+        while (passengerCount < draft.passengers.length && passengerCount < 7) {
+          addPassengerField(false);
+        }
+        draft.passengers.forEach((val, idx) => {
+          const el = document.getElementById(`passenger${idx + 1}`);
+          if (el && val) el.value = val;
+        });
+      }
+      if (draft.runLog) {
+        runLog = draft.runLog;
+        if (runLog.depTime) {
+          const btnDep = document.getElementById('btnDep');
+          btnDep.innerHTML = '<i data-lucide="check"></i><span>出発地を記録済み</span>';
+          btnDep.style.borderColor = '#15803d'; btnDep.style.color = '#15803d';
+          const stDep = document.getElementById('depStatus');
+          stDep.className = 'status-box recorded';
+          stDep.innerHTML = `<i data-lucide="check"></i><span>出発時刻: ${runLog.depTime}</span>`;
+        }
+        if (runLog.arrTime) {
+          const btnArr = document.getElementById('btnArr');
+          btnArr.innerHTML = '<i data-lucide="check"></i><span>到着地を記録済み</span>';
+          btnArr.style.borderColor = '#15803d'; btnArr.style.color = '#15803d';
+          const stArr = document.getElementById('arrStatus');
+          stArr.className = 'status-box recorded';
+          stArr.innerHTML = `<i data-lucide="check"></i><span>到着時刻: ${runLog.arrTime}</span>`;
+        }
+        calcSummaryIfPossible();
+      }
+      if (draft.questId && draft.questId.length >= 4) {
+        const autoBadge = document.getElementById('unifiedAutoBadge');
+        if (autoBadge) autoBadge.style.display = 'inline-flex';
+      }
+      refreshLucide();
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(getDraftKey());
+      localStorage.removeItem('odekake_draft_general');
+    } catch (e) {}
+  }
+
+  // ==========================================
+  // GPS・時刻記録
+  // ==========================================
+  function recordDeparture() {
+    if (!navigator.geolocation) { manualRecordDeparture(); return; }
+    const btn = document.getElementById('btnDep');
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>GPS測位中...</span>';
+    refreshLucide();
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const now = new Date();
+        runLog.depTimestamp = now.getTime();
+        runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        runLog.depLat = pos.coords.latitude;
+        runLog.depLng = pos.coords.longitude;
+        btn.innerHTML = '<i data-lucide="check"></i><span>出発地を記録済み</span>';
+        btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+        const st = document.getElementById('depStatus');
+        st.className = 'status-box recorded';
+        st.innerHTML = `<i data-lucide="check"></i><span>出発時刻: ${runLog.depTime}（GPS取得済）</span>`;
+        calcSummaryIfPossible();
+        handleFieldChange();
+        refreshLucide();
+      },
+      () => { manualRecordDeparture(); },
+      { enableHighAccuracy: true, timeout: 7000 }
+    );
+  }
+
+  function manualRecordDeparture() {
+    const now = new Date();
+    runLog.depTimestamp = now.getTime();
+    runLog.depTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    const btn = document.getElementById('btnDep');
+    btn.innerHTML = '<i data-lucide="check"></i><span>出発時刻を記録済み</span>';
+    btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+    const st = document.getElementById('depStatus');
+    st.className = 'status-box recorded';
+    st.innerHTML = `<i data-lucide="check"></i><span>出発時刻: ${runLog.depTime}（手動セット）</span>`;
+    calcSummaryIfPossible();
+    handleFieldChange();
+    refreshLucide();
+  }
+
+  function recordArrival() {
+    if (!navigator.geolocation) { manualRecordArrival(); return; }
+    const btn = document.getElementById('btnArr');
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>GPS測位中...</span>';
+    refreshLucide();
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const now = new Date();
+        runLog.arrTimestamp = now.getTime();
+        runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+        runLog.arrLat = pos.coords.latitude;
+        runLog.arrLng = pos.coords.longitude;
+        btn.innerHTML = '<i data-lucide="check"></i><span>到着地を記録済み</span>';
+        btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+        const st = document.getElementById('arrStatus');
+        st.className = 'status-box recorded';
+        st.innerHTML = `<i data-lucide="check"></i><span>到着時刻: ${runLog.arrTime}（GPS取得済）</span>`;
+        calcSummaryIfPossible();
+        handleFieldChange();
+        refreshLucide();
+      },
+      () => { manualRecordArrival(); },
+      { enableHighAccuracy: true, timeout: 7000 }
+    );
+  }
+
+  function manualRecordArrival() {
+    const now = new Date();
+    runLog.arrTimestamp = now.getTime();
+    runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    const btn = document.getElementById('btnArr');
+    btn.innerHTML = '<i data-lucide="check"></i><span>到着時刻を記録済み</span>';
+    btn.style.borderColor = '#15803d'; btn.style.color = '#15803d';
+    const st = document.getElementById('arrStatus');
+    st.className = 'status-box recorded';
+    st.innerHTML = `<i data-lucide="check"></i><span>到着時刻: ${runLog.arrTime}（手動セット）</span>`;
+    calcSummaryIfPossible();
+    handleFieldChange();
+    refreshLucide();
+  }
+
+  function calcCrow(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function calcSummaryIfPossible() {
+    if (runLog.depTimestamp && runLog.arrTimestamp) {
+      runLog.durationMin = Math.max(1, Math.round((runLog.arrTimestamp - runLog.depTimestamp) / (1000 * 60)));
+    }
+    if (runLog.depLat && runLog.depLng && runLog.arrLat && runLog.arrLng) {
+      const crow = calcCrow(runLog.depLat, runLog.depLng, runLog.arrLat, runLog.arrLng);
+      runLog.oneWayKm = Math.round(crow * 1.3 * 10) / 10;
+      runLog.roundTripKm = Math.round(runLog.oneWayKm * 2 * 10) / 10;
+    }
+  }
+
+  // ==========================================
+  // 実績送信
+  // ==========================================
+  async function submitRecord() {
+    const notice = document.getElementById('submitNoticeBox');
+    const btn = document.getElementById('btnSubmit');
+    try {
+      if (isSubmitting) return;
+      const qid = document.getElementById('questIdInput').value.trim();
+      const driverId = document.getElementById('driverId').value.trim();
+      const p1 = document.getElementById('passenger1').value.trim();
+      const otherExp = Number(document.getElementById('otherExpense').value || 0);
+      const tripType = document.querySelector('input[name="tripType"]:checked')?.value || '往復';
+
+      const missing = [];
+      if (!qid) missing.push('案件番号');
+      if (!driverId) missing.push('登録番号');
+      if (!p1) missing.push('乗客名');
+
+      if (missing.length > 0) {
+        if (notice) {
+          notice.className = 'submit-notice-box error';
+          notice.innerHTML = `<i data-lucide="alert-circle"></i><span>送信できません：【<strong>${missing.join('・')}</strong>】を入力してください</span>`;
+          refreshLucide();
+        }
+        return;
+      }
+
+      isSubmitting = true;
+      if (btn) {
+        btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>送信処理中...</span>';
+        btn.style.opacity = '0.7';
+        refreshLucide();
+      }
+
+      if (!runLog.arrTime) manualRecordArrival();
+      if (!runLog.depTime) runLog.depTime = runLog.arrTime;
+
+      calcSummaryIfPossible();
+
+      const passengers = [];
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById(`passenger${i}`);
+        passengers.push(el ? el.value.trim() : '');
+      }
+
+      const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+      const arrMapUrl = (runLog.arrLat && runLog.arrLng) ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '';
+
+      const payload = {
+        questId: qid, driverId: driverId, driverName: cachedDriverName,
+        isCancelled: false, tripType: tripType, otherExpense: otherExp,
+        depTime: runLog.depTime, arrTime: runLog.arrTime,
+        duration: runLog.durationMin,
+        oneWayDistance: runLog.oneWayKm,
+        roundTripDistance: (tripType === '片道') ? runLog.oneWayKm : runLog.roundTripKm,
+        depLat: runLog.depLat || '', depLng: runLog.depLng || '',
+        arrLat: runLog.arrLat || '', arrLng: runLog.arrLng || '',
+        depMapUrl: depMapUrl, arrMapUrl: arrMapUrl, passengers: passengers
+      };
+
+      const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
+      const response = await fetch(url);
+      const res = await response.json();
+
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        const finalDist = (tripType === '片道')
+          ? `${res.oneWayDistance !== undefined ? res.oneWayDistance : runLog.oneWayKm} km (片道実走)`
+          : `${res.roundTripDistance !== undefined ? res.roundTripDistance : runLog.roundTripKm} km (片道×2往復)`;
+
+        const actualPCount = passengers.filter(p => p.trim() !== '').length || 1;
+        const totalPCount = (tripType === '片道') ? actualPCount : actualPCount * 2;
+
+        document.getElementById('dispTripInfo').textContent = `${tripType} / ${runLog.durationMin} 分`;
+        document.getElementById('dispDistance').textContent = finalDist;
+        document.getElementById('dispPassengerCount').textContent = `片道 ${actualPCount} 人 / 延べ ${totalPCount} 人 (人回)`;
+        document.getElementById('dispFuelFee').textContent = `${res.fuelFee !== undefined ? res.fuelFee : runLog.fuelFee} 円`;
+        document.getElementById('dispOtherExpense').textContent = `${otherExp} 円`;
+        document.getElementById('dispFee').textContent = `${res.fee !== undefined ? res.fee : runLog.fee} 円`;
+
+        const noticeEl = document.getElementById('dispPhotoNotice');
+        if (otherExp > 0) {
+          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br><strong style="color:#b91c1c;">【有料道路・駐車場代のレシートの写真】</strong>をトーク画面に送信してください。<br><span style="font-size:0.8rem; color:#78350f;">※相模原市マニュアル規定により、レシート原本は5年間保管が必要です。</span>`;
+        } else {
+          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。`;
+        }
+        window.scrollTo(0, 0);
+        refreshLucide();
+      } else {
+        isSubmitting = false;
+        if (btn) {
+          btn.disabled = false; btn.style.opacity = '1';
+          btn.innerHTML = '<i data-lucide="send"></i><span>活動実績を送信</span>';
+        }
+        if (notice) {
+          notice.className = 'submit-notice-box error';
+          notice.innerHTML = `<i data-lucide="alert-circle"></i><span>保存エラー: ${res.message || 'スプレッドシートの保存に失敗しました'}</span>`;
+        }
+        refreshLucide();
+      }
+    } catch (err) {
+      isSubmitting = false;
+      if (btn) {
+        btn.disabled = false; btn.style.opacity = '1';
+        btn.innerHTML = '<i data-lucide="send"></i><span>活動実績を送信</span>';
+      }
+      if (notice) {
+        notice.className = 'submit-notice-box error';
+        notice.innerHTML = `<i data-lucide="alert-circle"></i><span>送信エラー: ${err.message}</span>`;
+      }
+      refreshLucide();
+    }
+  }
+
+  // ==========================================
+  // 送迎中止（GPS実走距離反映）
+  // ==========================================
+  async function abortTrip() {
+    if (isSubmitting) return;
+
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+    if (!qid || !driverId) {
+      await showCustomAlert('案件番号または登録番号が入力されていません。', '入力確認', 'alert-circle', 'var(--warn-amber)');
+      return;
+    }
+
+    if (!runLog.depTime) {
+      const confirmDep = await showCustomConfirm(
+        '自宅出発時の記録がありません。\n出発記録がない場合、走行距離を正確に計算できません。\n\n現在時刻を出発時刻として処理を継続しますか？',
+        '出発記録の確認',
+        'alert-triangle',
+        'var(--warn-amber)'
+      );
+      if (!confirmDep) return;
+      manualRecordDeparture();
+    }
+
+    const confirmMsg =
+      '10分待機しても利用者が来られないため、送迎を中止しますか？\n\n' +
+      '・現在地（お迎え先）のGPSを取得し、自宅からの往復走行距離を記録します。\n' +
+      '・利用者は不乗車のため、実費請求（利用者負担額）は0円となります。';
+
+    const confirmed = await showCustomConfirm(confirmMsg, '送迎中止（利用者不在）の確認', 'ban', 'var(--danger-red)');
+    if (!confirmed) return;
+
+    const reason = await showCustomPrompt('中止理由を入力してください（シートのシステム情報欄に追記されます）', '10分待機も不在', '送迎中止の理由');
+    if (reason === null) return;
+
+    const btnAbort = document.getElementById('btnAbort');
+    btnAbort.disabled = true;
+    btnAbort.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>現場GPS測位中...</span>';
+    refreshLucide();
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { executeAbort(pos.coords.latitude, pos.coords.longitude, reason); },
+        async (err) => {
+          console.warn('GPS取得失敗:', err);
+          await showCustomAlert('GPS取得に失敗しました。現在時刻のみで中止処理を記録します。', 'GPS警告', 'alert-circle', 'var(--warn-amber)');
+          executeAbort(null, null, reason);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      executeAbort(null, null, reason);
+    }
+  }
+
+  async function executeAbort(arrLat, arrLng, reason) {
+    isSubmitting = true;
+    const btnAbort = document.getElementById('btnAbort');
+    btnAbort.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>送信処理中...</span>';
+    refreshLucide();
+
+    const now = new Date();
+    runLog.arrTimestamp = now.getTime();
+    runLog.arrTime = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+    runLog.arrLat = arrLat;
+    runLog.arrLng = arrLng;
+
+    const depTimeMs = runLog.depTimestamp || (now.getTime() - 10 * 60 * 1000);
+    runLog.durationMin = Math.max(1, Math.round((now.getTime() - depTimeMs) / (1000 * 60)));
+
+    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
+    const arrMapUrl = (arrLat && arrLng) ? `https://www.google.com/maps?q=${arrLat},${arrLng}` : '';
+
+    let estimatedOneWay = 0;
+    if (runLog.depLat && runLog.depLng && arrLat && arrLng) {
+      estimatedOneWay = Math.round(calcCrow(runLog.depLat, runLog.depLng, arrLat, arrLng) * 1.3 * 10) / 10;
+    }
+    const estimatedRoundTrip = Math.round(estimatedOneWay * 2 * 10) / 10;
+
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+
+    const payload = {
+      questId: qid,
+      driverId: driverId,
+      driverName: cachedDriverName,
+      isCancelled: true,
+      abortReason: reason,
+      tripType: '送迎中止',
+      otherExpense: 0,
+      depTime: runLog.depTime,
+      arrTime: runLog.arrTime,
+      duration: runLog.durationMin,
+      oneWayDistance: estimatedOneWay,
+      roundTripDistance: estimatedRoundTrip,
+      fuelFee: 0,
+      fee: 0,
+      depLat: runLog.depLat || '',
+      depLng: runLog.depLng || '',
+      arrLat: arrLat || '',
+      arrLng: arrLng || '',
+      depMapUrl: depMapUrl,
+      arrMapUrl: arrMapUrl,
+      passengers: []
+    };
+
+    try {
+      const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
+      const response = await fetch(url);
+      const res = await response.json();
+
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        const headerEl = document.getElementById('completeHeaderTitle');
+        headerEl.innerHTML = '<i data-lucide="ban" style="color:var(--danger-red);"></i><span>送迎中止を記録しました</span>';
+        headerEl.style.color = '#DC2626';
+
+        document.getElementById('completeMsg').innerHTML =
+          '利用者が来られなかったため、送迎中止として実績を記録しました。<br>' +
+          '自宅〜現場までの往復走行距離が活動記録に反映されました。';
+
+        const finalOneWay = (res.oneWayDistance !== undefined) ? res.oneWayDistance : estimatedOneWay;
+        const finalRoundTrip = (res.roundTripDistance !== undefined) ? res.roundTripDistance : estimatedRoundTrip;
+
+        document.getElementById('dispTripInfo').textContent = `送迎中止 / ${runLog.durationMin} 分`;
+        document.getElementById('dispDistance').textContent = `${finalOneWay} km (往復換算: ${finalRoundTrip} km)`;
+        document.getElementById('dispPassengerCount').textContent = '片道 0 人 / 延べ 0 人 (人回)';
+        document.getElementById('dispFuelFee').textContent = '0 円 (不乗車)';
+        document.getElementById('dispOtherExpense').textContent = '0 円';
+        document.getElementById('dispFee').textContent = '0 円 (請求なし)';
+
+        const noticeEl = document.getElementById('dispPhotoNotice');
+        noticeEl.innerHTML =
+          '<strong>【ご案内】</strong><br>' +
+          '利用者が乗車されなかったため、写真の送信や領収書提出は不要です。<br>' +
+          '今回の往復走行距離（' + finalRoundTrip + ' km）は、団体の活動経費・ガソリン代補填の実績として記録されました。<br>' +
+          'どうぞお気をつけて自宅へお戻りください。';
+
+        window.scrollTo(0, 0);
+        refreshLucide();
+      } else {
+        await showCustomAlert('保存エラー: ' + (res.message || 'スプレッドシートの保存に失敗しました'), '保存エラー', 'alert-circle', 'var(--danger-red)');
+        isSubmitting = false;
+        btnAbort.disabled = false;
+        btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する（現場での中止）</span>';
+        refreshLucide();
+      }
+    } catch (err) {
+      await showCustomAlert('通信エラーが発生しました: ' + err.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
+      isSubmitting = false;
+      btnAbort.disabled = false;
+      btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する（現場での中止）</span>';
+      refreshLucide();
+    }
+  }
+
+  // ==========================================
+  // 受託キャンセル
+  // ==========================================
+  async function cancelThisQuest() {
+    if (isSubmitting) return;
+    const qid = document.getElementById('questIdInput').value.trim() || questId;
+    const driverId = document.getElementById('driverId').value.trim();
+    if (!qid || !driverId) {
+      await showCustomAlert('案件番号または登録番号が確認できません。', '確認', 'alert-circle', 'var(--warn-amber)');
+      return;
+    }
+
+    const ok = await showCustomConfirm(
+      `案件 [${qid}] の受託をキャンセルしますか？\nキャンセルすると掲示板で再度ボランティア募集が行われます。`,
+      '受託キャンセルの確認',
+      'alert-triangle',
+      'var(--warn-amber)'
+    );
+    if (!ok) return;
+
+    const btn = document.getElementById('btnDecline');
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>キャンセル処理中...</span>';
+    refreshLucide();
+
+    try {
+      const url = `${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}`;
+      const res = await (await fetch(url)).json();
+      if (res.success) {
+        clearDraft();
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        const headerEl = document.getElementById('completeHeaderTitle');
+        headerEl.innerHTML = '<i data-lucide="alert-triangle" style="color:#b45309;"></i><span>受託をキャンセルしました</span>';
+        headerEl.style.color = '#b45309';
+
+        document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
+        document.getElementById('resultStatsArea').style.display = 'none';
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
+        window.scrollTo(0, 0);
+        refreshLucide();
+      } else {
+        await showCustomAlert('キャンセルエラー: ' + res.message, 'エラー', 'alert-circle', 'var(--danger-red)');
+        isSubmitting = false; btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
+        refreshLucide();
+      }
+    } catch (e) {
+      await showCustomAlert('通信エラー: ' + e.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
+      isSubmitting = false; btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
+      refreshLucide();
+    }
+  }
+
+  // ==========================================
+  // 初期化処理
+  // ==========================================
   window.addEventListener('DOMContentLoaded', async () => {
     refreshLucide();
-    questId = extractQuestId();
+
+    const savedDriver = localStorage.getItem('odekake_driver');
+    if (savedDriver) {
+      try {
+        const d = JSON.parse(savedDriver);
+        if (d.id) setDriverIdAutomatically(d.id, d.name);
+      } catch (e) {}
+    } else {
+      const rawId = localStorage.getItem('odekake_driver_id');
+      if (rawId) setDriverIdAutomatically(rawId, '');
+    }
 
     try {
       if (window.liff) {
@@ -552,117 +1578,19 @@
       console.warn('LIFF初期化スキップ:', e);
     }
 
-    if (!questId) {
-      const loadArea = document.getElementById('loadingArea');
-      loadArea.innerHTML = `
-        <i data-lucide="alert-circle" style="width:36px; height:36px; color:var(--system-red);"></i>
-        <span>案件番号が確認できませんでした。<br>LINE通知内のリンクから開き直してください。</span>
-      `;
-      refreshLucide();
-      return;
+    questId = extractQuestIdFromUrl();
+    if (questId) {
+      const qInput = document.getElementById('questIdInput');
+      if (qInput) qInput.value = questId;
+      await fetchQuestInfo(questId);
+    } else if (lineUserId) {
+      await fetchDriverInfoByLineId(lineUserId);
     }
 
-    loadQuestDetail();
+    restoreDraft();
+    checkSubmitRequirement();
+    refreshLucide();
   });
-
-  // ==========================================
-  // 案件詳細取得
-  // ==========================================
-  async function loadQuestDetail() {
-    try {
-      const url = `${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(questId)}`;
-      const res = await (await fetch(url)).json();
-
-      if (res.success && res.quest) {
-        const q = res.quest;
-        document.getElementById('loadingArea').style.display = 'none';
-        document.getElementById('detailArea').style.display = 'block';
-
-        document.getElementById('dispQid').textContent = `#${q.id}`;
-        document.getElementById('dispStatus').textContent = q.status;
-        document.getElementById('dispDate').textContent = q.formattedDate;
-        document.getElementById('dispPickup').textContent = q.pickup;
-        document.getElementById('dispDropoff').textContent = q.dropoff;
-
-        if (q.driverName) {
-          document.getElementById('rowDriver').style.display = 'table-row';
-          document.getElementById('dispDriver').textContent = `${q.driverName} 様`;
-        }
-
-        if (q.status !== '募集中' && q.status !== '受注済') {
-          document.getElementById('btnCancel').style.display = 'none';
-          document.getElementById('detailArea').innerHTML += `
-            <div style="margin-top:16px; color:var(--text-muted); text-align:center; font-weight:700; background:var(--surface-secondary); padding:12px; border-radius:12px;">
-              ※この案件はすでに [${q.status}] となっているためキャンセルできません。
-            </div>
-          `;
-        }
-      } else {
-        const loadArea = document.getElementById('loadingArea');
-        loadArea.innerHTML = `
-          <i data-lucide="alert-circle" style="width:36px; height:36px; color:var(--system-red);"></i>
-          <span>案件情報の取得に失敗しました:<br>${res.message || '該当データがありません'}</span>
-        `;
-      }
-    } catch (e) {
-      const loadArea = document.getElementById('loadingArea');
-      loadArea.innerHTML = `
-        <i data-lucide="wifi-off" style="width:36px; height:36px; color:var(--system-red);"></i>
-        <span>通信エラーが発生しました:<br>${e.message}</span>
-      `;
-    }
-    refreshLucide();
-  }
-
-  // ==========================================
-  // キャンセル実行
-  // ==========================================
-  async function executeCancel() {
-    if (isSubmitting) return;
-
-    const ok = await showCustomConfirm(
-      `案件番号 [#${questId}] の予約を取り消しますか？\n\n※担当ボランティアが決定している場合は、自動で運行中止のLINE連絡が送られます。`,
-      '送迎キャンセルの最終確認',
-      'alert-triangle',
-      'var(--system-red)'
-    );
-    if (!ok) return;
-
-    const btn = document.getElementById('btnCancel');
-    isSubmitting = true;
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>キャンセル処理中...</span>';
-    refreshLucide();
-
-    try {
-      const url = `${GAS_API_URL}?action=cancelQuestByUser&qid=${encodeURIComponent(questId)}&lineUserId=${encodeURIComponent(lineUserId)}`;
-      const res = await (await fetch(url)).json();
-
-      if (res.success) {
-        document.getElementById('formView').style.display = 'none';
-        document.getElementById('completeView').style.display = 'block';
-
-        if (res.notifiedDriver) {
-          document.getElementById('completeDesc').innerHTML =
-            '送迎予約のキャンセルを受け付けました。<br><strong style="color:var(--system-red);">担当ボランティアへ運行中止の連絡を自動送信しました。</strong>';
-        }
-        window.scrollTo(0, 0);
-        refreshLucide();
-      } else {
-        await showCustomAlert('キャンセルエラー: ' + res.message, 'キャンセル失敗', 'alert-circle', 'var(--system-red)');
-        isSubmitting = false;
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="trash-2"></i><span>この送迎予約をキャンセルする</span>';
-        refreshLucide();
-      }
-    } catch (e) {
-      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'wifi-off', 'var(--system-red)');
-      isSubmitting = false;
-      btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="trash-2"></i><span>この送迎予約をキャンセルする</span>';
-      refreshLucide();
-    }
-  }
 </script>
 </body>
 </html>
