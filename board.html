@@ -45,6 +45,7 @@
       -moz-osx-font-smoothing: grayscale;
       font-variant-numeric: tabular-nums;
       padding-bottom: calc(env(safe-area-inset-bottom) + 56px);
+      overscroll-behavior-y: contain; /* ネイティブリロードとの衝突を抑制 */
     }
 
     /* HIG Translucent Navigation Bar */
@@ -105,10 +106,44 @@
       transform: scale(0.95);
     }
 
+    /* プル・トゥ・リフレッシュ UI */
+    .ptr-container {
+      overflow: hidden;
+      height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: height 0.22s var(--ease-spring);
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      font-weight: 600;
+      gap: 8px;
+    }
+
+    .ptr-icon {
+      font-size: 1.1rem;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    .ptr-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 122, 255, 0.25);
+      border-top-color: var(--primary-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .container {
       max-width: 540px;
       margin: 0 auto;
-      padding: 18px 16px;
+      padding: 12px 16px 24px;
     }
 
     /* HIG Inset Grouped Card */
@@ -185,17 +220,17 @@
 
     .btn-refresh {
       width: 100%;
-      height: 48px;
+      height: 46px;
       background-color: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 0.5px solid var(--border-color);
       border-radius: 14px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 600;
       color: var(--primary-blue);
       cursor: pointer;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -610,8 +645,15 @@
   </div>
 </header>
 
+<!-- ★プル・トゥ・リフレッシュ 表示エリア -->
+<div id="ptrContainer" class="ptr-container">
+  <span id="ptrIcon" class="ptr-icon">↓</span>
+  <span id="ptrSpinner" class="ptr-spinner"></span>
+  <span id="ptrText">引いて最新に更新</span>
+</div>
+
 <div class="container">
-  <!-- ★初期表示（読み込み中）インジケーター：JS停止時でも白画面化を防止 -->
+  <!-- 初期表示（読み込み中）インジケーター -->
   <div id="initialLoadingBox" class="empty-box" style="margin-top:20px;">
     ⏳ 掲示板を読み込み中...
   </div>
@@ -646,17 +688,11 @@
 <div id="acceptModalOverlay" class="modal-overlay" style="display:none;" onclick="handleModalOverlayClick(event)">
   <div class="modal-card">
     <h2 class="modal-title">この案件を受託しますか？</h2>
-    
-    <div class="modal-details-card" id="modalDetailsArea">
-    </div>
-
-    <div id="modalNoteArea">
-    </div>
-
+    <div class="modal-details-card" id="modalDetailsArea"></div>
+    <div id="modalNoteArea"></div>
     <div class="modal-notice-box">
       ※受託すると公式LINEへ運行案内が届きます。
     </div>
-
     <div class="modal-buttons">
       <button type="button" class="btn-modal-cancel" onclick="closeAcceptModal()">やめる</button>
       <button type="button" class="btn-modal-confirm" id="btnConfirmAccept" onclick="confirmAndExecuteAccept()">受託する</button>
@@ -664,8 +700,20 @@
   </div>
 </div>
 
+<!-- ★【新規】Githubホスト名を出さないiOS風カスタムダイアログ（通知・確認・完了） -->
+<div id="customDialogOverlay" class="modal-overlay" style="display:none;" onclick="handleCustomDialogOverlayClick(event)">
+  <div class="modal-card" style="max-width:360px; text-align:center;">
+    <div id="customDialogIcon" style="font-size:2.2rem; margin-bottom:10px;">✔</div>
+    <h3 id="customDialogTitle" class="modal-title" style="margin-bottom:10px; font-size:1.15rem;">通知</h3>
+    <div id="customDialogMessage" style="font-size:0.95rem; color:var(--text-main); margin-bottom:20px; line-height:1.55; white-space:pre-wrap; text-align:left; background:var(--surface-secondary); padding:14px; border-radius:14px; font-weight:500;"></div>
+    <div class="modal-buttons" id="customDialogButtons">
+      <button type="button" class="btn-modal-cancel" id="btnCustomDialogCancel" onclick="closeCustomDialog(false)">キャンセル</button>
+      <button type="button" class="btn-modal-confirm" id="btnCustomDialogOk" onclick="closeCustomDialog(true)">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // ★安全装置：スクリプトエラーを画面上に表示
   window.onerror = function(msg, url, line) {
     var errBox = document.getElementById('globalErrorBox');
     var loadBox = document.getElementById('initialLoadingBox');
@@ -684,6 +732,65 @@
   let isProcessingAccept = false;
   let targetAcceptQid = null;
 
+  // ==========================================
+  // ★Githubダイアログを出さないカスタムモーダル制御
+  // ==========================================
+  let customDialogResolve = null;
+
+  function showCustomAlert(message, title = 'お知らせ', icon = 'ℹ️') {
+    return new Promise((resolve) => {
+      document.getElementById('customDialogIcon').textContent = icon;
+      document.getElementById('customDialogTitle').textContent = title;
+      document.getElementById('customDialogMessage').textContent = message;
+
+      const cancelBtn = document.getElementById('btnCustomDialogCancel');
+      const okBtn = document.getElementById('btnCustomDialogOk');
+      cancelBtn.style.display = 'none';
+      okBtn.style.gridColumn = '1 / -1';
+      okBtn.textContent = '閉じる';
+      okBtn.style.backgroundColor = 'var(--primary-blue)';
+
+      customDialogResolve = resolve;
+      document.getElementById('customDialogOverlay').style.display = 'flex';
+    });
+  }
+
+  function showCustomConfirm(message, title = 'ご確認', icon = '❓') {
+    return new Promise((resolve) => {
+      document.getElementById('customDialogIcon').textContent = icon;
+      document.getElementById('customDialogTitle').textContent = title;
+      document.getElementById('customDialogMessage').textContent = message;
+
+      const cancelBtn = document.getElementById('btnCustomDialogCancel');
+      const okBtn = document.getElementById('btnCustomDialogOk');
+      cancelBtn.style.display = 'block';
+      okBtn.style.gridColumn = '';
+      okBtn.textContent = 'はい';
+      okBtn.style.backgroundColor = 'var(--primary-blue)';
+
+      customDialogResolve = resolve;
+      document.getElementById('customDialogOverlay').style.display = 'flex';
+    });
+  }
+
+  function closeCustomDialog(result) {
+    document.getElementById('customDialogOverlay').style.display = 'none';
+    if (customDialogResolve) {
+      const cb = customDialogResolve;
+      customDialogResolve = null;
+      cb(result);
+    }
+  }
+
+  function handleCustomDialogOverlayClick(e) {
+    if (e.target.id === 'customDialogOverlay') {
+      closeCustomDialog(false);
+    }
+  }
+
+  // ==========================================
+  // 初期化・ドライバー状態管理
+  // ==========================================
   function hideInitialLoading() {
     var loadBox = document.getElementById('initialLoadingBox');
     if (loadBox) loadBox.style.display = 'none';
@@ -731,8 +838,9 @@
     fetchBoardQuests(false);
   }
 
-  function logoutDriver() {
-    if (confirm('登録情報の連携を解除しますか？')) {
+  async function logoutDriver() {
+    const ok = await showCustomConfirm('登録情報の連携を解除しますか？\n（再度ログインする際は登録番号と下4桁が必要になります）', '連携解除の確認', '⚠️');
+    if (ok) {
       localStorage.removeItem('odekake_driver');
       localStorage.removeItem(LOCAL_CACHE_KEY);
       currentDriver = null;
@@ -743,7 +851,10 @@
   async function executeAuth() {
     const driverId = document.getElementById('authDriverId').value.trim();
     const phone4 = document.getElementById('authPhone4').value.trim();
-    if (!driverId || !phone4) { alert('登録番号と下4桁を入力してください'); return; }
+    if (!driverId || !phone4) {
+      await showCustomAlert('ドライバー登録番号と電話番号の下4桁を入力してください。', '入力エラー', '⚠️');
+      return;
+    }
 
     const btn = document.getElementById('btnAuth');
     btn.disabled = true; btn.textContent = '認証中...';
@@ -756,15 +867,18 @@
         localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
         showBoardView();
       } else {
-        alert(res.message || '一致しませんでした。');
+        await showCustomAlert(res.message || '登録情報と一致しませんでした。番号をお確かめください。', '認証エラー', '⚠️');
         btn.disabled = false; btn.textContent = '認証する';
       }
     } catch (e) {
-      alert('通信エラー: ' + e.message);
+      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', '⚠️');
       btn.disabled = false; btn.textContent = '認証する';
     }
   }
 
+  // ==========================================
+  // クエスト取得・描画
+  // ==========================================
   async function fetchBoardQuests(isManualRefresh = false) {
     const listArea = document.getElementById('questListArea');
     const statusBar = document.getElementById('syncStatusBar');
@@ -825,7 +939,6 @@
     if (waitText) {
       return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機目安: ${waitText}）</span></div>`;
     }
-
     return `<div class="trip-plan-badge round-medium"><span>🚗</span><span>往復（待機あり）</span></div>`;
   }
 
@@ -914,6 +1027,9 @@
       .replace(/'/g, '&#039;');
   }
 
+  // ==========================================
+  // 受託モーダル制御
+  // ==========================================
   function openAcceptModal(qid) {
     const target = currentQuests.find(item => String(item.id) === String(qid));
     if (!target) return;
@@ -974,28 +1090,114 @@
     confirmBtn.disabled = true;
     confirmBtn.textContent = '受託処理中...';
 
+    const reqQid = targetAcceptQid;
+
     try {
-      const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(targetAcceptQid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
+      const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(reqQid)}&driverId=${encodeURIComponent(currentDriver.id)}`;
       const res = await (await fetch(url)).json();
-      
+
       closeAcceptModal();
 
       if (res.success) {
-        alert('受託が完了しました！\n公式LINEをご確認ください。');
+        await showCustomAlert(
+          `案件 [#${reqQid}] の受託が完了しました！\n\n公式LINEへ集合時間や活動記録のリンクをお送りしましたのでご確認ください。安全運転でお願いいたします。`,
+          '受託完了',
+          '🎉'
+        );
         fetchBoardQuests(true);
       } else {
-        alert('受託できませんでした: ' + res.message);
+        await showCustomAlert(`受託できませんでした:\n${res.message || 'すでに受託されたか、募集が締め切られています。'}`, '受託不可', '⚠️');
         fetchBoardQuests(true);
       }
     } catch (e) {
-      alert('通信エラー: ' + e.message);
       closeAcceptModal();
+      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', '⚠️');
     } finally {
       isProcessingAccept = false;
     }
   }
 
-  // ★即時実行ガード：DOMContentLoadedを待たずに即時起動を試行
+  // ==========================================
+  // ★プル・トゥ・リフレッシュ（Pull-to-Refresh）実装
+  // ==========================================
+  let ptrStartY = 0;
+  let ptrCurrentY = 0;
+  let isPtrPulling = false;
+  let isPtrBusy = false;
+  const PTR_LIMIT = 68; // しきい値(px)
+
+  const ptrContainer = document.getElementById('ptrContainer');
+  const ptrIcon = document.getElementById('ptrIcon');
+  const ptrSpinner = document.getElementById('ptrSpinner');
+  const ptrText = document.getElementById('ptrText');
+
+  window.addEventListener('touchstart', (e) => {
+    // 画面が一番上にある時のみプルを検知
+    if (window.scrollY <= 0 && !isPtrBusy && document.getElementById('boardSection').style.display !== 'none') {
+      ptrStartY = e.touches[0].clientY;
+      isPtrPulling = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isPtrPulling || isPtrBusy) return;
+    ptrCurrentY = e.touches[0].clientY;
+    const diff = ptrCurrentY - ptrStartY;
+
+    if (diff > 0 && window.scrollY <= 0) {
+      const pullDistance = Math.min(diff * 0.45, 95);
+      ptrContainer.style.height = pullDistance + 'px';
+
+      if (pullDistance >= PTR_LIMIT) {
+        ptrText.textContent = '指を離して更新';
+        ptrIcon.style.transform = 'rotate(180deg)';
+      } else {
+        ptrText.textContent = '引いて最新に更新';
+        ptrIcon.style.transform = 'rotate(0deg)';
+      }
+    } else {
+      ptrContainer.style.height = '0px';
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', async () => {
+    if (!isPtrPulling || isPtrBusy) return;
+    isPtrPulling = false;
+
+    const diff = ptrCurrentY - ptrStartY;
+    const pullDistance = diff * 0.45;
+
+    if (pullDistance >= PTR_LIMIT && window.scrollY <= 0) {
+      isPtrBusy = true;
+      ptrContainer.style.height = '48px';
+      ptrIcon.style.display = 'none';
+      ptrSpinner.style.display = 'inline-block';
+      ptrText.textContent = '最新の案件を取得中...';
+
+      try {
+        await fetchBoardQuests(true);
+      } finally {
+        setTimeout(() => {
+          ptrContainer.style.height = '0px';
+          setTimeout(() => {
+            ptrSpinner.style.display = 'none';
+            ptrIcon.style.display = 'inline-block';
+            ptrIcon.style.transform = 'rotate(0deg)';
+            ptrText.textContent = '引いて最新に更新';
+            isPtrBusy = false;
+            ptrStartY = 0;
+            ptrCurrentY = 0;
+          }, 220);
+        }, 400);
+      }
+    } else {
+      ptrContainer.style.height = '0px';
+      ptrStartY = 0;
+      ptrCurrentY = 0;
+    }
+  });
+
+  // 即時実行ガード
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', checkSavedDriver);
   } else {
