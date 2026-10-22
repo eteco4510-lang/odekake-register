@@ -3,45 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>おでかけサポート 活動記録</title>
+  <title>おでかけサポート 予約キャンセル</title>
   <!-- LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
+      /* Apple HIG System Palette */
       --primary-blue: #007AFF;
-      --primary-hover: #0056B3;
+      --system-red: #FF3B30;
+      --system-red-hover: #D70015;
+      --system-red-bg: rgba(255, 59, 48, 0.08);
+      --system-amber: #FF9500;
+      --system-amber-bg: rgba(255, 149, 0, 0.1);
+      --system-green: #34C759;
       --bg-base: #F2F2F7;
       --card-bg: #FFFFFF;
       --surface-secondary: #F2F2F7;
       --text-main: #1C1C1E;
-      --text-muted: #6C6C70;
-      --danger-red: #DC2626;
-      --danger-bg: #FEF2F2;
-      --warning-amber: #D97706;
-      --warning-bg: #FEF3C7;
-      --success-green: #15803D;
-      --success-bg: #DCFCE7;
+      --text-muted: #8E8E93;
       --border-color: rgba(60, 60, 67, 0.12);
+      --separator: rgba(60, 60, 67, 0.1);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+      --shadow-danger: 0 4px 14px rgba(255, 59, 48, 0.28);
+      --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
       --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+
     body {
-      background: var(--bg-base);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+      background-color: var(--bg-base);
       color: var(--text-main);
-      padding-bottom: 40px;
       line-height: 1.5;
+      letter-spacing: -0.015em;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-variant-numeric: tabular-nums;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 48px);
     }
 
-    /* Lucide Icons 共通スタイル */
+    /* Lucide Icon 共通クラス */
     .lucide {
       width: 1.15em;
       height: 1.15em;
@@ -49,6 +58,7 @@
       stroke-width: 2.2;
       display: inline-block;
     }
+
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -57,96 +67,602 @@
       animation: spin 0.9s linear infinite;
     }
 
+    /* HIG Translucent Navigation Bar */
     header {
-      background: #FFFFFF;
-      border-bottom: 1px solid #E5E5EA;
+      background-color: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
       padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 20;
     }
+
     header h1 {
       font-size: 1.15rem;
       font-weight: 700;
+      color: var(--system-red-hover);
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* HIG Inset Grouped Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 16px;
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+    }
+
+    /* Warning Banner with HIG Amber Material */
+    .caution-banner {
+      background-color: var(--system-amber-bg);
+      border: 1px solid rgba(255, 149, 0, 0.28);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #944500;
+      line-height: 1.55;
+    }
+
+    .caution-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: #7A3900;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+    }
+
+    /* HIG Grouped List / Form Style Table */
+    .quest-summary-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 24px;
+      background: var(--surface-secondary);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .quest-summary-table tr {
+      border: none;
+    }
+
+    .quest-summary-table th,
+    .quest-summary-table td {
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--separator);
+      font-size: 0.95rem;
+      vertical-align: middle;
+    }
+
+    .quest-summary-table tr:last-child th,
+    .quest-summary-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .quest-summary-table th {
+      width: 38%;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .quest-summary-table td {
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: right;
+    }
+
+    /* HIG Pill Style Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: rgba(0, 122, 255, 0.12);
+      color: var(--primary-blue);
+      border: none;
+      letter-spacing: 0.01em;
+    }
+
+    /* HIG Destructive Action Button */
+    .btn-cancel {
+      width: 100%;
+      height: 54px;
+      background-color: var(--system-red);
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: var(--shadow-danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+      transition: all 0.2s var(--ease-spring);
+    }
+
+    .btn-cancel:active {
+      background-color: var(--system-red-hover);
+      transform: scale(0.98);
+    }
+
+    .btn-cancel:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .empty-state-box {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    #completeView {
+      display: none;
+      animation: fadeIn 0.3s var(--ease-spring);
+    }
+
+    .complete-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 32px 22px;
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      text-align: center;
+    }
+
+    .complete-header {
+      color: var(--text-main);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
-    .container {
-      max-width: 540px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 22px 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 0.5px solid var(--border-color);
-    }
-    .form-group {
-      margin-bottom: 18px;
-    }
-    .form-group label {
-      display: flex;
-      align-items: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--text-main);
-      gap: 6px;
-    }
-    .form-group .sub-label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-    .auto-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--success-bg);
-      color: var(--success-green);
-      font-size: 0.74rem;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      margin-left: 6px;
-      font-weight: 700;
-    }
-    input[type="text"], input[type="tel"], input[type="number"] {
-      width: 100%;
-      height: 46px;
-      border: 1.5px solid #E5E5EA;
-      border-radius: 12px;
-      padding: 0 14px;
-      font-size: 1rem;
-      color: var(--text-main);
-      background: #FAFAFA;
-      outline: none;
-      transition: all 0.2s var(--ease-spring);
-    }
-    input:focus {
-      border-color: var(--primary-blue);
-      background: #FFF;
-      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
+
+    .close-instruction-banner {
+      background: var(--system-red-bg);
+      border: 1px solid rgba(255, 59, 48, 0.25);
+      border-radius: 18px;
+      padding: 18px 16px;
+      margin: 22px 0 10px;
+      text-align: center;
     }
 
-    /* ★iOS風トグルスイッチ スタイル */
-    .toggle-switch-container {
-      width: 100%;
-      margin-top: 6px;
-    }
-    .toggle-switch {
-      position: relative;
+    .close-instruction-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--system-red-hover);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
       display: flex;
-      background-color: #E2E8F0;
-      border-radius: 14px;
-      padding: 4px;
-      cursor: pointer;
-      user-select: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .close-instruction-desc {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #7F1D1D;
+      line-height: 1.45;
+    }
+
+    /* カスタムダイアログ（モーダル）共通 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.42);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeIn 0.22s var(--ease-spring);
+    }
+    .modal-card {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 22px;
+      width: 100%;
+      max-width: 380px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow-modal);
+      border: 0.5px solid rgba(255, 255, 255, 0.5);
+      text-align: center;
+    }
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .modal-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-modal-cancel {
       height: 48px;
-      border: 1px solid rgba(0,0,0,0.04);
-      transition: background-color 0.2s ease;
+      background: var(--surface-secondary);
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+    .btn-modal-confirm {
+      height: 48px;
+      background: var(--system-red);
+      border: none;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #FFF;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.28);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <i data-lucide="calendar-x"></i>
+    <span>送迎予約のキャンセル</span>
+  </h1>
+</header>
+
+<div class="container" id="formView">
+  <div class="card">
+    <div class="caution-banner">
+      <div class="caution-header">
+        <i data-lucide="alert-triangle"></i>
+        <span>直前キャンセルのご注意</span>
+      </div>
+      直前のキャンセルは、ボランティアドライバーへのご負担となりますので極力ご遠慮くださいますようお願いいたします。やむを得ない事情がある場合のみ、下記よりキャンセルを実行してください。
+    </div>
+
+    <div id="loadingArea" class="empty-state-box">
+      <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue);"></i>
+      <span>予約情報を確認中...</span>
+    </div>
+
+    <div id="detailArea" style="display:none;">
+      <table class="quest-summary-table">
+        <tr>
+          <th>案件番号</th>
+          <td id="dispQid">#----</td>
+        </tr>
+        <tr>
+          <th>現在の状況</th>
+          <td><span id="dispStatus" class="status-badge">確認中</span></td>
+        </tr>
+        <tr>
+          <th>運行日時</th>
+          <td id="dispDate">----</td>
+        </tr>
+        <tr>
+          <th>お迎え場所</th>
+          <td id="dispPickup">----</td>
+        </tr>
+        <tr>
+          <th>行先（目的地）</th>
+          <td id="dispDropoff">----</td>
+        </tr>
+        <tr id="rowDriver" style="display:none;">
+          <th>担当ボランティア</th>
+          <td id="dispDriver" style="color:var(--primary-blue);">未定</td>
+        </tr>
+      </table>
+
+      <button type="button" class="btn-cancel" id="btnCancel" onclick="executeCancel()">
+        <i data-lucide="trash-2"></i>
+        <span>この送迎予約をキャンセルする</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="completeView">
+  <div class="complete-card">
+    <div class="complete-header">
+      <i data-lucide="check-circle-2" style="color:var(--system-green);"></i>
+      <span>キャンセル完了</span>
+    </div>
+    <p id="completeDesc" style="font-size:0.95rem; color:var(--text-muted); font-weight:500; margin-bottom:14px; line-height:1.5;">
+      送迎予約のキャンセルを受け付けました。
+    </p>
+
+    <div class="close-instruction-banner">
+      <div class="close-instruction-title">
+        <i data-lucide="x-circle"></i>
+        <span>画面右上の「 × 」で閉じてください</span>
+      </div>
+      <div class="close-instruction-desc">
+        LINEのトーク画面にもキャンセル完了の通知をお送りしました。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Githubダイアログを出さない完全カスタムモーダル（通知・確認） -->
+<div id="customDialogOverlay" class="modal-overlay" style="display:none;" onclick="handleCustomDialogOverlayClick(event)">
+  <div class="modal-card">
+    <div id="customDialogIconArea" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
+    <h3 id="customDialogTitle" class="modal-title">通知</h3>
+    <div id="customDialogMessage" style="font-size:0.95rem; color:var(--text-main); margin-bottom:20px; line-height:1.55; white-space:pre-wrap; text-align:left; background:var(--surface-secondary); padding:14px; border-radius:14px; font-weight:500;"></div>
+    <div class="modal-buttons" id="customDialogButtons">
+      <button type="button" class="btn-modal-cancel" id="btnCustomDialogCancel" onclick="closeCustomDialog(false)">戻る</button>
+      <button type="button" class="btn-modal-confirm" id="btnCustomDialogOk" onclick="closeCustomDialog(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+  const LIFF_ID     = "2011784961-QoryA7zc";
+
+  let questId = '';
+  let lineUserId = '';
+  let isSubmitting = false;
+
+  function refreshLucide() {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  }
+
+  // ==========================================
+  // Githubダイアログを出さないカスタムモーダル制御
+  // ==========================================
+  let customDialogResolve = null;
+
+  function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
+    return new Promise((resolve) => {
+      document.getElementById('customDialogIconArea').innerHTML =
+        `<i data-lucide="${iconName}" style="width:46px; height:46px; color:${iconColor};"></i>`;
+      document.getElementById('customDialogTitle').textContent = title;
+      document.getElementById('customDialogMessage').textContent = message;
+
+      const cancelBtn = document.getElementById('btnCustomDialogCancel');
+      const okBtn = document.getElementById('btnCustomDialogOk');
+      cancelBtn.style.display = 'none';
+      okBtn.style.gridColumn = '1 / -1';
+      okBtn.textContent = '閉じる';
+      okBtn.style.backgroundColor = 'var(--primary-blue)';
+      okBtn.style.boxShadow = 'none';
+
+      customDialogResolve = resolve;
+      document.getElementById('customDialogOverlay').style.display = 'flex';
+      refreshLucide();
+    });
+  }
+
+  function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--system-red)') {
+    return new Promise((resolve) => {
+      document.getElementById('customDialogIconArea').innerHTML =
+        `<i data-lucide="${iconName}" style="width:46px; height:46px; color:${iconColor};"></i>`;
+      document.getElementById('customDialogTitle').textContent = title;
+      document.getElementById('customDialogMessage').textContent = message;
+
+      const cancelBtn = document.getElementById('btnCustomDialogCancel');
+      const okBtn = document.getElementById('btnCustomDialogOk');
+      cancelBtn.style.display = 'block';
+      okBtn.style.gridColumn = '';
+      okBtn.textContent = 'キャンセル実行';
+      okBtn.style.backgroundColor = 'var(--system-red)';
+      okBtn.style.boxShadow = '0 4px 12px rgba(255, 59, 48, 0.28)';
+
+      customDialogResolve = resolve;
+      document.getElementById('customDialogOverlay').style.display = 'flex';
+      refreshLucide();
+    });
+  }
+
+  function closeCustomDialog(result) {
+    document.getElementById('customDialogOverlay').style.display = 'none';
+    if (customDialogResolve) {
+      const cb = customDialogResolve;
+      customDialogResolve = null;
+      cb(result);
+    }
+  }
+
+  function handleCustomDialogOverlayClick(e) {
+    if (e.target.id === 'customDialogOverlay') {
+      closeCustomDialog(false);
+    }
+  }
+
+  // ==========================================
+  // パラメータ抽出・初期化
+  // ==========================================
+  function extractQuestId() {
+    const params = new URLSearchParams(window.location.search);
+    let q = params.get('qid');
+    if (q) return q.trim();
+
+    const liffState = params.get('liff.state');
+    if (liffState) {
+      try {
+        const decoded = decodeURIComponent(liffState);
+        const stateParams = new URLSearchParams(decoded.includes('?') ? decoded.split('?')[1] : decoded);
+        q = stateParams.get('qid');
+        if (q) return q.trim();
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    refreshLucide();
+    questId = extractQuestId();
+
+    try {
+      if (window.liff) {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          lineUserId = profile.userId;
+        }
+      }
+    } catch (e) {
+      console.warn('LIFF初期化スキップ:', e);
+    }
+
+    if (!questId) {
+      const loadArea = document.getElementById('loadingArea');
+      loadArea.innerHTML = `
+        <i data-lucide="alert-circle" style="width:36px; height:36px; color:var(--system-red);"></i>
+        <span>案件番号が確認できませんでした。<br>LINE通知内のリンクから開き直してください。</span>
+      `;
+      refreshLucide();
+      return;
+    }
+
+    loadQuestDetail();
+  });
+
+  // ==========================================
+  // 案件詳細取得
+  // ==========================================
+  async function loadQuestDetail() {
+    try {
+      const url = `${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(questId)}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success && res.quest) {
+        const q = res.quest;
+        document.getElementById('loadingArea').style.display = 'none';
+        document.getElementById('detailArea').style.display = 'block';
+
+        document.getElementById('dispQid').textContent = `#${q.id}`;
+        document.getElementById('dispStatus').textContent = q.status;
+        document.getElementById('dispDate').textContent = q.formattedDate;
+        document.getElementById('dispPickup').textContent = q.pickup;
+        document.getElementById('dispDropoff').textContent = q.dropoff;
+
+        if (q.driverName) {
+          document.getElementById('rowDriver').style.display = 'table-row';
+          document.getElementById('dispDriver').textContent = `${q.driverName} 様`;
+        }
+
+        if (q.status !== '募集中' && q.status !== '受注済') {
+          document.getElementById('btnCancel').style.display = 'none';
+          document.getElementById('detailArea').innerHTML += `
+            <div style="margin-top:16px; color:var(--text-muted); text-align:center; font-weight:700; background:var(--surface-secondary); padding:12px; border-radius:12px;">
+              ※この案件はすでに [${q.status}] となっているためキャンセルできません。
+            </div>
+          `;
+        }
+      } else {
+        const loadArea = document.getElementById('loadingArea');
+        loadArea.innerHTML = `
+          <i data-lucide="alert-circle" style="width:36px; height:36px; color:var(--system-red);"></i>
+          <span>案件情報の取得に失敗しました:<br>${res.message || '該当データがありません'}</span>
+        `;
+      }
+    } catch (e) {
+      const loadArea = document.getElementById('loadingArea');
+      loadArea.innerHTML = `
+        <i data-lucide="wifi-off" style="width:36px; height:36px; color:var(--system-red);"></i>
+        <span>通信エラーが発生しました:<br>${e.message}</span>
+      `;
+    }
+    refreshLucide();
+  }
+
+  // ==========================================
+  // キャンセル実行
+  // ==========================================
+  async function executeCancel() {
+    if (isSubmitting) return;
+
+    const ok = await showCustomConfirm(
+      `案件番号 [#${questId}] の予約を取り消しますか？\n\n※担当ボランティアが決定している場合は、自動で運行中止のLINE連絡が送られます。`,
+      '送迎キャンセルの最終確認',
+      'alert-triangle',
+      'var(--system-red)'
+    );
+    if (!ok) return;
+
+    const btn = document.getElementById('btnCancel');
+    isSubmitting = true;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>キャンセル処理中...</span>';
+    refreshLucide();
+
+    try {
+      const url = `${GAS_API_URL}?action=cancelQuestByUser&qid=${encodeURIComponent(questId)}&lineUserId=${encodeURIComponent(lineUserId)}`;
+      const res = await (await fetch(url)).json();
+
+      if (res.success) {
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('completeView').style.display = 'block';
+
+        if (res.notifiedDriver) {
+          document.getElementById('completeDesc').innerHTML =
+            '送迎予約のキャンセルを受け付けました。<br><strong style="color:var(--system-red);">担当ボランティアへ運行中止の連絡を自動送信しました。</strong>';
+        }
+        window.scrollTo(0, 0);
+        refreshLucide();
+      } else {
+        await showCustomAlert('キャンセルエラー: ' + res.message, 'キャンセル失敗', 'alert-circle', 'var(--system-red)');
+        isSubmitting = false;
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="trash-2"></i><span>この送迎予約をキャンセルする</span>';
+        refreshLucide();
+      }
+    } catch (e) {
+      await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'wifi-off', 'var(--system-red)');
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="trash-2"></i><span>この送迎予約をキャンセルする</span>';
+      refreshLucide();
+    }
+  }
+</script>
+</body>
+</html>
