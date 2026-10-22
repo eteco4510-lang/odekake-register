@@ -6,299 +6,510 @@
   <title>おでかけサポート 活動記録</title>
   <style>
     :root {
-      --primary-blue: #1d4ed8;
-      --primary-hover: #1e40af;
-      --bg-base: #f1f5f9;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #cbd5e1;
-      --success-green: #15803d;
-      --success-bg: #f0fdf4;
-      --warn-amber: #b45309;
-      --warn-bg: #fffbeb;
-      --danger-red: #b91c1c;
-      --danger-bg: #fef2f2;
+      /* Apple HIG System Palette (Light Mode) */
+      --primary-blue: #007AFF;
+      --primary-hover: #0056B3;
+      --bg-base: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --surface-secondary: #F2F2F7;
+      --text-main: #1C1C1E;
+      --text-muted: #6C6C70;
+      --border-color: rgba(60, 60, 67, 0.12);
+      --separator: rgba(60, 60, 67, 0.1);
+      --success-green: #248A3D;
+      --success-bg: rgba(52, 199, 89, 0.1);
+      --warn-amber: #B25000;
+      --warn-bg: rgba(255, 149, 0, 0.1);
+      --danger-red: #D70015;
+      --danger-bg: rgba(255, 59, 48, 0.08);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+      --shadow-segment: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
       background-color: var(--bg-base);
       color: var(--text-main);
       line-height: 1.5;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 50px);
+      letter-spacing: -0.015em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-variant-numeric: tabular-nums;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 56px);
     }
+
+    /* HIG Translucent Navigation Bar */
     header {
-      background-color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      padding: 16px;
+      background-color: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding: 14px 16px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 20;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
+
     header h1 {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1.12rem;
+      font-weight: 700;
       color: var(--text-main);
+      letter-spacing: -0.02em;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
-    .container { max-width: 500px; margin: 0 auto; padding: 14px 16px; }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 18px 16px;
+    }
+
+    /* HIG Inset Grouped Card */
     .card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 22px 18px;
+      border-radius: 22px;
+      padding: 26px 20px;
       margin-bottom: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
-    .form-group { margin-bottom: 20px; }
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+
     .form-group > label {
       display: block;
-      font-size: 1rem;
-      font-weight: 800;
+      font-size: 0.95rem;
+      font-weight: 700;
       margin-bottom: 6px;
+      padding-left: 2px;
       color: var(--text-main);
     }
-    .form-group .sub-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
+
+    .form-group .sub-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      margin-top: 6px;
+      padding-left: 2px;
+      line-height: 1.45;
+    }
+
+    /* HIG Text Field */
     input[type="text"], input[type="tel"], input[type="number"] {
       width: 100%;
       height: 52px;
-      padding: 0 14px;
-      border: 2px solid var(--border-color);
-      border-radius: 10px;
+      padding: 0 16px;
+      border: 1.5px solid transparent;
+      border-radius: 14px;
       font-size: 1.05rem;
+      font-weight: 500;
       color: var(--text-main);
-      background-color: #fafafa;
+      background-color: var(--surface-secondary);
+      transition: all 0.2s var(--ease-spring);
     }
-    input:focus { background-color: #ffffff; border-color: var(--primary-blue); outline: none; }
+
+    input[type="text"]::placeholder,
+    input[type="tel"]::placeholder,
+    input[type="number"]::placeholder {
+      color: #AEAEB2;
+    }
+
+    input:focus {
+      background-color: #FFFFFF !important;
+      border-color: var(--primary-blue) !important;
+      box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+      outline: none;
+    }
+
+    /* HIG Segmented Control Style Radio Group */
     .radio-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 6px;
       margin-top: 8px;
+      background-color: rgba(118, 118, 128, 0.12);
+      padding: 4px;
+      border-radius: 14px;
     }
+
     .radio-group .radio-label {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 8px !important;
-      height: 50px !important;
+      height: 46px !important;
       margin: 0 !important;
       padding: 0 8px !important;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 1rem;
+      border: 1.5px solid transparent;
+      border-radius: 11px;
+      font-weight: 600;
+      font-size: 0.96rem;
+      color: var(--text-muted);
       cursor: pointer;
-      background-color: #f8fafc;
-      transition: all 0.2s;
+      background-color: transparent;
+      transition: all 0.22s var(--ease-spring);
       user-select: none;
       white-space: nowrap;
     }
+
     .radio-group .radio-label input[type="radio"] {
-      width: 20px !important;
-      height: 20px !important;
+      width: 18px !important;
+      height: 18px !important;
       margin: 0 !important;
       padding: 0 !important;
       flex-shrink: 0;
       accent-color: var(--primary-blue);
       cursor: pointer;
     }
-    .radio-group .radio-label span { display: inline-block; line-height: 1; }
-    .radio-group .radio-label.active {
-      border-color: var(--primary-blue);
-      background-color: #eff6ff;
-      color: var(--primary-blue);
-      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.15);
+
+    .radio-group .radio-label span {
+      display: inline-block;
+      line-height: 1;
     }
-    .passenger-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+    .radio-group .radio-label.active {
+      background-color: #FFFFFF;
+      color: var(--primary-blue);
+      font-weight: 700;
+      box-shadow: var(--shadow-segment);
+    }
+
+    .passenger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* HIG Tinted Secondary Button */
     .btn-add-passenger {
       width: 100%;
       height: 48px;
-      background-color: #eff6ff;
-      border: 2px dashed #93c5fd;
-      border-radius: 10px;
+      background-color: rgba(0, 122, 255, 0.08);
+      border: 1px dashed rgba(0, 122, 255, 0.35);
+      border-radius: 14px;
       color: var(--primary-blue);
       font-size: 0.95rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: all 0.2s var(--ease-spring);
     }
+
+    .btn-add-passenger:active {
+      background-color: rgba(0, 122, 255, 0.16);
+      transform: scale(0.98);
+    }
+
+    /* Step Section */
     .step-section {
-      margin-top: 24px;
-      border-top: 2px solid #e2e8f0;
-      padding-top: 20px;
+      margin-top: 26px;
+      border-top: 0.5px solid var(--separator);
+      padding-top: 22px;
     }
-    .step-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 10px; }
+
+    .step-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
     .btn-gps-trigger {
       width: 100%;
-      height: 58px;
-      font-size: 1.15rem;
-      font-weight: 900;
-      border-radius: 12px;
-      border: 2px solid var(--primary-blue);
-      background-color: #ffffff;
+      height: 56px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      border-radius: 14px;
+      border: 1.5px solid var(--primary-blue);
+      background-color: rgba(0, 122, 255, 0.05);
       color: var(--primary-blue);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transition: all 0.2s var(--ease-spring);
     }
-    .btn-gps-trigger:active { background-color: #eff6ff; transform: scale(0.98); }
+
+    .btn-gps-trigger:active {
+      background-color: rgba(0, 122, 255, 0.14);
+      transform: scale(0.98);
+    }
+
     .lock-notice-box {
-      margin-top: 10px;
+      margin-top: 12px;
       padding: 12px 14px;
-      border-radius: 10px;
+      border-radius: 12px;
       background-color: var(--warn-bg);
-      border: 2px solid #f59e0b;
+      border: 1px solid rgba(255, 149, 0, 0.25);
       color: var(--warn-amber);
-      font-size: 0.92rem;
-      font-weight: 800;
-      line-height: 1.4;
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.45;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
+
     .status-box {
       margin-top: 10px;
       padding: 12px 14px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      background-color: #f1f5f9;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      background-color: var(--surface-secondary);
       color: var(--text-muted);
-      font-weight: bold;
+      font-weight: 600;
     }
+
     .status-box.recorded {
       background-color: var(--success-bg);
-      border: 2px solid #86efac;
+      border: 1px solid rgba(52, 199, 89, 0.3);
       color: var(--success-green);
-      font-weight: 900;
+      font-weight: 700;
     }
+
     .btn-gps-fallback {
-      margin-top: 6px;
-      font-size: 0.85rem;
+      margin-top: 8px;
+      font-size: 0.84rem;
       color: var(--primary-blue);
       background: none;
       border: none;
-      text-decoration: underline;
+      text-decoration: none;
       cursor: pointer;
-      padding: 4px;
+      padding: 6px 4px;
       display: inline-block;
-      font-weight: bold;
+      font-weight: 600;
+      transition: opacity 0.15s;
     }
+
+    .btn-gps-fallback:active {
+      opacity: 0.6;
+    }
+
     .submit-notice-box {
-      margin-top: 24px;
-      padding: 14px;
-      border-radius: 12px;
+      margin-top: 26px;
+      padding: 14px 16px;
+      border-radius: 14px;
       text-align: center;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       line-height: 1.5;
-      font-weight: bold;
-      transition: all 0.2s;
+      font-weight: 600;
+      transition: all 0.2s var(--ease-spring);
     }
+
     .submit-notice-box.ready {
-      background-color: #f0fdf4;
-      border: 2px solid #86efac;
-      color: #15803d;
+      background-color: var(--success-bg);
+      border: 1px solid rgba(52, 199, 89, 0.3);
+      color: var(--success-green);
     }
+
     .submit-notice-box.warning {
-      background-color: #fffbeb;
-      border: 2px solid #fde68a;
-      color: #b45309;
+      background-color: var(--warn-bg);
+      border: 1px solid rgba(255, 149, 0, 0.25);
+      color: var(--warn-amber);
     }
+
     .submit-notice-box.error {
-      background-color: #fef2f2;
-      border: 2px solid #fca5a5;
-      color: #b91c1c;
+      background-color: var(--danger-bg);
+      border: 1px solid rgba(255, 59, 48, 0.25);
+      color: var(--danger-red);
     }
+
+    /* HIG Primary Action Button */
     .btn-submit {
       width: 100%;
-      height: 62px;
+      height: 58px;
       margin-top: 14px;
       background-color: var(--primary-blue);
-      color: #ffffff;
-      font-size: 1.25rem;
-      font-weight: 900;
+      color: #FFFFFF;
+      font-size: 1.15rem;
+      font-weight: 700;
       border: none;
-      border-radius: 14px;
+      border-radius: 16px;
       cursor: pointer;
-      box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.35);
-      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(0, 122, 255, 0.28);
+      transition: all 0.2s var(--ease-spring);
       display: block;
+      letter-spacing: -0.01em;
     }
-    .btn-submit:active { background-color: var(--primary-hover); transform: scale(0.98); }
+
+    .btn-submit:active {
+      background-color: var(--primary-hover);
+      transform: scale(0.98);
+    }
+
+    .btn-submit:disabled {
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Secondary / Destructive Action Group */
     .danger-actions-section {
       margin-top: 32px;
-      padding-top: 20px;
-      border-top: 2px dashed var(--border-color);
+      padding-top: 22px;
+      border-top: 0.5px solid var(--separator);
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
+
     .btn-decline {
       width: 100%;
       height: 48px;
-      background-color: #fffbeb;
-      border: 2px solid #f59e0b;
-      color: #b45309;
-      font-size: 0.95rem;
-      font-weight: 800;
-      border-radius: 10px;
+      background-color: var(--warn-bg);
+      border: 1px solid rgba(255, 149, 0, 0.25);
+      color: var(--warn-amber);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 12px;
       cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
     }
+
+    .btn-decline:active {
+      background-color: rgba(255, 149, 0, 0.18);
+      transform: scale(0.98);
+    }
+
     .btn-abort {
       width: 100%;
       height: 48px;
       background-color: var(--danger-bg);
-      border: 2px solid #fca5a5;
+      border: 1px solid rgba(255, 59, 48, 0.22);
       color: var(--danger-red);
-      font-size: 0.95rem;
-      font-weight: 800;
-      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 12px;
       cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
     }
-    #completeView { display: none; }
+
+    .btn-abort:active {
+      background-color: rgba(255, 59, 48, 0.16);
+      transform: scale(0.98);
+    }
+
+    /* Complete View */
+    #completeView {
+      display: none;
+      animation: fadeIn 0.3s var(--ease-spring);
+    }
+
     .complete-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px 18px;
-      border: 2px solid var(--success-green);
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 30px 20px;
+      border: 0.5px solid var(--border-color);
+      box-shadow: var(--shadow-card);
       text-align: center;
     }
-    .complete-header { color: var(--success-green); font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; }
+
+    .complete-header {
+      color: var(--success-green);
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
     .close-instruction-banner {
       background: var(--danger-bg);
-      border: 3px solid #ef4444;
-      border-radius: 12px;
-      padding: 16px 14px;
+      border: 1.5px solid rgba(255, 59, 48, 0.3);
+      border-radius: 16px;
+      padding: 18px 14px;
       margin: 20px 0;
       text-align: center;
     }
-    .close-instruction-title { font-size: 1.25rem; font-weight: 900; color: var(--danger-red); margin-bottom: 4px; }
-    .close-instruction-desc { font-size: 0.95rem; font-weight: 800; color: #7f1d1d; }
+
+    .close-instruction-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--danger-red);
+      margin-bottom: 6px;
+    }
+
+    .close-instruction-desc {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #7F1D1D;
+    }
+
+    /* HIG Grouped Summary List */
     .result-stats-box {
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px 14px;
+      background: var(--surface-secondary);
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
       margin-bottom: 18px;
       text-align: left;
     }
-    .result-row { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 8px; font-weight: 600; }
-    .result-row:last-child {
-      margin-bottom: 0; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-weight: 900; color: var(--warn-amber); font-size: 1.15rem;
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
+      font-weight: 600;
+      color: var(--text-muted);
     }
+
+    .result-row span:last-child {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .result-row:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      padding-top: 4px;
+      border-bottom: none;
+      font-weight: 800;
+      color: var(--text-main);
+      font-size: 1.1rem;
+    }
+
+    .result-row:last-child span:last-child {
+      color: var(--warn-amber);
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
     .photo-callout {
-      background: var(--warn-bg); border: 2px solid #fde68a; border-radius: 10px; padding: 16px 14px; font-size: 0.92rem; text-align: left; color: #78350f; line-height: 1.5;
+      background: #FFFBF0;
+      border: 1px solid rgba(255, 149, 0, 0.28);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 0.9rem;
+      text-align: left;
+      color: #7A4100;
+      line-height: 1.55;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
@@ -1057,63 +1268,4 @@
     } catch (e) {
       alert('通信エラー: ' + e.message);
       isSubmitting = false; btn.disabled = false;
-      btn.textContent = '⚠️ 都合悪化のため受託をキャンセルする（再募集へ戻す）';
-    }
-  }
-
-  async function abortTrip() {
-    if (isSubmitting) return;
-
-    const qid = document.getElementById('questIdInput').value.trim() || questId;
-    if (!qid) { alert('案件番号が確認できません。'); return; }
-    if (!confirm(`【送迎の中止確認】\n案件番号 [${qid}] の送迎を中止しますか？\n運行管理シートのステータスが「送迎中止」として記録されます。`)) return;
-
-    const reason = prompt('中止の理由を入力してください', '利用者が来ないため（10分経過）');
-    if (reason === null) return;
-
-    const driverId = document.getElementById('driverId').value.trim();
-    const btn = document.getElementById('btnAbort');
-
-    isSubmitting = true; btn.disabled = true; btn.textContent = '⏳ 中止処理中...';
-
-    const depMapUrl = (runLog.depLat && runLog.depLng) ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : '';
-
-    const payload = {
-      questId: qid, driverId: driverId, driverName: cachedDriverName,
-      isCancelled: true, cancelReason: reason || '利用者の不在',
-      tripType: '中止', otherExpense: 0,
-      depTime: runLog.depTime || '', arrTime: '', duration: 0,
-      oneWayDistance: 0, roundTripDistance: 0, fuelFee: 0, fee: 0,
-      depLat: runLog.depLat || '', depLng: runLog.depLng || '',
-      arrLat: '', arrLng: '', depMapUrl: depMapUrl, arrMapUrl: '',
-      passengers: ['【送迎中止】' + (reason || '利用者の不在')]
-    };
-
-    try {
-      const url = `${GAS_API_URL}?action=submitRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
-      const res = await (await fetch(url)).json();
-
-      if (res.success) {
-        clearDraft();
-        document.getElementById('formView').style.display = 'none';
-        document.getElementById('completeView').style.display = 'block';
-
-        document.getElementById('completeHeaderTitle').textContent = '🚫 送迎中止として記録完了';
-        document.getElementById('completeHeaderTitle').style.color = '#b91c1c';
-        document.getElementById('completeMsg').innerHTML = `案件番号 [${qid}] の送迎中止を記録しました。<br>理由: ${reason || '利用者の不在'}`;
-        document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>💬 事務局への連絡:</strong><br>LINEトークにて「不乗車中止：案件${qid}」と送信してください。`;
-
-        window.scrollTo(0, 0);
-      } else {
-        alert('中止処理エラー: ' + res.message);
-        isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
-      }
-    } catch (e) {
-      alert('通信エラー: ' + e.message);
-      isSubmitting = false; btn.disabled = false; btn.textContent = '🚫 利用者不在などで送迎を中止する（現場での中止）';
-    }
-  }
-</script>
-</body>
-</html>
+      btn.textContent = '⚠️ 都合悪化のため受託をキャンセル
