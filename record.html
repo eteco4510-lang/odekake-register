@@ -403,11 +403,23 @@
       padding: 7px 0;
       border-bottom: 1px dashed #E2E8F0;
     }
-    .result-row:last-child {
+    .result-row.billing-row {
+      background: #EFF6FF;
+      margin: 4px -8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border-bottom: none;
+      font-weight: 800;
+      color: #1E40AF;
+    }
+    .result-row.payout-total {
       border-bottom: none;
       font-weight: 800;
       font-size: 1.05rem;
-      color: var(--primary-blue);
+      color: var(--success-green);
+      padding-top: 10px;
+      border-top: 1.5px solid #CBD5E1;
+      margin-top: 4px;
     }
     .photo-callout {
       background: #EFF6FF;
@@ -476,7 +488,7 @@
       cursor: pointer;
     }
 
-    /* ★操作ブロック用全画面ローディングモーダル */
+    /* 全画面ローディングモーダル */
     .blocking-loading-card {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
@@ -517,7 +529,7 @@
   </h1>
 </header>
 
-<!-- ★情報取得中（他操作完全ブロック用）モーダル -->
+<!-- 情報取得中ローディングモーダル -->
 <div id="loadingOverlay" class="modal-overlay" style="display:none; z-index:300;">
   <div class="blocking-loading-card">
     <i data-lucide="loader-2" class="animate-spin" style="width:42px; height:42px; color:var(--primary-blue);"></i>
@@ -535,7 +547,7 @@
         <span>案件番号</span>
       </label>
       <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#f1f5f9; font-weight:800; color:#1e40af;">
-      <!-- 1か所に集約した自動取得バッジ -->
+      <!-- 自動取得バッジ -->
       <div id="unifiedAutoBadge" class="unified-auto-badge" style="display:none;">
         <i data-lucide="check-circle-2"></i>
         <span>依頼情報から自動取得</span>
@@ -634,10 +646,10 @@
       <div class="form-group" style="margin-bottom:0;">
         <label style="color:#166534;">
           <i data-lucide="receipt"></i>
-          <span>その他実費（有料道路・駐車場代の合計）</span>
+          <span>その他実費（立替えた有料道路・駐車場代）</span>
         </label>
         <div class="sub-label" style="color:#15803D; margin-bottom:8px;">
-          ※発生した場合のみ半角数字で入力（なしの場合は0または空欄でOK）
+          ※立替えが発生した場合のみ半角数字で入力（後日団体より支給されます。なしの場合は0または空欄でOK）
         </div>
         <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()" style="background:#FFF; border-color:#86EFAC;">
       </div>
@@ -659,11 +671,11 @@
     <div class="danger-actions-section">
       <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
         <i data-lucide="alert-triangle"></i>
-        <span>受託をキャンセルする</span>
+        <span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>
       </button>
       <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
         <i data-lucide="ban"></i>
-        <span>送迎を中止する</span>
+        <span>利用者不在などで送迎を中止する（現場での中止）</span>
       </button>
     </div>
   </div>
@@ -675,8 +687,9 @@
       <i data-lucide="check-circle-2"></i>
       <span>送信完了</span>
     </div>
-    <p id="completeMsg" style="font-size:0.98rem; color:var(--text-muted); margin-bottom:10px; font-weight:600;">
-      活動実績を記録しました。安全運転お疲れ様でした！
+    <p id="completeMsg" style="font-size:0.96rem; color:var(--text-muted); margin-bottom:12px; font-weight:600; line-height:1.5;">
+      活動実績を記録しました。安全運転お疲れ様でした！<br>
+      <strong style="color:#1e40af;">※利用者からの利用料金（現金等）の徴収はありません。</strong>
     </p>
 
     <div class="close-instruction-banner">
@@ -702,16 +715,22 @@
         <span>乗車人数（片道 / 延べ）:</span>
         <span id="dispPassengerCount">1 人 / 2 人</span>
       </div>
+      <!-- ★利用者請求：0円を固定表示 -->
+      <div class="result-row billing-row">
+        <span>利用者への請求額:</span>
+        <span id="dispBilling">0 円（無料）</span>
+      </div>
       <div class="result-row">
-        <span>燃料費相当（20円/km）:</span>
+        <span>団体からのガソリン代支給（20円/km）:</span>
         <span id="dispFuelFee">0 円</span>
       </div>
       <div class="result-row" id="rowOtherExpense">
-        <span>その他実費（有料道路・駐車場）:</span>
+        <span>その他実費立替分（道路・駐車場）:</span>
         <span id="dispOtherExpense">0 円</span>
       </div>
-      <div class="result-row">
-        <span>合計実費弁償額:</span>
+      <!-- ★ドライバーへの支給合計 -->
+      <div class="result-row payout-total">
+        <span>ドライバー支給予定合計:</span>
         <span id="dispFee">0 円</span>
       </div>
     </div>
@@ -782,7 +801,6 @@
     }
   }
 
-  // ★全画面ローディングオーバーレイの表示・非表示
   function showLoadingOverlay() {
     const el = document.getElementById('loadingOverlay');
     if (el) el.style.display = 'flex';
@@ -794,7 +812,6 @@
     if (el) el.style.display = 'none';
   }
 
-  // カスタムモーダル制御
   let customDialogResolve = null;
 
   function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
@@ -882,7 +899,6 @@
     }
   }
 
-  // 下書き・URL・入力管理
   function getDraftKey() {
     return 'odekake_draft_' + (questId || 'general');
   }
@@ -968,13 +984,11 @@
     checkSubmitRequirement();
   }
 
-  // ★情報取得処理（取得中は全画面ブロックローディングを表示）
   async function fetchQuestInfo(targetQid) {
     if (!targetQid) return;
     const p1Input = document.getElementById('passenger1');
     if (!p1Input.value.trim()) p1Input.placeholder = 'お名前を取得中...';
 
-    // 操作をブロックしてローディング表示
     showLoadingOverlay();
 
     try {
@@ -1005,7 +1019,6 @@
       p1Input.placeholder = '乗客1のお名前を入力してください';
       document.getElementById('unifiedAutoBadge').style.display = 'none';
     } finally {
-      // 完了時にブロック解除
       hideLoadingOverlay();
       refreshLucide();
     }
@@ -1160,7 +1173,6 @@
     } catch (e) {}
   }
 
-  // GPS・時刻記録
   function recordDeparture() {
     if (!navigator.geolocation) { manualRecordDeparture(); return; }
     const btn = document.getElementById('btnDep');
@@ -1267,7 +1279,7 @@
     }
   }
 
-  // 実績送信
+  // ★通常運行実績送信（利用者請求0円・完全無料版）
   async function submitRecord() {
     const notice = document.getElementById('submitNoticeBox');
     const btn = document.getElementById('btnSubmit');
@@ -1342,16 +1354,20 @@
         const actualPCount = passengers.filter(p => p.trim() !== '').length || 1;
         const totalPCount = (tripType === '片道') ? actualPCount : actualPCount * 2;
 
+        const fuelFee = res.fuelFee !== undefined ? res.fuelFee : runLog.fuelFee;
+        const totalPayout = res.fee !== undefined ? res.fee : (fuelFee + otherExp);
+
         document.getElementById('dispTripInfo').textContent = `${tripType} / ${runLog.durationMin} 分`;
         document.getElementById('dispDistance').textContent = finalDist;
         document.getElementById('dispPassengerCount').textContent = `片道 ${actualPCount} 人 / 延べ ${totalPCount} 人 (人回)`;
-        document.getElementById('dispFuelFee').textContent = `${res.fuelFee !== undefined ? res.fuelFee : runLog.fuelFee} 円`;
+        document.getElementById('dispBilling').textContent = '0 円（無料）';
+        document.getElementById('dispFuelFee').textContent = `${fuelFee} 円`;
         document.getElementById('dispOtherExpense').textContent = `${otherExp} 円`;
-        document.getElementById('dispFee').textContent = `${res.fee !== undefined ? res.fee : runLog.fee} 円`;
+        document.getElementById('dispFee').textContent = `${totalPayout} 円`;
 
         const noticeEl = document.getElementById('dispPhotoNotice');
         if (otherExp > 0) {
-          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br><strong style="color:#b91c1c;">【有料道路・駐車場代のレシートの写真】</strong>をトーク画面に送信してください。<br><span style="font-size:0.8rem; color:#78350f;">※相模原市マニュアル規定により、レシート原本は5年間保管が必要です。</span>`;
+          noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」と、<br><strong style="color:#b91c1c;">【有料道路・駐車場代のレシートの写真】</strong>をトーク画面に送信してください。<br><span style="font-size:0.8rem; color:#78350f;">※立替実費は後日団体より支給されます。レシート原本は5年間保管が必要です。</span>`;
         } else {
           noticeEl.innerHTML = `右上の「×」でLINEに戻ったら、参加者全員の「集合写真」をトーク画面に1枚送信してください。`;
         }
@@ -1383,7 +1399,7 @@
     }
   }
 
-  // 送迎中止（GPS実走距離反映）
+  // ★送迎中止（GPS実走距離反映・ドライバーへのガソリン代補填版）
   async function abortTrip() {
     if (isSubmitting) return;
 
@@ -1406,9 +1422,10 @@
     }
 
     const confirmMsg =
-      '送迎を中止しますか？（集合時間から10分経過を確認後）\n\n' +
+      '10分待機しても利用者が来られないため、送迎を中止しますか？\n\n' +
       '・現在地（お迎え先）のGPSを取得し、自宅からの往復走行距離を記録します。\n' +
-      '・利用者は不乗車のため、利用者負担額は0円となります。';
+      '・利用者への請求は0円となります。\n' +
+      '・ドライバーへのガソリン代実費は往復走行距離に応じて後日団体より補填支給されます。';
 
     const confirmed = await showCustomConfirm(confirmMsg, '送迎中止（利用者不在）の確認', 'ban', 'var(--danger-red)');
     if (!confirmed) return;
@@ -1459,6 +1476,7 @@
       estimatedOneWay = Math.round(calcCrow(runLog.depLat, runLog.depLng, arrLat, arrLng) * 1.3 * 10) / 10;
     }
     const estimatedRoundTrip = Math.round(estimatedOneWay * 2 * 10) / 10;
+    const estimatedFuelFee = Math.round(estimatedRoundTrip * 20);
 
     const qid = document.getElementById('questIdInput').value.trim() || questId;
     const driverId = document.getElementById('driverId').value.trim();
@@ -1476,8 +1494,8 @@
       duration: runLog.durationMin,
       oneWayDistance: estimatedOneWay,
       roundTripDistance: estimatedRoundTrip,
-      fuelFee: 0,
-      fee: 0,
+      fuelFee: estimatedFuelFee, // ドライバーへの補填計算用
+      fee: estimatedFuelFee,     // ドライバーへの補填計算用
       depLat: runLog.depLat || '',
       depLng: runLog.depLng || '',
       arrLat: arrLat || '',
@@ -1503,23 +1521,25 @@
 
         document.getElementById('completeMsg').innerHTML =
           '利用者が来られなかったため、送迎中止として実績を記録しました。<br>' +
-          '自宅〜現場までの往復走行距離は記録されました。';
+          '<strong>利用者への請求はありません。往復分のガソリン代は後日団体より実費補填されます。</strong>';
 
         const finalOneWay = (res.oneWayDistance !== undefined) ? res.oneWayDistance : estimatedOneWay;
         const finalRoundTrip = (res.roundTripDistance !== undefined) ? res.roundTripDistance : estimatedRoundTrip;
+        const finalFuelFee = (res.fuelFee !== undefined) ? res.fuelFee : estimatedFuelFee;
 
         document.getElementById('dispTripInfo').textContent = `送迎中止 / ${runLog.durationMin} 分`;
         document.getElementById('dispDistance').textContent = `${finalOneWay} km (往復換算: ${finalRoundTrip} km)`;
         document.getElementById('dispPassengerCount').textContent = '片道 0 人 / 延べ 0 人 (人回)';
-        document.getElementById('dispFuelFee').textContent = '0 円 (不乗車)';
+        document.getElementById('dispBilling').textContent = '0 円（請求なし）';
+        document.getElementById('dispFuelFee').textContent = `${finalFuelFee} 円（補填支給）`;
         document.getElementById('dispOtherExpense').textContent = '0 円';
-        document.getElementById('dispFee').textContent = '0 円 (請求なし)';
+        document.getElementById('dispFee').textContent = `${finalFuelFee} 円`;
 
         const noticeEl = document.getElementById('dispPhotoNotice');
         noticeEl.innerHTML =
           '<strong>【ご案内】</strong><br>' +
           '利用者が乗車されなかったため、写真の送信や領収書提出は不要です。<br>' +
-          '今回の往復走行距離（' + finalRoundTrip + ' km）は、実費補填いたします。<br>' +
+          '今回の往復走行距離（' + finalRoundTrip + ' km / ' + finalFuelFee + ' 円）は、団体の活動経費・ガソリン代補填の実績として記録されました。<br>' +
           'どうぞお気をつけて自宅へお戻りください。';
 
         window.scrollTo(0, 0);
@@ -1535,7 +1555,7 @@
       await showCustomAlert('通信エラーが発生しました: ' + err.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
       isSubmitting = false;
       btnAbort.disabled = false;
-      btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する</span>';
+      btnAbort.innerHTML = '<i data-lucide="ban"></i><span>利用者不在などで送迎を中止する（現場での中止）</span>';
       refreshLucide();
     }
   }
@@ -1578,19 +1598,19 @@
 
         document.getElementById('completeMsg').innerHTML = `案件 [${qid}] の受託キャンセルを受け付けました。<br>掲示板で再度ボランティアを募集します。`;
         document.getElementById('resultStatsArea').style.display = 'none';
-        document.getElementById('infoCalloutArea').innerHTML = `<strong>事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。`;
+        document.getElementById('infoCalloutArea').innerHTML = `<strong>事務局・利用者への連絡:</strong><br>LINEにて利用者へ再調整の通知が送信されました。お大事になさってください。`;
         window.scrollTo(0, 0);
         refreshLucide();
       } else {
         await showCustomAlert('キャンセルエラー: ' + res.message, 'エラー', 'alert-circle', 'var(--danger-red)');
         isSubmitting = false; btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする</span>';
+        btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
         refreshLucide();
       }
     } catch (e) {
       await showCustomAlert('通信エラー: ' + e.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
       isSubmitting = false; btn.disabled = false;
-      btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする</span>';
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i><span>都合悪化のため受託をキャンセルする（再募集へ戻す）</span>';
       refreshLucide();
     }
   }
