@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>事務局管理コックピット | おでかけサポート</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* 数字の等幅表示とフォント最適化 */
+    body {
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lucide {
+      stroke-width: 2;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-16">
+
+  <!-- 1. スティッキーヘッダー（背景ブラー効果） -->
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-3">
+        <!-- モバイル用ハンバーガーボタン -->
+        <button
+          type="button"
+          id="btnOpenDrawer"
+          class="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 sm:hidden focus:outline-hidden"
+          aria-label="メニューを開く"
+        >
+          <i data-lucide="menu" class="h-5 w-5"></i>
+        </button>
+        <div>
+          <!-- パンくずリスト -->
+          <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <span class="flex items-center gap-1">
+              <i data-lucide="home" class="h-3 w-3"></i>
+              おでかけサポート
+            </span>
+            <span>/</span>
+            <span class="text-slate-800 font-semibold">事務局コックピット</span>
+          </nav>
+          <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl">
+            運行予定・アラート管理
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          id="btnRefresh"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
+        >
+          <i data-lucide="refresh-cw" id="refreshIcon" class="h-3.5 w-3.5"></i>
+          <span class="hidden sm:inline">最新情報に更新</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. モバイル用スライドイン ナビゲーションドロワー -->
+  <div id="drawerOverlay" class="fixed inset-0 z-50 flex sm:hidden hidden">
+    <div id="drawerBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"></div>
+    <div class="relative flex w-full max-w-xs flex-1 flex-col bg-white p-6 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <span class="font-bold text-slate-900">事務局メニュー</span>
+        <button type="button" id="btnCloseDrawer" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <div class="mt-4 space-y-2 text-sm font-semibold">
+        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-slate-100" data-filter="all">
+          <span>全案件一覧</span>
+          <span id="drawerTotalCount" class="text-xs text-slate-400">0件</span>
+        </button>
+        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50" data-filter="urgent">
+          <span>直前未受託（至急）</span>
+          <span id="drawerUrgentBadge" class="rounded bg-red-100 px-1.5 py-0.5 text-xs font-bold text-red-700">0</span>
+        </button>
+        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-amber-600 hover:bg-amber-50" data-filter="warned">
+          <span>2日前警告中</span>
+          <span id="drawerWarnedBadge" class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-700">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+    <!-- 3. 要対応アラート ＆ 運行状況サマリーカード（KPI） -->
+    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <!-- 直前未受託カード -->
+      <button
+        type="button"
+        id="cardUrgent"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="urgent"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-red-700">直前未受託</span>
+          <i data-lucide="alert-circle" class="h-4 w-4 text-red-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricUrgentCount" class="text-2xl font-black text-red-600">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">今日・明日の至急案件</p>
+      </button>
+
+      <!-- 2日前警告中カード -->
+      <button
+        type="button"
+        id="cardWarned"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="warned"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-amber-700">2日前警告中</span>
+          <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricWarnedCount" class="text-2xl font-black text-amber-600">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">LINE注意喚起送信済</p>
+      </button>
+
+      <!-- 本日の運行予定カード -->
+      <button
+        type="button"
+        id="cardToday"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="today"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-blue-700">本日の運行</span>
+          <i data-lucide="car" class="h-4 w-4 text-blue-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricTodayCount" class="text-2xl font-black text-blue-600">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
+      </button>
+
+      <!-- 募集中総数カード -->
+      <button
+        type="button"
+        id="cardOpen"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="recruiting"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700">募集中総数</span>
+          <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
+      </button>
+    </section>
+
+    <!-- 4. 検索・コントロール・チップス -->
+    <section class="mb-4 space-y-3">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <!-- オートコンプリート検索バー -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
+            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+          />
+          <button
+            type="button"
+            id="btnClearSearch"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
+          >
+            <i data-lucide="x" class="h-4 w-4"></i>
+          </button>
+        </div>
+
+        <!-- トグルスイッチ（要対応案件のみ即時絞り込み） -->
+        <div class="flex items-center gap-2">
+          <label
+            for="urgentToggle"
+            class="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700"
+          >
+            <span>要対応のみ表示</span>
+            <div class="relative">
+              <input id="urgentToggle" type="checkbox" class="sr-only" />
+              <div id="toggleTrack" class="h-5 w-9 rounded-full bg-slate-200 transition"></div>
+              <div id="toggleThumb" class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition"></div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- チップス（Tags） -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold" id="chipContainer">
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="all">すべて</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="urgent">直前未受託</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="warned">2日前警告中</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="recruiting">募集中</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
+      </div>
+    </section>
+
+    <!-- 5. 運行案件一覧（スケルトンスクリーン ＆ リスト） -->
+    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+      <!-- スケルトンスクリーン（読み込み中） -->
+      <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
+        <div class="flex animate-pulse items-center justify-between pt-3">
+          <div class="space-y-2">
+            <div class="h-4 w-32 rounded bg-slate-200"></div>
+            <div class="h-3 w-48 rounded bg-slate-100"></div>
+          </div>
+          <div class="h-8 w-20 rounded bg-slate-200"></div>
+        </div>
+        <div class="flex animate-pulse items-center justify-between pt-3">
+          <div class="space-y-2">
+            <div class="h-4 w-36 rounded bg-slate-200"></div>
+            <div class="h-3 w-56 rounded bg-slate-100"></div>
+          </div>
+          <div class="h-8 w-20 rounded bg-slate-200"></div>
+        </div>
+      </div>
+
+      <!-- 空状態表示 -->
+      <div id="emptyState" class="py-12 text-center hidden">
+        <i data-lucide="file-text" class="mx-auto h-8 w-8 text-slate-300"></i>
+        <p class="mt-2 text-sm font-semibold text-slate-500">該当する運行案件はありません</p>
+      </div>
+
+      <!-- 案件データリスト展開エリア -->
+      <div id="questListContainer" class="divide-y divide-slate-100 hidden"></div>
+    </section>
+  </main>
+
+  <!-- 6. 案件詳細モーダル（PC） / ボトムシート（モバイル） -->
+  <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+      <!-- モーダルヘッダー -->
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modalQuestId" class="font-mono text-xs font-bold text-slate-400">案件番号 #----</span>
+            <span id="modalQuestStatus" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">状態</span>
+          </div>
+          <h3 class="mt-1 text-base font-bold text-slate-900">運行詳細データ</h3>
+        </div>
+        <button type="button" id="btnCloseModal" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- モーダル本文 -->
+      <div class="my-4 space-y-4 text-xs">
+        <div class="rounded-xl bg-slate-50 p-3.5 space-y-2 border border-slate-100">
+          <div class="flex justify-between">
+            <span class="font-medium text-slate-500">運行日時:</span>
+            <span id="modalDatetime" class="font-bold text-slate-900">----</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="font-medium text-slate-500">運行区分:</span>
+            <span id="modalTripPlan" class="font-semibold text-blue-700">----</span>
+          </div>
+          <div class="border-t border-slate-200/60 pt-2 space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-500">出発地:</span>
+              <span id="modalPickup" class="font-semibold text-slate-800">----</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">行先:</span>
+              <span id="modalDropoff" class="font-semibold text-slate-800">----</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 利用者情報 -->
+        <div class="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3">
+          <div>
+            <span class="text-[11px] text-slate-400">利用者名</span>
+            <p id="modalUserName" class="font-bold text-slate-800">----</p>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400">緊急連絡先</span>
+            <p id="modalUserPhone" class="flex items-center gap-1 font-mono font-semibold text-slate-800">
+              <i data-lucide="phone" class="h-3 w-3 text-slate-400"></i>
+              <span>----</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- 担当ドライバー情報 -->
+        <div class="rounded-xl border border-slate-200 p-3">
+          <span class="text-[11px] text-slate-400">担当ボランティアドライバー</span>
+          <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
+        </div>
+
+        <!-- 特記事項・介助メモ（アコーディオン） -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <button
+            type="button"
+            id="btnAccordionToggle"
+            class="flex w-full items-center justify-between bg-slate-50 px-3.5 py-2 text-left font-bold text-slate-700"
+          >
+            <span>特記事項・システムログ</span>
+            <i data-lucide="chevron-down" id="accordionIcon" class="h-4 w-4 text-slate-400 transition-transform"></i>
+          </button>
+          <div id="accordionContent" class="p-3.5 space-y-2 bg-white text-slate-700 border-t border-slate-100 hidden">
+            <div>
+              <span class="font-semibold text-slate-500">介助要件・備考:</span>
+              <p id="modalNote" class="mt-0.5">特になし</p>
+            </div>
+            <div id="modalSysInfoArea" class="pt-2 border-t border-slate-100 hidden">
+              <span class="font-semibold text-slate-500">T列システム情報:</span>
+              <p id="modalSysInfo" class="mt-0.5 font-mono text-[11px] text-slate-600">----</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- モーダルフッター -->
+      <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+        <button
+          type="button"
+          id="btnModalCopyLine"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95"
+        >
+          <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+          <span>LINE打診文をコピー</span>
+        </button>
+        <button
+          type="button"
+          id="btnCloseModalBtn"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. アクション完了トースト通知（Snackbar） -->
+  <div
+    id="toastNotification"
+    class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-lg transition-all duration-200 opacity-0 translate-y-3 pointer-events-none"
+  >
+    <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-400"></i>
+    <span id="toastText">通知メッセージ</span>
+  </div>
+
+  <script>
+    // ★本番GAS Web App URL
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+
+    let quests = [];
+    let metrics = { urgentCount: 0, warnedCount: 0, todayRunningCount: 0, openCount: 0 };
+    let currentFilterTag = "all";
+    let isUrgentOnly = false;
+    let selectedQuest = null;
+    let toastTimer = null;
+    let isAccordionOpen = false;
+
+    function refreshLucide() {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    // トースト表示
+    function showToast(message) {
+      const toast = document.getElementById("toastNotification");
+      const toastText = document.getElementById("toastText");
+      toastText.textContent = message;
+      toast.classList.remove("opacity-0", "translate-y-3", "pointer-events-none");
+      toast.classList.add("opacity-100", "translate-y-0");
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "translate-y-3", "pointer-events-none");
+      }, 3000);
+    }
+
+    // データ取得
+    async function fetchDashboardData() {
+      const icon = document.getElementById("refreshIcon");
+      const skeleton = document.getElementById("skeletonLoader");
+      const container = document.getElementById("questListContainer");
+      const empty = document.getElementById("emptyState");
+
+      if (icon) icon.classList.add("animate-spin");
+      if (quests.length === 0) {
+        skeleton.classList.remove("hidden");
+        container.classList.add("hidden");
+        empty.classList.add("hidden");
+      }
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData`);
+        const data = await res.json();
+        if (data.success) {
+          quests = data.quests || [];
+          if (data.metrics) {
+            metrics = data.metrics;
+            updateMetricsUI();
+          }
+          renderQuests();
+          showToast("最新データを取得しました");
+        } else {
+          showToast("取得エラー: " + (data.message || ""));
+        }
+      } catch (err) {
+        showToast("通信エラー: " + err.message);
+      } finally {
+        if (icon) icon.classList.remove("animate-spin");
+        skeleton.classList.add("hidden");
+      }
+    }
+
+    // KPI集計カードの描画更新
+    function updateMetricsUI() {
+      document.getElementById("metricUrgentCount").textContent = metrics.urgentCount;
+      document.getElementById("metricWarnedCount").textContent = metrics.warnedCount;
+      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
+      document.getElementById("metricOpenCount").textContent = metrics.openCount;
+
+      document.getElementById("drawerTotalCount").textContent = quests.length + "件";
+      document.getElementById("drawerUrgentBadge").textContent = metrics.urgentCount;
+      document.getElementById("drawerWarnedBadge").textContent = metrics.warnedCount;
+    }
+
+    // フィルタリングと一覧描画
+    function renderQuests() {
+      const container = document.getElementById("questListContainer");
+      const empty = document.getElementById("emptyState");
+      const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      const todayStr = new Date().toISOString().split("T")[0];
+
+      const filtered = quests.filter(item => {
+        if (isUrgentOnly) {
+          const isUrg = item.isUrgent && item.status === "募集中";
+          const isWrn = item.isWarned && item.status === "募集中";
+          if (!isUrg && !isWrn) return false;
+        }
+
+        if (searchVal !== "") {
+          const match =
+            item.id.toLowerCase().includes(searchVal) ||
+            item.userName.toLowerCase().includes(searchVal) ||
+            item.pickup.toLowerCase().includes(searchVal) ||
+            item.dropoff.toLowerCase().includes(searchVal) ||
+            (item.driverName && item.driverName.toLowerCase().includes(searchVal));
+          if (!match) return false;
+        }
+
+        if (currentFilterTag === "urgent") return item.isUrgent && item.status === "募集中";
+        if (currentFilterTag === "warned") return item.isWarned && item.status === "募集中";
+        if (currentFilterTag === "today") return item.targetDate === todayStr;
+        if (currentFilterTag === "recruiting") return item.status === "募集中";
+        if (currentFilterTag === "accepted") return item.status === "受注済";
+        if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.classList.add("hidden");
+        empty.classList.remove("hidden");
+        refreshLucide();
+        return;
+      }
+
+      empty.classList.add("hidden");
+      container.classList.remove("hidden");
+      container.innerHTML = "";
+
+      filtered.forEach(quest => {
+        const isUrgent = quest.isUrgent && quest.status === "募集中";
+        const isWarned = quest.isWarned && quest.status === "募集中";
+
+        let statusClass = "bg-slate-100 text-slate-500";
+        if (quest.status === "募集中") {
+          statusClass = isUrgent ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700";
+        } else if (quest.status === "受注済") {
+          statusClass = "bg-emerald-100 text-emerald-800";
+        } else if (quest.status === "運行完了") {
+          statusClass = "bg-slate-100 text-slate-600";
+        }
+
+        const bgClass = isUrgent ? "bg-red-50/40" : isWarned ? "bg-amber-50/30" : "";
+
+        const card = document.createElement("div");
+        card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
+
+        card.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-mono text-xs font-bold text-slate-500">#${quest.id}</span>
+              <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
+              ${isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>至急打診</span>` : ""}
+              ${isWarned && !isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white"><i data-lucide="alert-triangle" class="h-3 w-3"></i>2日前警告済</span>` : ""}
+              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
+              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetTime}</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <span class="text-slate-700">${escapeHtml(quest.pickup)}</span>
+              <i data-lucide="arrow-right" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
+              <span class="text-blue-700">${escapeHtml(quest.dropoff)}</span>
+              <span class="text-xs font-normal text-slate-500">(${escapeHtml(quest.tripPlan.split("（")[0])})</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+              <span class="flex items-center gap-1"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
+              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? "text-slate-800" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : '未定（募集中）'}</strong></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 sm:pt-0">
+            ${isUrgent ? `
+              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}">
+                <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600"></i>
+                <span>LINE打診文</span>
+              </button>
+            ` : ""}
+            <button type="button" class="btn-detail inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95" data-qid="${quest.id}">
+              <span>詳細</span>
+              <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-400"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      refreshLucide();
+      attachEventHandlers();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // LINE打診文の生成・コピー
+    function copyLineMessage(quest) {
+      const text = `【至急のご相談】直前運行のお願い
+
+いつも大変お世話になっております。おでかけサポート事務局です。
+
+直前・緊急のご連絡となり大変恐縮です。
+お近くでの運行案件でまだドライバーが決まっておらず、大変困っております。
+もしお時間がございましたら、お力をお貸しいただけないでしょうか。
+
+━━━━━━━━━━━━━━━
+■ 案件番号：#${quest.id}
+■ 日時：${quest.targetDate} ${quest.targetTime} 集合
+■ 出発地：${quest.pickup}
+■ 行先：${quest.dropoff}
+■ 区分：${quest.tripPlan}
+■ 備考：${quest.note || "特になし"}
+━━━━━━━━━━━━━━━
+
+お引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。
+（難しい場合は遠慮なくお断りいただくか、そのまま見送っていただいて構いません）
+
+よろしくお願い申し上げます。`;
+
+      navigator.clipboard.writeText(text);
+      showToast("LINE打診用テキストをコピーしました");
+    }
+
+    // 詳細モーダルの展開
+    function openDetailModal(quest) {
+      selectedQuest = quest;
+      document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
+      document.getElementById("modalQuestStatus").textContent = quest.status;
+      document.getElementById("modalDatetime").textContent = `${quest.targetDate} ${quest.targetTime} 集合`;
+      document.getElementById("modalTripPlan").textContent = quest.tripPlan;
+      document.getElementById("modalPickup").textContent = quest.pickup;
+      document.getElementById("modalDropoff").textContent = quest.dropoff;
+      document.getElementById("modalUserName").textContent = `${quest.userName} 様 (${quest.passengers})`;
+      document.getElementById("modalUserPhone").querySelector("span").textContent = quest.userPhone || "未登録";
+
+      const driverInfoEl = document.getElementById("modalDriverInfo");
+      if (quest.driverName) {
+        driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
+        driverInfoEl.className = "mt-0.5 font-bold text-emerald-700";
+      } else {
+        driverInfoEl.textContent = "未定（現在ドライバー募集中）";
+        driverInfoEl.className = "mt-0.5 font-bold text-red-600";
+      }
+
+      document.getElementById("modalNote").textContent = quest.note || "特になし";
+
+      const sysInfoArea = document.getElementById("modalSysInfoArea");
+      if (quest.systemInfo) {
+        document.getElementById("modalSysInfo").textContent = quest.systemInfo;
+        sysInfoArea.classList.remove("hidden");
+      } else {
+        sysInfoArea.classList.add("hidden");
+      }
+
+      const copyBtn = document.getElementById("btnModalCopyLine");
+      if (quest.status === "募集中") {
+        copyBtn.classList.remove("hidden");
+      } else {
+        copyBtn.classList.add("hidden");
+      }
+
+      // アコーディオン初期化（閉じる）
+      isAccordionOpen = false;
+      document.getElementById("accordionContent").classList.add("hidden");
+      document.getElementById("accordionIcon").classList.remove("rotate-180");
+
+      document.getElementById("detailModalOverlay").classList.remove("hidden");
+      refreshLucide();
+    }
+
+    function closeDetailModal() {
+      document.getElementById("detailModalOverlay").classList.add("hidden");
+      selectedQuest = null;
+    }
+
+    // 動的要素のイベント登録
+    function attachEventHandlers() {
+      document.querySelectorAll(".btn-copy-line").forEach(btn => {
+        btn.onclick = () => {
+          const qid = btn.getAttribute("data-qid");
+          const q = quests.find(item => String(item.id) === String(qid));
+          if (q) copyLineMessage(q);
+        };
+      });
+
+      document.querySelectorAll(".btn-detail").forEach(btn => {
+        btn.onclick = () => {
+          const qid = btn.getAttribute("data-qid");
+          const q = quests.find(item => String(item.id) === String(qid));
+          if (q) openDetailModal(q);
+        };
+      });
+    }
+
+    // 初期化とUIイベントリスナー
+    window.addEventListener("DOMContentLoaded", () => {
+      refreshLucide();
+      fetchDashboardData();
+
+      // 更新ボタン
+      document.getElementById("btnRefresh").onclick = fetchDashboardData;
+
+      // 検索入力
+      const searchInput = document.getElementById("searchInput");
+      const btnClearSearch = document.getElementById("btnClearSearch");
+
+      searchInput.oninput = () => {
+        if (searchInput.value.trim() !== "") {
+          btnClearSearch.classList.remove("hidden");
+        } else {
+          btnClearSearch.classList.add("hidden");
+        }
+        renderQuests();
+      };
+
+      btnClearSearch.onclick = () => {
+        searchInput.value = "";
+        btnClearSearch.classList.add("hidden");
+        renderQuests();
+      };
+
+      // 要対応トグルスイッチ
+      const urgentToggle = document.getElementById("urgentToggle");
+      urgentToggle.onchange = (e) => {
+        isUrgentOnly = e.target.checked;
+        const track = document.getElementById("toggleTrack");
+        const thumb = document.getElementById("toggleThumb");
+        if (isUrgentOnly) {
+          track.classList.replace("bg-slate-200", "bg-red-600");
+          thumb.classList.add("translate-x-4");
+        } else {
+          track.classList.replace("bg-red-600", "bg-slate-200");
+          thumb.classList.remove("translate-x-4");
+        }
+        renderQuests();
+      };
+
+      // チップスボタン切り替え
+      document.querySelectorAll(".chip-btn").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".chip-btn").forEach(b => {
+            b.className = "chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100";
+          });
+          btn.className = "chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs";
+          currentFilterTag = btn.getAttribute("data-filter");
+          renderQuests();
+        };
+      });
+
+      // KPIカードクリック時のフィルタ連動
+      document.querySelectorAll(".metric-card").forEach(card => {
+        card.onclick = () => {
+          const target = card.getAttribute("data-filter");
+          const chip = document.querySelector(`.chip-btn[data-filter="${target}"]`);
+          if (chip) chip.click();
+        };
+      });
+
+      // ドロワー制御
+      const drawer = document.getElementById("drawerOverlay");
+      document.getElementById("btnOpenDrawer").onclick = () => drawer.classList.remove("hidden");
+      document.getElementById("btnCloseDrawer").onclick = () => drawer.classList.add("hidden");
+      document.getElementById("drawerBackdrop").onclick = () => drawer.classList.add("hidden");
+
+      document.querySelectorAll(".drawer-link").forEach(btn => {
+        btn.onclick = () => {
+          const target = btn.getAttribute("data-filter");
+          const chip = document.querySelector(`.chip-btn[data-filter="${target}"]`);
+          if (chip) chip.click();
+          drawer.classList.add("hidden");
+        };
+      });
+
+      // モーダル制御
+      document.getElementById("btnCloseModal").onclick = closeDetailModal;
+      document.getElementById("btnCloseModalBtn").onclick = closeDetailModal;
+      document.getElementById("detailModalOverlay").onclick = (e) => {
+        if (e.target.id === "detailModalOverlay") closeDetailModal();
+      };
+
+      document.getElementById("btnModalCopyLine").onclick = () => {
+        if (selectedQuest) copyLineMessage(selectedQuest);
+      };
+
+      // アコーディオン制御
+      document.getElementById("btnAccordionToggle").onclick = () => {
+        isAccordionOpen = !isAccordionOpen;
+        const content = document.getElementById("accordionContent");
+        const icon = document.getElementById("accordionIcon");
+        if (isAccordionOpen) {
+          content.classList.remove("hidden");
+          icon.classList.add("rotate-180");
+        } else {
+          content.classList.add("hidden");
+          icon.classList.remove("rotate-180");
+        }
+      };
+    });
+  </script>
+</body>
+</html>
