@@ -86,7 +86,11 @@
           <span>2日前警告中</span>
           <span id="drawerWarnedBadge" class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-700">0</span>
         </button>
-        <!-- ★ドロワーに追加したマッチング不成立項目 -->
+        <!-- ドロワー：未報告 -->
+        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-rose-600 hover:bg-rose-50" data-filter="unreported">
+          <span>実績未報告</span>
+          <span id="drawerUnreportedBadge" class="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-700">0</span>
+        </button>
         <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-purple-700 hover:bg-purple-50" data-filter="failed">
           <span>マッチング不成立</span>
           <span id="drawerFailedBadge" class="rounded bg-purple-100 px-1.5 py-0.5 text-xs font-bold text-purple-700">0</span>
@@ -96,13 +100,13 @@
   </div>
 
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <!-- 3. 要対応アラート ＆ 運行状況サマリーカード（KPI） -->
-    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+    <!-- 3. 要対応アラート ＆ 運行状況サマリーカード（5連カード） -->
+    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-3.5">
       <!-- 直前未受託カード -->
       <button
         type="button"
         id="cardUrgent"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
         data-filter="urgent"
       >
         <div class="flex items-center justify-between">
@@ -120,7 +124,7 @@
       <button
         type="button"
         id="cardWarned"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
         data-filter="warned"
       >
         <div class="flex items-center justify-between">
@@ -134,11 +138,29 @@
         <p class="mt-1 text-[11px] text-slate-500">LINE注意喚起送信済</p>
       </button>
 
+      <!-- ★新設：実績未報告カード -->
+      <button
+        type="button"
+        id="cardUnreported"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="unreported"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-rose-700">実績未報告</span>
+          <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
+      </button>
+
       <!-- 本日の運行予定カード -->
       <button
         type="button"
         id="cardToday"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
         data-filter="today"
       >
         <div class="flex items-center justify-between">
@@ -156,7 +178,7 @@
       <button
         type="button"
         id="cardOpen"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300 col-span-2 sm:col-span-1"
         data-filter="recruiting"
       >
         <div class="flex items-center justify-between">
@@ -174,7 +196,7 @@
     <!-- 4. 検索・コントロール・チップス -->
     <section class="mb-4 space-y-3">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <!-- オートコンプリート検索バー -->
+        <!-- 検索バー -->
         <div class="relative flex-1">
           <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
           <input
@@ -192,7 +214,7 @@
           </button>
         </div>
 
-        <!-- トグルスイッチ（要対応案件のみ即時絞り込み） -->
+        <!-- トグルスイッチ -->
         <div class="flex items-center gap-2">
           <label
             for="urgentToggle"
@@ -208,23 +230,24 @@
         </div>
       </div>
 
-      <!-- ★チップス（Tags）：マッチング不成立を追加 -->
+      <!-- チップス（Tags） -->
       <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold" id="chipContainer">
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="all">すべて</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="urgent">直前未受託</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="warned">2日前警告中</button>
+        <!-- ★新設：実績未報告チップ -->
+        <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="recruiting">募集中</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
-        <!-- ★新設：マッチング不成立チップ -->
         <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
       </div>
     </section>
 
-    <!-- 5. 運行案件一覧（スケルトンスクリーン ＆ リスト） -->
+    <!-- 5. 運行案件一覧 -->
     <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-      <!-- スケルトンスクリーン（読み込み中） -->
+      <!-- スケルトンスクリーン -->
       <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
         <div class="flex animate-pulse items-center justify-between pt-3">
           <div class="space-y-2">
@@ -248,15 +271,14 @@
         <p class="mt-2 text-sm font-semibold text-slate-500">該当する運行案件はありません</p>
       </div>
 
-      <!-- 案件データリスト展開エリア -->
+      <!-- 案件データリスト -->
       <div id="questListContainer" class="divide-y divide-slate-100 hidden"></div>
     </section>
   </main>
 
-  <!-- 6. 案件詳細モーダル（PC） / ボトムシート（モバイル） -->
+  <!-- 6. 案件詳細モーダル -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
-      <!-- モーダルヘッダー -->
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
         <div>
           <div class="flex items-center gap-2">
@@ -270,7 +292,6 @@
         </button>
       </div>
 
-      <!-- モーダル本文 -->
       <div class="my-4 space-y-4 text-xs">
         <div class="rounded-xl bg-slate-50 p-3.5 space-y-2 border border-slate-100">
           <div class="flex justify-between">
@@ -314,7 +335,7 @@
           <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
         </div>
 
-        <!-- 特記事項・介助メモ（アコーディオン） -->
+        <!-- 特記事項・介助メモ -->
         <div class="rounded-xl border border-slate-200 overflow-hidden">
           <button
             type="button"
@@ -337,20 +358,20 @@
         </div>
       </div>
 
-      <!-- モーダルフッター -->
       <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+        <!-- アクションボタン（募集中：打診文コピー / 未報告：催促文コピー） -->
         <button
           type="button"
           id="btnModalCopyLine"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden"
         >
           <i data-lucide="copy" class="h-3.5 w-3.5"></i>
-          <span>LINE打診文をコピー</span>
+          <span id="modalCopyBtnText">LINE文面をコピー</span>
         </button>
         <button
           type="button"
           id="btnCloseModalBtn"
-          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 ml-auto"
         >
           閉じる
         </button>
@@ -358,7 +379,7 @@
     </div>
   </div>
 
-  <!-- 7. アクション完了トースト通知（Snackbar） -->
+  <!-- 7. アクション完了トースト通知 -->
   <div
     id="toastNotification"
     class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-lg transition-all duration-200 opacity-0 translate-y-3 pointer-events-none"
@@ -371,7 +392,7 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
     let quests = [];
-    let metrics = { urgentCount: 0, warnedCount: 0, todayRunningCount: 0, openCount: 0 };
+    let metrics = { urgentCount: 0, warnedCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
     let currentFilterTag = "all";
     let isUrgentOnly = false;
     let selectedQuest = null;
@@ -433,21 +454,26 @@
       }
     }
 
-    // KPI集計カード ＆ チップス件数バッジの描画更新
     function updateMetricsUI() {
       document.getElementById("metricUrgentCount").textContent = metrics.urgentCount;
       document.getElementById("metricWarnedCount").textContent = metrics.warnedCount;
+      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount || 0;
       document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
       document.getElementById("metricOpenCount").textContent = metrics.openCount;
 
       document.getElementById("drawerTotalCount").textContent = quests.length + "件";
       document.getElementById("drawerUrgentBadge").textContent = metrics.urgentCount;
       document.getElementById("drawerWarnedBadge").textContent = metrics.warnedCount;
+      document.getElementById("drawerUnreportedBadge").textContent = metrics.unreportedCount || 0;
 
-      // ★マッチング不成立の件数集計
       const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
       const drawerFailedBadge = document.getElementById("drawerFailedBadge");
       if (drawerFailedBadge) drawerFailedBadge.textContent = failedCount;
+
+      const chipUnreported = document.getElementById("chipUnreported");
+      if (chipUnreported) {
+        chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount || 0})`;
+      }
 
       const chipFailed = document.getElementById("chipFailed");
       if (chipFailed) {
@@ -455,7 +481,6 @@
       }
     }
 
-    // フィルタリングと一覧描画
     function renderQuests() {
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
@@ -466,7 +491,8 @@
         if (isUrgentOnly) {
           const isUrg = item.isUrgent && item.status === "募集中";
           const isWrn = item.isWarned && item.status === "募集中";
-          if (!isUrg && !isWrn) return false;
+          const isUnrep = !!item.isUnreported;
+          if (!isUrg && !isWrn && !isUnrep) return false;
         }
 
         if (searchVal !== "") {
@@ -481,10 +507,10 @@
 
         if (currentFilterTag === "urgent") return item.isUrgent && item.status === "募集中";
         if (currentFilterTag === "warned") return item.isWarned && item.status === "募集中";
+        if (currentFilterTag === "unreported") return !!item.isUnreported;
         if (currentFilterTag === "today") return item.targetDate === todayStr;
         if (currentFilterTag === "recruiting") return item.status === "募集中";
         if (currentFilterTag === "accepted") return item.status === "受注済";
-        // ★マッチング不成立フィルタ
         if (currentFilterTag === "failed") return item.status === "マッチング不成立";
         if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
 
@@ -505,13 +531,14 @@
       filtered.forEach(quest => {
         const isUrgent = quest.isUrgent && quest.status === "募集中";
         const isWarned = quest.isWarned && quest.status === "募集中";
+        const isUnreported = !!quest.isUnreported;
         const isFailed = quest.status === "マッチング不成立";
 
         let statusClass = "bg-slate-100 text-slate-500";
         if (quest.status === "募集中") {
           statusClass = isUrgent ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700";
         } else if (quest.status === "受注済") {
-          statusClass = "bg-emerald-100 text-emerald-800";
+          statusClass = isUnreported ? "bg-rose-100 text-rose-800 border border-rose-200" : "bg-emerald-100 text-emerald-800";
         } else if (quest.status === "運行完了") {
           statusClass = "bg-slate-100 text-slate-600";
         } else if (isFailed) {
@@ -520,9 +547,10 @@
           statusClass = "bg-amber-100 text-amber-800 border border-amber-200";
         }
 
-        // 背景ハイライト
         let bgClass = "";
-        if (isUrgent) {
+        if (isUnreported) {
+          bgClass = "bg-rose-50/45";
+        } else if (isUrgent) {
           bgClass = "bg-red-50/40";
         } else if (isWarned) {
           bgClass = "bg-amber-50/30";
@@ -540,6 +568,7 @@
               <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
               ${isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>至急打診</span>` : ""}
               ${isWarned && !isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white"><i data-lucide="alert-triangle" class="h-3 w-3"></i>2日前警告済</span>` : ""}
+              ${isUnreported ? `<span class="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="clock-alert" class="h-3 w-3"></i>未報告</span>` : ""}
               ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="x-circle" class="h-3 w-3"></i>不成立</span>` : ""}
               <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
               <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetTime}</span>
@@ -552,14 +581,20 @@
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
               <span class="flex items-center gap-1"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
-              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? "text-slate-800" : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
+              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? (isUnreported ? "text-rose-700 font-bold" : "text-slate-800") : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
             </div>
           </div>
           <div class="flex items-center gap-2 pt-2 sm:pt-0">
             ${isUrgent ? `
-              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}">
+              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}" data-type="urgent">
                 <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600"></i>
                 <span>LINE打診文</span>
+              </button>
+            ` : ""}
+            ${isUnreported ? `
+              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 shadow-xs transition hover:bg-rose-100 active:scale-95" data-qid="${quest.id}" data-type="remind">
+                <i data-lucide="bell" class="h-3.5 w-3.5 text-rose-600"></i>
+                <span>催促LINE文</span>
               </button>
             ` : ""}
             <button type="button" class="btn-detail inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95" data-qid="${quest.id}">
@@ -585,8 +620,32 @@
         .replace(/'/g, "&#039;");
     }
 
-    function copyLineMessage(quest) {
-      const text = `【至急のご相談】直前運行のお願い
+    // LINE文面コピー（打診文 ＆ 実績催促文）
+    function copyLineMessage(quest, type) {
+      let text = "";
+      if (type === "remind") {
+        text = `【活動記録 ご入力のお願い】
+
+${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。
+本日の送迎ボランティア、大変お疲れ様でした！
+
+以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。
+お忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。
+
+━━━━━━━━━━━━━━━
+■ 案件番号：#${quest.id}
+■ 集合日時：${quest.targetDate} ${quest.targetTime}
+■ ご利用者：${quest.userName} 様
+■ 行先：${quest.dropoff}
+━━━━━━━━━━━━━━━
+
+▼ 活動記録の入力画面はこちら：
+https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
+
+※すでにご送信済みの場合は、行き違いをご容赦ください。
+よろしくお願い申し上げます。`;
+      } else {
+        text = `【至急のご相談】直前運行のお願い
 
 いつも大変お世話になっております。おでかけサポート事務局です。
 
@@ -607,9 +666,10 @@
 （難しい場合は遠慮なくお断りいただくか、そのまま見送っていただいて構いません）
 
 よろしくお願い申し上げます。`;
+      }
 
       navigator.clipboard.writeText(text);
-      showToast("LINE打診用テキストをコピーしました");
+      showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
     }
 
     function openDetailModal(quest) {
@@ -626,7 +686,7 @@
       const driverInfoEl = document.getElementById("modalDriverInfo");
       if (quest.driverName) {
         driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
-        driverInfoEl.className = "mt-0.5 font-bold text-emerald-700";
+        driverInfoEl.className = quest.isUnreported ? "mt-0.5 font-bold text-rose-700" : "mt-0.5 font-bold text-emerald-700";
       } else if (quest.status === "マッチング不成立") {
         driverInfoEl.textContent = "担当者なし（前日17:00期限切れ不成立）";
         driverInfoEl.className = "mt-0.5 font-bold text-purple-700";
@@ -646,7 +706,15 @@
       }
 
       const copyBtn = document.getElementById("btnModalCopyLine");
-      if (quest.status === "募集中") {
+      const copyBtnText = document.getElementById("modalCopyBtnText");
+
+      if (quest.isUnreported) {
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
+        copyBtnText.textContent = "催促LINE文をコピー";
+        copyBtn.classList.remove("hidden");
+      } else if (quest.status === "募集中") {
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
+        copyBtnText.textContent = "LINE打診文をコピー";
         copyBtn.classList.remove("hidden");
       } else {
         copyBtn.classList.add("hidden");
@@ -669,8 +737,9 @@
       document.querySelectorAll(".btn-copy-line").forEach(btn => {
         btn.onclick = () => {
           const qid = btn.getAttribute("data-qid");
+          const type = btn.getAttribute("data-type");
           const q = quests.find(item => String(item.id) === String(qid));
-          if (q) copyLineMessage(q);
+          if (q) copyLineMessage(q, type);
         };
       });
 
@@ -762,7 +831,10 @@
       };
 
       document.getElementById("btnModalCopyLine").onclick = () => {
-        if (selectedQuest) copyLineMessage(selectedQuest);
+        if (selectedQuest) {
+          const type = selectedQuest.isUnreported ? "remind" : "urgent";
+          copyLineMessage(selectedQuest, type);
+        }
       };
 
       document.getElementById("btnAccordionToggle").onclick = () => {
