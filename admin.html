@@ -9,7 +9,6 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* 数字の等幅表示とフォント最適化 */
     body {
       font-feature-settings: "tnum";
       font-variant-numeric: tabular-nums;
@@ -87,6 +86,11 @@
           <span>2日前警告中</span>
           <span id="drawerWarnedBadge" class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-700">0</span>
         </button>
+        <!-- ★ドロワーに追加したマッチング不成立項目 -->
+        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-purple-700 hover:bg-purple-50" data-filter="failed">
+          <span>マッチング不成立</span>
+          <span id="drawerFailedBadge" class="rounded bg-purple-100 px-1.5 py-0.5 text-xs font-bold text-purple-700">0</span>
+        </button>
       </div>
     </div>
   </div>
@@ -109,7 +113,7 @@
           <span id="metricUrgentCount" class="text-2xl font-black text-red-600">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">今日・明日の至急案件</p>
+        <p class="mt-1 text-[11px] text-slate-500">今日・明日の至急案件</p>
       </button>
 
       <!-- 2日前警告中カード -->
@@ -127,7 +131,7 @@
           <span id="metricWarnedCount" class="text-2xl font-black text-amber-600">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">LINE注意喚起送信済</p>
+        <p class="mt-1 text-[11px] text-slate-500">LINE注意喚起送信済</p>
       </button>
 
       <!-- 本日の運行予定カード -->
@@ -145,7 +149,7 @@
           <span id="metricTodayCount" class="text-2xl font-black text-blue-600">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
+        <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
       </button>
 
       <!-- 募集中総数カード -->
@@ -163,7 +167,7 @@
           <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
+        <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
       </button>
     </section>
 
@@ -204,7 +208,7 @@
         </div>
       </div>
 
-      <!-- チップス（Tags） -->
+      <!-- ★チップス（Tags）：マッチング不成立を追加 -->
       <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold" id="chipContainer">
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="all">すべて</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="urgent">直前未受託</button>
@@ -212,6 +216,8 @@
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="recruiting">募集中</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
+        <!-- ★新設：マッチング不成立チップ -->
+        <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
       </div>
     </section>
@@ -362,7 +368,6 @@
   </div>
 
   <script>
-    // ★本番GAS Web App URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
     let quests = [];
@@ -379,7 +384,6 @@
       }
     }
 
-    // トースト表示
     function showToast(message) {
       const toast = document.getElementById("toastNotification");
       const toastText = document.getElementById("toastText");
@@ -394,7 +398,6 @@
       }, 3000);
     }
 
-    // データ取得
     async function fetchDashboardData() {
       const icon = document.getElementById("refreshIcon");
       const skeleton = document.getElementById("skeletonLoader");
@@ -415,8 +418,8 @@
           quests = data.quests || [];
           if (data.metrics) {
             metrics = data.metrics;
-            updateMetricsUI();
           }
+          updateMetricsUI();
           renderQuests();
           showToast("最新データを取得しました");
         } else {
@@ -430,7 +433,7 @@
       }
     }
 
-    // KPI集計カードの描画更新
+    // KPI集計カード ＆ チップス件数バッジの描画更新
     function updateMetricsUI() {
       document.getElementById("metricUrgentCount").textContent = metrics.urgentCount;
       document.getElementById("metricWarnedCount").textContent = metrics.warnedCount;
@@ -440,6 +443,16 @@
       document.getElementById("drawerTotalCount").textContent = quests.length + "件";
       document.getElementById("drawerUrgentBadge").textContent = metrics.urgentCount;
       document.getElementById("drawerWarnedBadge").textContent = metrics.warnedCount;
+
+      // ★マッチング不成立の件数集計
+      const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
+      const drawerFailedBadge = document.getElementById("drawerFailedBadge");
+      if (drawerFailedBadge) drawerFailedBadge.textContent = failedCount;
+
+      const chipFailed = document.getElementById("chipFailed");
+      if (chipFailed) {
+        chipFailed.textContent = `マッチング不成立 (${failedCount})`;
+      }
     }
 
     // フィルタリングと一覧描画
@@ -447,7 +460,6 @@
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
       const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
-
       const todayStr = new Date().toISOString().split("T")[0];
 
       const filtered = quests.filter(item => {
@@ -472,6 +484,8 @@
         if (currentFilterTag === "today") return item.targetDate === todayStr;
         if (currentFilterTag === "recruiting") return item.status === "募集中";
         if (currentFilterTag === "accepted") return item.status === "受注済";
+        // ★マッチング不成立フィルタ
+        if (currentFilterTag === "failed") return item.status === "マッチング不成立";
         if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
 
         return true;
@@ -491,6 +505,7 @@
       filtered.forEach(quest => {
         const isUrgent = quest.isUrgent && quest.status === "募集中";
         const isWarned = quest.isWarned && quest.status === "募集中";
+        const isFailed = quest.status === "マッチング不成立";
 
         let statusClass = "bg-slate-100 text-slate-500";
         if (quest.status === "募集中") {
@@ -499,9 +514,21 @@
           statusClass = "bg-emerald-100 text-emerald-800";
         } else if (quest.status === "運行完了") {
           statusClass = "bg-slate-100 text-slate-600";
+        } else if (isFailed) {
+          statusClass = "bg-purple-100 text-purple-800 border border-purple-200";
+        } else if (quest.status === "送迎中止") {
+          statusClass = "bg-amber-100 text-amber-800 border border-amber-200";
         }
 
-        const bgClass = isUrgent ? "bg-red-50/40" : isWarned ? "bg-amber-50/30" : "";
+        // 背景ハイライト
+        let bgClass = "";
+        if (isUrgent) {
+          bgClass = "bg-red-50/40";
+        } else if (isWarned) {
+          bgClass = "bg-amber-50/30";
+        } else if (isFailed) {
+          bgClass = "bg-purple-50/25";
+        }
 
         const card = document.createElement("div");
         card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
@@ -513,6 +540,7 @@
               <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
               ${isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>至急打診</span>` : ""}
               ${isWarned && !isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white"><i data-lucide="alert-triangle" class="h-3 w-3"></i>2日前警告済</span>` : ""}
+              ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="x-circle" class="h-3 w-3"></i>不成立</span>` : ""}
               <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
               <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetTime}</span>
             </div>
@@ -524,7 +552,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
               <span class="flex items-center gap-1"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
-              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? "text-slate-800" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : '未定（募集中）'}</strong></span>
+              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? "text-slate-800" : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
             </div>
           </div>
           <div class="flex items-center gap-2 pt-2 sm:pt-0">
@@ -557,7 +585,6 @@
         .replace(/'/g, "&#039;");
     }
 
-    // LINE打診文の生成・コピー
     function copyLineMessage(quest) {
       const text = `【至急のご相談】直前運行のお願い
 
@@ -585,7 +612,6 @@
       showToast("LINE打診用テキストをコピーしました");
     }
 
-    // 詳細モーダルの展開
     function openDetailModal(quest) {
       selectedQuest = quest;
       document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
@@ -601,6 +627,9 @@
       if (quest.driverName) {
         driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
         driverInfoEl.className = "mt-0.5 font-bold text-emerald-700";
+      } else if (quest.status === "マッチング不成立") {
+        driverInfoEl.textContent = "担当者なし（前日17:00期限切れ不成立）";
+        driverInfoEl.className = "mt-0.5 font-bold text-purple-700";
       } else {
         driverInfoEl.textContent = "未定（現在ドライバー募集中）";
         driverInfoEl.className = "mt-0.5 font-bold text-red-600";
@@ -623,7 +652,6 @@
         copyBtn.classList.add("hidden");
       }
 
-      // アコーディオン初期化（閉じる）
       isAccordionOpen = false;
       document.getElementById("accordionContent").classList.add("hidden");
       document.getElementById("accordionIcon").classList.remove("rotate-180");
@@ -637,7 +665,6 @@
       selectedQuest = null;
     }
 
-    // 動的要素のイベント登録
     function attachEventHandlers() {
       document.querySelectorAll(".btn-copy-line").forEach(btn => {
         btn.onclick = () => {
@@ -656,15 +683,12 @@
       });
     }
 
-    // 初期化とUIイベントリスナー
     window.addEventListener("DOMContentLoaded", () => {
       refreshLucide();
       fetchDashboardData();
 
-      // 更新ボタン
       document.getElementById("btnRefresh").onclick = fetchDashboardData;
 
-      // 検索入力
       const searchInput = document.getElementById("searchInput");
       const btnClearSearch = document.getElementById("btnClearSearch");
 
@@ -683,7 +707,6 @@
         renderQuests();
       };
 
-      // 要対応トグルスイッチ
       const urgentToggle = document.getElementById("urgentToggle");
       urgentToggle.onchange = (e) => {
         isUrgentOnly = e.target.checked;
@@ -699,7 +722,6 @@
         renderQuests();
       };
 
-      // チップスボタン切り替え
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
@@ -711,7 +733,6 @@
         };
       });
 
-      // KPIカードクリック時のフィルタ連動
       document.querySelectorAll(".metric-card").forEach(card => {
         card.onclick = () => {
           const target = card.getAttribute("data-filter");
@@ -720,7 +741,6 @@
         };
       });
 
-      // ドロワー制御
       const drawer = document.getElementById("drawerOverlay");
       document.getElementById("btnOpenDrawer").onclick = () => drawer.classList.remove("hidden");
       document.getElementById("btnCloseDrawer").onclick = () => drawer.classList.add("hidden");
@@ -735,7 +755,6 @@
         };
       });
 
-      // モーダル制御
       document.getElementById("btnCloseModal").onclick = closeDetailModal;
       document.getElementById("btnCloseModalBtn").onclick = closeDetailModal;
       document.getElementById("detailModalOverlay").onclick = (e) => {
@@ -746,7 +765,6 @@
         if (selectedQuest) copyLineMessage(selectedQuest);
       };
 
-      // アコーディオン制御
       document.getElementById("btnAccordionToggle").onclick = () => {
         isAccordionOpen = !isAccordionOpen;
         const content = document.getElementById("accordionContent");
