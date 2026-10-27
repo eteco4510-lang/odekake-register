@@ -21,33 +21,21 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-16">
 
-  <!-- 1. スティッキーヘッダー（背景ブラー効果） -->
+  <!-- 1. スティッキーヘッダー（ハンバーガーメニュー削除・すっきり構造） -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-      <div class="flex items-center gap-3">
-        <!-- モバイル用ハンバーガーボタン -->
-        <button
-          type="button"
-          id="btnOpenDrawer"
-          class="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 sm:hidden focus:outline-hidden"
-          aria-label="メニューを開く"
-        >
-          <i data-lucide="menu" class="h-5 w-5"></i>
-        </button>
-        <div>
-          <!-- パンくずリスト -->
-          <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-            <span class="flex items-center gap-1">
-              <i data-lucide="home" class="h-3 w-3"></i>
-              おでかけサポート
-            </span>
-            <span>/</span>
-            <span class="text-slate-800 font-semibold">事務局コックピット</span>
-          </nav>
-          <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl">
-            運行予定・アラート管理
-          </h1>
-        </div>
+      <div>
+        <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+          <span class="flex items-center gap-1">
+            <i data-lucide="home" class="h-3 w-3"></i>
+            おでかけサポート
+          </span>
+          <span>/</span>
+          <span class="text-slate-800 font-semibold">事務局コックピット</span>
+        </nav>
+        <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl">
+          運行予定・アラート管理
+        </h1>
       </div>
 
       <div class="flex items-center gap-2">
@@ -56,93 +44,39 @@
           id="btnRefresh"
           class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
         >
-          <i data-lucide="refresh-cw" id="refreshIcon" class="h-3.5 w-3.5"></i>
+          <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
           <span class="hidden sm:inline">最新情報に更新</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- 2. モバイル用スライドイン ナビゲーションドロワー -->
-  <div id="drawerOverlay" class="fixed inset-0 z-50 flex sm:hidden hidden">
-    <div id="drawerBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"></div>
-    <div class="relative flex w-full max-w-xs flex-1 flex-col bg-white p-6 shadow-xl">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-        <span class="font-bold text-slate-900">事務局メニュー</span>
-        <button type="button" id="btnCloseDrawer" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
-          <i data-lucide="x" class="h-5 w-5"></i>
-        </button>
-      </div>
-      <div class="mt-4 space-y-2 text-sm font-semibold">
-        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-slate-100" data-filter="all">
-          <span>全案件一覧</span>
-          <span id="drawerTotalCount" class="text-xs text-slate-400">0件</span>
-        </button>
-        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50" data-filter="urgent">
-          <span>直前未受託（至急）</span>
-          <span id="drawerUrgentBadge" class="rounded bg-red-100 px-1.5 py-0.5 text-xs font-bold text-red-700">0</span>
-        </button>
-        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-amber-600 hover:bg-amber-50" data-filter="warned">
-          <span>2日前警告中</span>
-          <span id="drawerWarnedBadge" class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-700">0</span>
-        </button>
-        <!-- ドロワー：未報告 -->
-        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-rose-600 hover:bg-rose-50" data-filter="unreported">
-          <span>実績未報告</span>
-          <span id="drawerUnreportedBadge" class="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-700">0</span>
-        </button>
-        <button type="button" class="drawer-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-purple-700 hover:bg-purple-50" data-filter="failed">
-          <span>マッチング不成立</span>
-          <span id="drawerFailedBadge" class="rounded bg-purple-100 px-1.5 py-0.5 text-xs font-bold text-purple-700">0</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <!-- 3. 要対応アラート ＆ 運行状況サマリーカード（5連カード） -->
-    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-3.5">
-      <!-- 直前未受託カード -->
+    <!-- 2. サマリーカード（要対応に統合・全4枚） -->
+    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <!-- 要対応カード（直前未受託 ＋ 2日前警告中を統合） -->
       <button
         type="button"
-        id="cardUrgent"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="urgent"
+        id="cardActionRequired"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="action_required"
       >
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-red-700">直前未受託</span>
+          <span class="text-xs font-bold text-red-700">要対応</span>
           <i data-lucide="alert-circle" class="h-4 w-4 text-red-600"></i>
         </div>
         <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricUrgentCount" class="text-2xl font-black text-red-600">0</span>
+          <span id="metricActionRequiredCount" class="text-2xl font-black text-red-600">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p class="mt-1 text-[11px] text-slate-500">今日・明日の至急案件</p>
+        <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
       </button>
 
-      <!-- 2日前警告中カード -->
-      <button
-        type="button"
-        id="cardWarned"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="warned"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-amber-700">2日前警告中</span>
-          <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricWarnedCount" class="text-2xl font-black text-amber-600">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">LINE注意喚起送信済</p>
-      </button>
-
-      <!-- ★新設：実績未報告カード -->
+      <!-- 実績未報告カード -->
       <button
         type="button"
         id="cardUnreported"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
         data-filter="unreported"
       >
         <div class="flex items-center justify-between">
@@ -160,7 +94,7 @@
       <button
         type="button"
         id="cardToday"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
         data-filter="today"
       >
         <div class="flex items-center justify-between">
@@ -178,7 +112,7 @@
       <button
         type="button"
         id="cardOpen"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs transition hover:border-slate-300 col-span-2 sm:col-span-1"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
         data-filter="recruiting"
       >
         <div class="flex items-center justify-between">
@@ -193,55 +127,36 @@
       </button>
     </section>
 
-    <!-- 4. 検索・コントロール・チップス -->
+    <!-- 3. 検索バー（要対応トグル削除で横幅フル活用） -->
     <section class="mb-4 space-y-3">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <!-- 検索バー -->
-        <div class="relative flex-1">
-          <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
-            class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-          />
-          <button
-            type="button"
-            id="btnClearSearch"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
-          >
-            <i data-lucide="x" class="h-4 w-4"></i>
-          </button>
-        </div>
-
-        <!-- トグルスイッチ -->
-        <div class="flex items-center gap-2">
-          <label
-            for="urgentToggle"
-            class="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700"
-          >
-            <span>要対応のみ表示</span>
-            <div class="relative">
-              <input id="urgentToggle" type="checkbox" class="sr-only" />
-              <div id="toggleTrack" class="h-5 w-9 rounded-full bg-slate-200 transition"></div>
-              <div id="toggleThumb" class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition"></div>
-            </div>
-          </label>
-        </div>
+      <div class="relative w-full">
+        <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
+          class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+        />
+        <button
+          type="button"
+          id="btnClearSearch"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
+        >
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
       </div>
 
-      <!-- チップス（Tags） -->
+      <!-- 4. 案件分類チップス（ご指定の順序に完全準拠） -->
+      <!-- 順番: 募集中 ➔ 受注済 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告 ➔ マッチング不成立 ➔ 完了・中止 ➔ すべて -->
       <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold" id="chipContainer">
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="all">すべて</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="urgent">直前未受託</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="warned">2日前警告中</button>
-        <!-- ★新設：実績未報告チップ -->
-        <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="recruiting">募集中</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-red-600 hover:bg-red-50" data-filter="action_required">要対応</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
+        <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
         <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
+        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="all">すべて</button>
       </div>
     </section>
 
@@ -359,7 +274,6 @@
       </div>
 
       <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-        <!-- アクションボタン（募集中：打診文コピー / 未報告：催促文コピー） -->
         <button
           type="button"
           id="btnModalCopyLine"
@@ -392,9 +306,9 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
     let quests = [];
-    let metrics = { urgentCount: 0, warnedCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
-    let currentFilterTag = "all";
-    let isUrgentOnly = false;
+    let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
+    // 初期選択は先頭の「募集中」
+    let currentFilterTag = "recruiting";
     let selectedQuest = null;
     let toastTimer = null;
     let isAccordionOpen = false;
@@ -419,26 +333,57 @@
       }, 3000);
     }
 
+    // ★安全かつ確実にスピナーを制御する関数（置換後の要素も動的に取得して停止）
+    function setRefreshing(isLoading) {
+      const btn = document.getElementById("btnRefresh");
+      if (!btn) return;
+      btn.disabled = isLoading;
+      const icon = btn.querySelector("svg, i");
+      if (icon) {
+        if (isLoading) {
+          icon.classList.add("animate-spin");
+        } else {
+          icon.classList.remove("animate-spin");
+        }
+      }
+    }
+
+    // ★データ取得処理（10秒タイムアウト・確実なfinally停止ガード付き）
     async function fetchDashboardData() {
-      const icon = document.getElementById("refreshIcon");
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
 
-      if (icon) icon.classList.add("animate-spin");
+      setRefreshing(true);
+
       if (quests.length === 0) {
         skeleton.classList.remove("hidden");
         container.classList.add("hidden");
         empty.classList.add("hidden");
       }
 
+      // 10秒でタイムアウトさせるコントローラー
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData`);
+        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         const data = await res.json();
         if (data.success) {
           quests = data.quests || [];
           if (data.metrics) {
-            metrics = data.metrics;
+            metrics = {
+              actionRequiredCount: (data.metrics.actionRequiredCount !== undefined)
+                ? data.metrics.actionRequiredCount
+                : ((data.metrics.urgentCount || 0) + (data.metrics.warnedCount || 0)),
+              unreportedCount: data.metrics.unreportedCount || 0,
+              todayRunningCount: data.metrics.todayRunningCount || 0,
+              openCount: data.metrics.openCount || 0
+            };
           }
           updateMetricsUI();
           renderQuests();
@@ -447,32 +392,31 @@
           showToast("取得エラー: " + (data.message || ""));
         }
       } catch (err) {
-        showToast("通信エラー: " + err.message);
+        clearTimeout(timeoutId);
+        if (err.name === "AbortError") {
+          showToast("通信タイムアウト: GASの応答がありませんでした");
+        } else {
+          showToast("通信エラー: " + err.message);
+        }
       } finally {
-        if (icon) icon.classList.remove("animate-spin");
+        // ★何があっても確実にアイコン回転を停止
+        setRefreshing(false);
         skeleton.classList.add("hidden");
       }
     }
 
     function updateMetricsUI() {
-      document.getElementById("metricUrgentCount").textContent = metrics.urgentCount;
-      document.getElementById("metricWarnedCount").textContent = metrics.warnedCount;
-      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount || 0;
+      // 要対応カードの件数
+      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount;
+      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount;
       document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
       document.getElementById("metricOpenCount").textContent = metrics.openCount;
 
-      document.getElementById("drawerTotalCount").textContent = quests.length + "件";
-      document.getElementById("drawerUrgentBadge").textContent = metrics.urgentCount;
-      document.getElementById("drawerWarnedBadge").textContent = metrics.warnedCount;
-      document.getElementById("drawerUnreportedBadge").textContent = metrics.unreportedCount || 0;
-
       const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
-      const drawerFailedBadge = document.getElementById("drawerFailedBadge");
-      if (drawerFailedBadge) drawerFailedBadge.textContent = failedCount;
 
       const chipUnreported = document.getElementById("chipUnreported");
       if (chipUnreported) {
-        chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount || 0})`;
+        chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount})`;
       }
 
       const chipFailed = document.getElementById("chipFailed");
@@ -488,13 +432,7 @@
       const todayStr = new Date().toISOString().split("T")[0];
 
       const filtered = quests.filter(item => {
-        if (isUrgentOnly) {
-          const isUrg = item.isUrgent && item.status === "募集中";
-          const isWrn = item.isWarned && item.status === "募集中";
-          const isUnrep = !!item.isUnreported;
-          if (!isUrg && !isWrn && !isUnrep) return false;
-        }
-
+        // 検索フィルター
         if (searchVal !== "") {
           const match =
             item.id.toLowerCase().includes(searchVal) ||
@@ -505,12 +443,14 @@
           if (!match) return false;
         }
 
-        if (currentFilterTag === "urgent") return item.isUrgent && item.status === "募集中";
-        if (currentFilterTag === "warned") return item.isWarned && item.status === "募集中";
-        if (currentFilterTag === "unreported") return !!item.isUnreported;
-        if (currentFilterTag === "today") return item.targetDate === todayStr;
+        // チップスフィルター
+        const isActionRequired = (item.isUrgent || item.isWarned) && item.status === "募集中";
+
         if (currentFilterTag === "recruiting") return item.status === "募集中";
         if (currentFilterTag === "accepted") return item.status === "受注済";
+        if (currentFilterTag === "action_required") return isActionRequired;
+        if (currentFilterTag === "today") return item.targetDate === todayStr;
+        if (currentFilterTag === "unreported") return !!item.isUnreported;
         if (currentFilterTag === "failed") return item.status === "マッチング不成立";
         if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
 
@@ -529,14 +469,13 @@
       container.innerHTML = "";
 
       filtered.forEach(quest => {
-        const isUrgent = quest.isUrgent && quest.status === "募集中";
-        const isWarned = quest.isWarned && quest.status === "募集中";
+        const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
         const isUnreported = !!quest.isUnreported;
         const isFailed = quest.status === "マッチング不成立";
 
         let statusClass = "bg-slate-100 text-slate-500";
         if (quest.status === "募集中") {
-          statusClass = isUrgent ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700";
+          statusClass = isActionRequired ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700";
         } else if (quest.status === "受注済") {
           statusClass = isUnreported ? "bg-rose-100 text-rose-800 border border-rose-200" : "bg-emerald-100 text-emerald-800";
         } else if (quest.status === "運行完了") {
@@ -550,10 +489,8 @@
         let bgClass = "";
         if (isUnreported) {
           bgClass = "bg-rose-50/45";
-        } else if (isUrgent) {
+        } else if (isActionRequired) {
           bgClass = "bg-red-50/40";
-        } else if (isWarned) {
-          bgClass = "bg-amber-50/30";
         } else if (isFailed) {
           bgClass = "bg-purple-50/25";
         }
@@ -566,8 +503,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-mono text-xs font-bold text-slate-500">#${quest.id}</span>
               <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
-              ${isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>至急打診</span>` : ""}
-              ${isWarned && !isUrgent ? `<span class="inline-flex items-center gap-1 rounded bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white"><i data-lucide="alert-triangle" class="h-3 w-3"></i>2日前警告済</span>` : ""}
+              ${isActionRequired ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>要対応</span>` : ""}
               ${isUnreported ? `<span class="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="clock-alert" class="h-3 w-3"></i>未報告</span>` : ""}
               ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="x-circle" class="h-3 w-3"></i>不成立</span>` : ""}
               <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
@@ -585,7 +521,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2 pt-2 sm:pt-0">
-            ${isUrgent ? `
+            ${isActionRequired ? `
               <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}" data-type="urgent">
                 <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600"></i>
                 <span>LINE打診文</span>
@@ -620,7 +556,7 @@
         .replace(/'/g, "&#039;");
     }
 
-    // LINE文面コピー（打診文 ＆ 実績催促文）
+    // ★打診文（辞退促し文言を削除済み）
     function copyLineMessage(quest, type) {
       let text = "";
       if (type === "remind") {
@@ -663,7 +599,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
 ━━━━━━━━━━━━━━━
 
 お引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。
-（難しい場合は遠慮なくお断りいただくか、そのまま見送っていただいて構いません）
 
 よろしくお願い申し上げます。`;
       }
@@ -674,6 +609,8 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
 
     function openDetailModal(quest) {
       selectedQuest = quest;
+      const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
+
       document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
       document.getElementById("modalQuestStatus").textContent = quest.status;
       document.getElementById("modalDatetime").textContent = `${quest.targetDate} ${quest.targetTime} 集合`;
@@ -712,7 +649,7 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
         copyBtnText.textContent = "催促LINE文をコピー";
         copyBtn.classList.remove("hidden");
-      } else if (quest.status === "募集中") {
+      } else if (isActionRequired) {
         copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
         copyBtnText.textContent = "LINE打診文をコピー";
         copyBtn.classList.remove("hidden");
@@ -776,21 +713,7 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         renderQuests();
       };
 
-      const urgentToggle = document.getElementById("urgentToggle");
-      urgentToggle.onchange = (e) => {
-        isUrgentOnly = e.target.checked;
-        const track = document.getElementById("toggleTrack");
-        const thumb = document.getElementById("toggleThumb");
-        if (isUrgentOnly) {
-          track.classList.replace("bg-slate-200", "bg-red-600");
-          thumb.classList.add("translate-x-4");
-        } else {
-          track.classList.replace("bg-red-600", "bg-slate-200");
-          thumb.classList.remove("translate-x-4");
-        }
-        renderQuests();
-      };
-
+      // チップスボタン切り替え
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
@@ -802,25 +725,12 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         };
       });
 
+      // サマリーカードクリック時のフィルタ連動
       document.querySelectorAll(".metric-card").forEach(card => {
         card.onclick = () => {
           const target = card.getAttribute("data-filter");
           const chip = document.querySelector(`.chip-btn[data-filter="${target}"]`);
           if (chip) chip.click();
-        };
-      });
-
-      const drawer = document.getElementById("drawerOverlay");
-      document.getElementById("btnOpenDrawer").onclick = () => drawer.classList.remove("hidden");
-      document.getElementById("btnCloseDrawer").onclick = () => drawer.classList.add("hidden");
-      document.getElementById("drawerBackdrop").onclick = () => drawer.classList.add("hidden");
-
-      document.querySelectorAll(".drawer-link").forEach(btn => {
-        btn.onclick = () => {
-          const target = btn.getAttribute("data-filter");
-          const chip = document.querySelector(`.chip-btn[data-filter="${target}"]`);
-          if (chip) chip.click();
-          drawer.classList.add("hidden");
         };
       });
 
