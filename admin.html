@@ -21,7 +21,6 @@
       font-family: inherit;
     }
 
-    /* ★A4用紙に3枚収まる受領書印刷用スタイル */
     @media print {
       body * {
         visibility: hidden !important;
@@ -52,7 +51,6 @@
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
-      /* 3枚ごとに自動改ページ */
       .voucher-ticket-wrap:nth-child(3n) {
         page-break-after: always !important;
         break-after: page !important;
@@ -210,7 +208,6 @@
         </button>
       </div>
 
-      <!-- サブ表示切替：運行予定 vs 活動記録ログ -->
       <div class="flex items-center justify-between">
         <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
           <button
@@ -365,7 +362,6 @@
         </div>
       </div>
 
-      <!-- ドライバー名簿ビュー -->
       <div id="rosterDriversView" class="space-y-3">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div class="relative w-full sm:w-80">
@@ -387,7 +383,6 @@
         <div id="driversListContainer" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
       </div>
 
-      <!-- 利用者名簿ビュー -->
       <div id="rosterUsersView" class="space-y-3 hidden">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div class="relative w-full sm:w-80">
@@ -440,7 +435,6 @@
           <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
           <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
           <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
-          <!-- ★受領書印刷ボタン -->
           <button
             type="button"
             id="btnPrintPreview"
@@ -452,7 +446,6 @@
         </div>
       </div>
 
-      <!-- 精算サマリーKPI -->
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <span class="text-xs font-bold text-slate-500">運行回数合計</span>
@@ -484,7 +477,6 @@
         </div>
       </div>
 
-      <!-- 金種計算カード（銀行両替用メモ） -->
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
           <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
@@ -525,7 +517,6 @@
         </div>
       </div>
 
-      <!-- ドライバー別 活動集計・累計テーブル -->
       <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
@@ -547,9 +538,7 @@
 
   </main>
 
-  <!-- ======================================================== -->
-  <!-- 案件詳細モーダル                                          -->
-  <!-- ======================================================== -->
+  <!-- 案件詳細モーダル -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -648,9 +637,7 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- ドライバー新規登録モーダル                                -->
-  <!-- ======================================================== -->
+  <!-- ドライバー新規登録モーダル -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -762,9 +749,7 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- ドライバー登録完了ポップアップ                            -->
-  <!-- ======================================================== -->
+  <!-- ドライバー登録完了ポップアップ -->
   <div id="driverSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
@@ -807,9 +792,7 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- ★受領書 印刷プレビューモーダル（個人別・A4 3分割仕様）    -->
-  <!-- ======================================================== -->
+  <!-- A4 3分割 受領書印刷プレビューモーダル -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -831,7 +814,6 @@
         </div>
       </div>
 
-      <!-- ★印刷用コンテナ（画面プレビュー兼プリンタ出力領域） -->
       <div id="printContainer" class="p-2 sm:p-4 bg-white text-slate-900">
         <div id="voucherListArea" class="space-y-4"></div>
       </div>
@@ -896,24 +878,28 @@
       }
     }
 
-    async function fetchDashboardData() {
+    // ★改善：タイムアウト40秒＆自動リトライ付きデータ取得関数
+    async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
 
       setRefreshing(true);
 
-      if (quests.length === 0) {
+      if (quests.length === 0 && !isRetry) {
         skeleton.classList.remove("hidden");
         container.classList.add("hidden");
         empty.classList.add("hidden");
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      // タイムアウトを40秒に拡大（GASのスピンアップ待機対応）
+      const timeoutId = setTimeout(() => controller.abort(), 40000);
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData`, {
+        // キャッシュバスター（_t）付与で常に最新を取得
+        const cacheBuster = `&_t=${Date.now()}`;
+        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -941,13 +927,18 @@
           renderDrivers();
           renderUsers();
           updateSettlementView();
-          showToast("最新データを取得しました");
+          showToast(isRetry ? "再接続して最新データを取得しました" : "最新データを取得しました");
         } else {
           showToast("取得エラー: " + (data.message || ""));
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        showToast(err.name === "AbortError" ? "通信タイムアウト: 応答がありませんでした" : "通信エラー: " + err.message);
+        // コールドスタート等で初回到達失敗した場合、1回だけ自動で即時リトライ
+        if (!isRetry) {
+          console.warn("初回取得失敗、再試行中...", err);
+          return await fetchDashboardData(true);
+        }
+        showToast(err.name === "AbortError" ? "通信タイムアウト: GASの応答がありませんでした" : "通信エラー: " + err.message);
       } finally {
         setRefreshing(false);
         skeleton.classList.add("hidden");
@@ -963,7 +954,8 @@
       if (statusText) statusText.textContent = "事前登録フォームの回答を取得中...";
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations`);
+        const cacheBuster = `&_t=${Date.now()}`;
+        const res = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations${cacheBuster}`);
         const data = await res.json();
         
         if (data.success) {
@@ -1193,7 +1185,7 @@
       refreshLucide();
     }
 
-    // ★改修：ドライバー名簿の描画（住所の横に「地図を表示」ボタンを追加）
+    // ドライバー名簿の描画（住所横に「地図を表示」ボタン配置）
     function renderDrivers() {
       const container = document.getElementById("driversListContainer");
       const searchVal = (document.getElementById("searchDriverInput")?.value || "").trim().toLowerCase();
@@ -1246,7 +1238,6 @@
               <span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span>
             </div>
 
-            <!-- ★住所 ＆ 既定の地図アプリ起動ボタン -->
             ${d.address ? `
               <div class="flex items-center justify-between gap-1.5 pt-0.5">
                 <div class="flex items-center gap-1.5 min-w-0 flex-1 text-slate-800">
@@ -1329,7 +1320,6 @@
       refreshLucide();
     }
 
-    // 金種計算ロジック
     function getEnvelopeBreakdown(amt) {
       let rem = Math.round(amt);
       const denoms = [10000, 5000, 1000, 500, 100, 50, 10];
@@ -1355,7 +1345,6 @@
       return parts.length > 0 ? parts.join(' / ') : 'なし';
     }
 
-    // 日付を和暦（または YYYY年M月D日）形式にフォーマット
     function formatJpDate(dateStr) {
       if (!dateStr) return '';
       const d = new Date(dateStr);
@@ -1475,7 +1464,7 @@
       });
     }
 
-    // ★改修：個人ごとの受領書（添付画像デザインに準拠・A4 3分割チケット形式）生成
+    // A4 3分割 受領書印刷プレビュー生成
     function openPrintPreview() {
       const sDate = document.getElementById("settleStartDate").value;
       const eDate = document.getElementById("settleEndDate").value;
@@ -1504,7 +1493,6 @@
         const totalStr = cols[7].textContent.trim();
         const amtNum = parseInt(totalStr.replace(/[^0-9]/g, ""), 10) || 0;
 
-        // 支給額があるドライバー（または運行実績があるドライバー）を対象に受領書チケットを発行
         if (amtNum > 0 || trips > 0) {
           voucherCount++;
           const env = getEnvelopeBreakdown(amtNum);
@@ -1515,7 +1503,6 @@
 
           ticketWrap.innerHTML = `
             <div class="voucher-ticket border border-slate-300 rounded-lg p-5 bg-white relative flex flex-col justify-between" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
-              <!-- 上部ヘッダー -->
               <div>
                 <div class="flex items-center justify-between text-xs text-slate-600 font-mono">
                   <div>受領書番号 <strong>${voucherCount}</strong></div>
@@ -1526,7 +1513,6 @@
                 </h2>
               </div>
 
-              <!-- 運行情報 -->
               <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-800 my-2">
                 <div>登録番号 <strong class="font-mono text-sm">${escapeHtml(id)}</strong></div>
                 <div>お名前 <strong class="text-sm">${escapeHtml(name)}</strong> 様</div>
@@ -1534,7 +1520,6 @@
                 <div>運行回数 <strong class="font-mono">${trips}</strong> 回</div>
               </div>
 
-              <!-- 領収金額＆宣誓文 -->
               <div class="my-1.5">
                 <div class="flex items-baseline gap-2 border-b-2 border-slate-900 pb-1">
                   <span class="text-sm font-bold">領収金額</span>
@@ -1547,7 +1532,6 @@
                 </p>
               </div>
 
-              <!-- 自署欄・受領日・支払元 -->
               <div class="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-slate-200">
                 <div class="space-y-1">
                   <div>受領日 令和  年  月  日</div>
@@ -1565,7 +1549,6 @@
               </div>
             </div>
 
-            <!-- 切り取り線（ハサミマーク付き） -->
             <div class="voucher-cut-line py-3 text-center text-slate-400 text-xs font-mono select-none" style="display:none;">
               ✂ ---------------------------------------------------- 切り取り線 ----------------------------------------------------
             </div>
@@ -1611,7 +1594,7 @@
       refreshLucide();
       fetchDashboardData();
 
-      document.getElementById("btnRefresh").onclick = fetchDashboardData;
+      document.getElementById("btnRefresh").onclick = () => fetchDashboardData(false);
 
       // メインタブ切り替え
       document.querySelectorAll(".main-tab-btn").forEach(btn => {
@@ -1631,7 +1614,7 @@
         };
       });
 
-      // サブタブ切替：運行予定 vs 活動記録ログ
+      // サブタブ切替
       document.getElementById("subTabOpsQuests").onclick = () => {
         document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
         document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
@@ -1645,7 +1628,6 @@
         document.getElementById("opsQuestsView").classList.add("hidden");
       };
 
-      // サブタブ切替：ドライバー名簿 vs 利用者名簿
       document.getElementById("subTabRosterDrivers").onclick = () => {
         document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
         document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
@@ -1659,11 +1641,9 @@
         document.getElementById("rosterDriversView").classList.add("hidden");
       };
 
-      // 名簿検索
       document.getElementById("searchDriverInput")?.addEventListener("input", renderDrivers);
       document.getElementById("searchUserInput")?.addEventListener("input", renderUsers);
 
-      // ドライバーフィルターチップス
       document.querySelectorAll("#driverFilterChips .d-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll("#driverFilterChips .d-chip").forEach(c => {
@@ -1674,7 +1654,6 @@
         };
       });
 
-      // 利用者フィルターチップス
       document.querySelectorAll("#userFilterChips .u-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll("#userFilterChips .u-chip").forEach(c => {
@@ -1685,7 +1664,6 @@
         };
       });
 
-      // 運行予定検索バー
       const searchInput = document.getElementById("searchInput");
       const btnClearSearch = document.getElementById("btnClearSearch");
       searchInput.oninput = () => {
@@ -1698,7 +1676,6 @@
         renderQuests();
       };
 
-      // 運行日付範囲ピッカー
       const startDateInput = document.getElementById("startDateInput");
       const endDateInput = document.getElementById("endDateInput");
       startDateInput.onchange = renderQuests;
@@ -1732,7 +1709,6 @@
         showToast("期間指定を解除しました（全期間表示）");
       };
 
-      // 運行分類チップス
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
@@ -1744,7 +1720,6 @@
         };
       });
 
-      // サマリーカードクリック時
       document.querySelectorAll(".metric-card").forEach(card => {
         card.onclick = () => {
           const target = card.getAttribute("data-filter");
@@ -1753,7 +1728,6 @@
         };
       });
 
-      // 実費精算タブの日付コントロール
       const settleStart = document.getElementById("settleStartDate");
       const settleEnd = document.getElementById("settleEndDate");
       settleStart.onchange = updateSettlementView;
@@ -1796,7 +1770,6 @@
         showToast("全期間の精算データを表示します");
       };
 
-      // 印刷プレビューモーダルの制御
       document.getElementById("btnPrintPreview").onclick = openPrintPreview;
       document.getElementById("btnClosePrintPreview").onclick = () => {
         document.getElementById("printPreviewModal").classList.add("hidden");
@@ -1805,7 +1778,6 @@
         window.print();
       };
 
-      // ドライバー新規登録モーダル
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
       const preRegSelect = document.getElementById("preRegSelect");
