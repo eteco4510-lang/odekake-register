@@ -21,15 +21,15 @@
       font-family: inherit;
     }
 
-    /* A4用紙に3枚収まる受領書印刷用スタイル */
+    /* A4印刷専用スタイル */
     @media print {
       body * {
         visibility: hidden !important;
       }
-      #printContainer, #printContainer * {
+      #activePrintArea, #activePrintArea * {
         visibility: visible !important;
       }
-      #printContainer {
+      #activePrintArea {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
@@ -58,6 +58,10 @@
       }
       .voucher-cut-line {
         display: block !important;
+      }
+      .page-break {
+        page-break-after: always !important;
+        break-after: page !important;
       }
     }
   </style>
@@ -436,13 +440,25 @@
           <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
           <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
           <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
+          
+          <!-- ★受領書A4印刷ボタン -->
           <button
             type="button"
             id="btnPrintPreview"
-            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95 ml-auto sm:ml-2"
           >
             <i data-lucide="printer" class="h-3.5 w-3.5"></i>
             <span>受領書A4印刷（3分割）</span>
+          </button>
+
+          <!-- ★新設：市提出用 事業活動実績報告書 印刷ボタン -->
+          <button
+            type="button"
+            id="btnPrintCityReport"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1.5 text-white font-bold shadow-xs hover:bg-blue-800 active:scale-95"
+          >
+            <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+            <span>市提出 実績報告書 印刷</span>
           </button>
         </div>
       </div>
@@ -793,7 +809,9 @@
     </div>
   </div>
 
-  <!-- A4 3分割 受領書印刷プレビューモーダル -->
+  <!-- ======================================================== -->
+  <!-- ★1. 受領書 印刷プレビューモーダル（個人別・A4 3分割仕様）    -->
+  <!-- ======================================================== -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -805,7 +823,7 @@
           <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。切り取り線で切ってご利用ください。</p>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95">
+          <button type="button" id="btnTriggerPrintVoucher" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95">
             <i data-lucide="printer" class="h-3.5 w-3.5"></i>
             <span>この内容で印刷する</span>
           </button>
@@ -815,11 +833,76 @@
         </div>
       </div>
 
-      <div id="printContainer" class="p-2 sm:p-4 bg-white text-slate-900">
+      <div class="p-2 sm:p-4 bg-white text-slate-900">
         <div id="voucherListArea" class="space-y-4"></div>
       </div>
     </div>
   </div>
+
+  <!-- ======================================================== -->
+  <!-- ★2. 相模原市提出用 実績報告書 プレビューモーダル         -->
+  <!-- ======================================================== -->
+  <div id="cityReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="file-check" class="h-4 w-4 text-blue-700"></i>
+            <span>相模原市提出用 実績報告書類一式（A4縦・計2ページ）</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">※1ページ目: 補助事業等実績報告書(様式) / 2ページ目: 事業活動実績報告書(集計要件準拠)</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnTriggerPrintCityReport" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95">
+            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+            <span>この内容で印刷する</span>
+          </button>
+          <button type="button" id="btnCloseCityReportModal" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+            閉じる
+          </button>
+        </div>
+      </div>
+
+      <!-- 編集可能な行政書類ヘッダー情報エリア -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 my-3 text-xs space-y-2">
+        <div class="font-bold text-slate-700">【書類記載事項の確認・修正（必要に応じて変更してください）】</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <span class="block text-[11px] text-slate-500">団体名称</span>
+            <input type="text" id="crOrgName" value="〇〇移動支援サポート倶楽部" class="w-full h-7 rounded border border-slate-300 px-2 font-semibold" />
+          </div>
+          <div>
+            <span class="block text-[11px] text-slate-500">代表者氏名（役職・氏名）</span>
+            <input type="text" id="crRepName" value="代表 相模 太郎" class="w-full h-7 rounded border border-slate-300 px-2 font-semibold" />
+          </div>
+          <div>
+            <span class="block text-[11px] text-slate-500">住所又は所在地</span>
+            <input type="text" id="crAddress" value="相模原市緑区中野1-2-3" class="w-full h-7 rounded border border-slate-300 px-2" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <span class="block text-[11px] text-slate-500">連絡先電話番号</span>
+            <input type="text" id="crPhone" value="090-0000-0000" class="w-full h-7 rounded border border-slate-300 px-2" />
+          </div>
+          <div>
+            <span class="block text-[11px] text-slate-500">交付決定番号（指令番号）</span>
+            <input type="text" id="crOrderNo" value="相模原市指令（地ケ課）第 123 号" class="w-full h-7 rounded border border-slate-300 px-2" />
+          </div>
+          <div>
+            <span class="block text-[11px] text-slate-500">交付決定額（上限予算額）</span>
+            <input type="text" id="crGrantAmount" value="500,000" class="w-full h-7 rounded border border-slate-300 px-2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- プレビュー画面コンテナ -->
+      <div id="cityReportViewArea" class="space-y-6"></div>
+    </div>
+  </div>
+
+  <!-- ★印刷実行専用の透明退避コンテナ（ブラウザ印刷時にここだけがA4用紙に出力される） -->
+  <div id="activePrintArea"></div>
 
   <!-- トースト通知 -->
   <div
@@ -832,7 +915,7 @@
 
   <script>
     // ==========================================
-    // ★HTMLエスケープ関数（最上段に配置して未定義エラーを完全防止）
+    // HTMLエスケープ関数（最上段配置でエラー防止）
     // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -851,1137 +934,4 @@
     let drivers = [];
     let users = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
-    let currentFilterTag = "recruiting";
-    let selectedQuest = null;
-    let toastTimer = null;
-    let isAccordionOpen = false;
-    let preRegList = [];
-    let lastRegisteredDriver = { id: '', name: '', phone: '' };
-
-    function refreshLucide() {
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
-
-    function showToast(message) {
-      const toast = document.getElementById("toastNotification");
-      const toastText = document.getElementById("toastText");
-      toastText.textContent = message;
-      toast.classList.remove("opacity-0", "translate-y-3", "pointer-events-none");
-      toast.classList.add("opacity-100", "translate-y-0");
-
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast.classList.remove("opacity-100", "translate-y-0");
-        toast.classList.add("opacity-0", "translate-y-3", "pointer-events-none");
-      }, 3000);
-    }
-
-    function setRefreshing(isLoading) {
-      const btn = document.getElementById("btnRefresh");
-      if (!btn) return;
-      btn.disabled = isLoading;
-      const icon = btn.querySelector("svg, i");
-      if (icon) {
-        if (isLoading) {
-          icon.classList.add("animate-spin");
-        } else {
-          icon.classList.remove("animate-spin");
-        }
-      }
-    }
-
-    // ★タイムアウト40秒＆自動リトライ付きデータ取得関数
-    async function fetchDashboardData(isRetry = false) {
-      const skeleton = document.getElementById("skeletonLoader");
-      const container = document.getElementById("questListContainer");
-      const empty = document.getElementById("emptyState");
-
-      setRefreshing(true);
-
-      if (quests.length === 0 && !isRetry) {
-        skeleton.classList.remove("hidden");
-        container.classList.add("hidden");
-        empty.classList.add("hidden");
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 40000);
-
-      try {
-        const cacheBuster = `&_t=${Date.now()}`;
-        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        const data = await res.json();
-        if (data.success) {
-          quests = data.quests || [];
-          records = data.records || [];
-          drivers = data.drivers || [];
-          users = data.users || [];
-
-          if (data.metrics) {
-            metrics = {
-              actionRequiredCount: (data.metrics.actionRequiredCount !== undefined)
-                ? data.metrics.actionRequiredCount
-                : ((data.metrics.urgentCount || 0) + (data.metrics.warnedCount || 0)),
-              unreportedCount: data.metrics.unreportedCount || 0,
-              todayRunningCount: data.metrics.todayRunningCount || 0,
-              openCount: data.metrics.openCount || 0
-            };
-          }
-          updateMetricsUI();
-          renderQuests();
-          renderRecords();
-          renderDrivers();
-          renderUsers();
-          updateSettlementView();
-          showToast(isRetry ? "再接続して最新データを取得しました" : "最新データを取得しました");
-        } else {
-          showToast("取得エラー: " + (data.message || ""));
-        }
-      } catch (err) {
-        clearTimeout(timeoutId);
-        if (!isRetry) {
-          console.warn("初回取得失敗、再試行中...", err);
-          return await fetchDashboardData(true);
-        }
-        showToast(err.name === "AbortError" ? "通信タイムアウト: GASの応答がありませんでした" : "通信エラー: " + err.message);
-      } finally {
-        setRefreshing(false);
-        skeleton.classList.add("hidden");
-      }
-    }
-
-    async function loadPreRegistrations() {
-      const select = document.getElementById("preRegSelect");
-      const statusText = document.getElementById("preRegStatusText");
-      
-      select.disabled = true;
-      select.innerHTML = '<option value="">⏳ 読み込み中...</option>';
-      if (statusText) statusText.textContent = "事前登録フォームの回答を取得中...";
-
-      try {
-        const cacheBuster = `&_t=${Date.now()}`;
-        const res = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations${cacheBuster}`);
-        const data = await res.json();
-        
-        if (data.success) {
-          preRegList = data.preRegistrations || [];
-          select.innerHTML = '<option value="">-- 事前登録者を選択してください --</option>';
-
-          if (preRegList.length === 0) {
-            select.innerHTML = '<option value="">-- 未登録の事前登録データはありません（0件） --</option>';
-            if (statusText) statusText.textContent = data.message || "Form Responses 5 に未登録のデータはありません";
-          } else {
-            preRegList.forEach((item, idx) => {
-              const opt = document.createElement("option");
-              opt.value = String(idx);
-              const tag = item.isRegistered ? " [名簿登録済]" : "";
-              opt.textContent = `${item.name} 様 (${item.phone})${tag}`;
-              select.appendChild(opt);
-            });
-            if (statusText) statusText.textContent = `${preRegList.length}件の事前登録データを取得しました。選択すると自動入力されます。`;
-          }
-
-          if (data.nextDriverId) {
-            document.getElementById("dRegId").value = data.nextDriverId;
-          }
-        } else {
-          select.innerHTML = '<option value="">⚠️ 取得失敗（GASの更新が必要です）</option>';
-          if (statusText) statusText.textContent = `エラー: ${data.message || 'GASが新バージョンでデプロイされているかご確認ください'}`;
-        }
-      } catch (e) {
-        select.innerHTML = '<option value="">⚠️ 通信エラー</option>';
-        if (statusText) statusText.textContent = "通信エラー: GASが新バージョンでデプロイされているかご確認ください";
-      } finally {
-        select.disabled = false;
-        refreshLucide();
-      }
-    }
-
-    function updateMetricsUI() {
-      document.getElementById("metricOpenCount").textContent = metrics.openCount;
-      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount;
-      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
-      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount;
-
-      const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
-
-      const chipUnreported = document.getElementById("chipUnreported");
-      if (chipUnreported) chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount})`;
-
-      const chipFailed = document.getElementById("chipFailed");
-      if (chipFailed) chipFailed.textContent = `マッチング不成立 (${failedCount})`;
-    }
-
-    function renderQuests() {
-      const container = document.getElementById("questListContainer");
-      const empty = document.getElementById("emptyState");
-      const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
-      const todayStr = new Date().toISOString().split("T")[0];
-
-      const startDate = document.getElementById("startDateInput").value;
-      const endDate = document.getElementById("endDateInput").value;
-
-      const filtered = quests.filter(item => {
-        if (startDate && item.targetDate < startDate) return false;
-        if (endDate && item.targetDate > endDate) return false;
-
-        if (searchVal !== "") {
-          const match =
-            item.id.toLowerCase().includes(searchVal) ||
-            item.userName.toLowerCase().includes(searchVal) ||
-            item.pickup.toLowerCase().includes(searchVal) ||
-            item.dropoff.toLowerCase().includes(searchVal) ||
-            (item.driverName && item.driverName.toLowerCase().includes(searchVal));
-          if (!match) return false;
-        }
-
-        const isActionRequired = (item.isUrgent || item.isWarned) && item.status === "募集中";
-
-        if (currentFilterTag === "recruiting") return item.status === "募集中";
-        if (currentFilterTag === "accepted") return item.status === "受注済";
-        if (currentFilterTag === "action_required") return isActionRequired;
-        if (currentFilterTag === "today") return item.targetDate === todayStr;
-        if (currentFilterTag === "unreported") return !!item.isUnreported;
-        if (currentFilterTag === "failed") return item.status === "マッチング不成立";
-        if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
-
-        return true;
-      });
-
-      if (filtered.length === 0) {
-        container.classList.add("hidden");
-        empty.classList.remove("hidden");
-        refreshLucide();
-        return;
-      }
-
-      empty.classList.add("hidden");
-      container.classList.remove("hidden");
-      container.innerHTML = "";
-
-      filtered.forEach(quest => {
-        const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
-        const isUnreported = !!quest.isUnreported;
-        const isFailed = quest.status === "マッチング不成立";
-
-        let statusClass = "bg-slate-100 text-slate-500";
-        if (quest.status === "募集中") {
-          statusClass = isActionRequired ? "bg-red-100 text-red-700 border border-red-200" : "bg-blue-100 text-blue-700";
-        } else if (quest.status === "受注済") {
-          statusClass = isUnreported ? "bg-rose-100 text-rose-800 border border-rose-200" : "bg-emerald-100 text-emerald-800";
-        } else if (quest.status === "運行完了") {
-          statusClass = "bg-slate-100 text-slate-600";
-        } else if (isFailed) {
-          statusClass = "bg-purple-100 text-purple-800 border border-purple-200";
-        } else if (quest.status === "送迎中止") {
-          statusClass = "bg-amber-100 text-amber-800 border border-amber-200";
-        }
-
-        let bgClass = "";
-        if (isUnreported) {
-          bgClass = "bg-rose-50/45";
-        } else if (isActionRequired) {
-          bgClass = "bg-red-50/40";
-        } else if (isFailed) {
-          bgClass = "bg-purple-50/25";
-        }
-
-        const card = document.createElement("div");
-        card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
-
-        card.innerHTML = `
-          <div class="space-y-1.5">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono text-xs font-bold text-slate-500">#${quest.id}</span>
-              <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
-              ${isActionRequired ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>要対応</span>` : ""}
-              ${isUnreported ? `<span class="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="clock-alert" class="h-3 w-3"></i>未報告</span>` : ""}
-              ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="x-circle" class="h-3 w-3"></i>不成立</span>` : ""}
-              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
-              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetTime}</span>
-            </div>
-            <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <span class="text-slate-700">${escapeHtml(quest.pickup)}</span>
-              <i data-lucide="arrow-right" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
-              <span class="text-blue-700">${escapeHtml(quest.dropoff)}</span>
-              <span class="text-xs font-normal text-slate-500">(${escapeHtml(quest.tripPlan.split("（")[0])})</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-              <span class="flex items-center gap-1"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
-              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? (isUnreported ? "text-rose-700 font-bold" : "text-slate-800") : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 pt-2 sm:pt-0">
-            ${isActionRequired ? `
-              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}" data-type="urgent">
-                <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600"></i>
-                <span>LINE打診文</span>
-              </button>
-            ` : ""}
-            ${isUnreported ? `
-              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 shadow-xs transition hover:bg-rose-100 active:scale-95" data-qid="${quest.id}" data-type="remind">
-                <i data-lucide="bell" class="h-3.5 w-3.5 text-rose-600"></i>
-                <span>催促LINE文</span>
-              </button>
-            ` : ""}
-            <button type="button" class="btn-detail inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95" data-qid="${quest.id}">
-              <span>詳細</span>
-              <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-400"></i>
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      refreshLucide();
-      attachEventHandlers();
-    }
-
-    function renderRecords() {
-      const container = document.getElementById("recordListContainer");
-      const empty = document.getElementById("recordEmptyState");
-      const badge = document.getElementById("recordCountBadge");
-
-      badge.textContent = `${records.length}件`;
-
-      if (records.length === 0) {
-        container.innerHTML = "";
-        empty.classList.remove("hidden");
-        refreshLucide();
-        return;
-      }
-
-      empty.classList.add("hidden");
-      container.innerHTML = "";
-
-      records.forEach(r => {
-        const item = document.createElement("div");
-        item.className = "flex flex-col gap-2 p-3.5 transition hover:bg-slate-50 text-xs sm:flex-row sm:items-center sm:justify-between";
-        item.innerHTML = `
-          <div class="space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono font-bold text-slate-600">#${escapeHtml(r.questId || '----')}</span>
-              <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700">${escapeHtml(r.tripType)}</span>
-              <span class="text-slate-500 flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i>${escapeHtml(r.recordDate)}</span>
-              <span class="text-slate-500">所要: <strong>${r.duration}分</strong></span>
-            </div>
-            <div class="flex flex-wrap items-center gap-3 text-slate-800">
-              <span>担当: <strong>${escapeHtml(r.driverName)}</strong> (ID:${escapeHtml(r.driverId)})</span>
-              <span>乗客: <strong>${escapeHtml(r.passengers || '同乗者なし')}</strong> (${r.totalPassengers}人回)</span>
-              <span>実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 pt-1 sm:pt-0">
-            <div class="text-right">
-              <span class="text-[11px] text-slate-400 block">実費弁償額</span>
-              <span class="text-sm font-black text-emerald-700">¥${Number(r.totalFee).toLocaleString()}</span>
-              ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
-            </div>
-            ${r.arrMapUrl ? `
-              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs" title="Googleマップで確認">
-                <i data-lucide="map-pin" class="h-4 w-4"></i>
-              </a>
-            ` : ''}
-          </div>
-        `;
-        container.appendChild(item);
-      });
-
-      refreshLucide();
-    }
-
-    function renderDrivers() {
-      const container = document.getElementById("driversListContainer");
-      const searchVal = (document.getElementById("searchDriverInput")?.value || "").trim().toLowerCase();
-      const activeChip = document.querySelector("#driverFilterChips .d-chip.bg-slate-900")?.getAttribute("data-filter") || "all";
-
-      const filtered = drivers.filter(d => {
-        if (searchVal) {
-          const match =
-            d.id.toLowerCase().includes(searchVal) ||
-            d.name.toLowerCase().includes(searchVal) ||
-            d.phone.toLowerCase().includes(searchVal) ||
-            d.address.toLowerCase().includes(searchVal) ||
-            d.note.toLowerCase().includes(searchVal);
-          if (!match) return false;
-        }
-        if (activeChip === "linked") return d.hasLine;
-        if (activeChip === "unlinked") return !d.hasLine;
-        return true;
-      });
-
-      container.innerHTML = "";
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-2 py-8 text-center text-xs text-slate-400">該当するドライバー情報はありません</div>`;
-        return;
-      }
-
-      filtered.forEach(d => {
-        const card = document.createElement("div");
-        card.className = "rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2 text-xs";
-        card.innerHTML = `
-          <div class="flex items-start justify-between border-b border-slate-100 pb-2">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(d.id)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${d.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
-                  ${d.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
-                </span>
-                <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">${escapeHtml(d.licenseType)}</span>
-              </div>
-              <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(d.name)} 様</h4>
-            </div>
-            <a href="tel:${escapeHtml(d.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
-              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
-              <span>発信</span>
-            </a>
-          </div>
-          <div class="space-y-1.5 text-slate-600">
-            <div class="flex items-center gap-1.5">
-              <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i>
-              <span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span>
-            </div>
-
-            ${d.address ? `
-              <div class="flex items-center justify-between gap-1.5 pt-0.5">
-                <div class="flex items-center gap-1.5 min-w-0 flex-1 text-slate-800">
-                  <i data-lucide="map-pin" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
-                  <span class="truncate">住所: <strong>${escapeHtml(d.address)}</strong></span>
-                </div>
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95"
-                >
-                  <i data-lucide="map" class="h-3 w-3 text-blue-600"></i>
-                  <span>地図を表示</span>
-                </a>
-              </div>
-            ` : ''}
-
-            ${d.emergencyContact ? `<div class="flex items-center gap-1.5"><i data-lucide="phone-call" class="h-3.5 w-3.5 text-slate-400"></i><span>緊急連絡: ${escapeHtml(d.emergencyContact)}</span></div>` : ''}
-            ${d.certNo ? `<div class="text-[11px] text-slate-500 pt-0.5">修了証No: ${escapeHtml(d.certNo)} / 研修受講: ${escapeHtml(d.trainingDate || '未記入')}</div>` : ''}
-            ${d.note ? `<div class="mt-1 rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600 border border-slate-100">${escapeHtml(d.note)}</div>` : ''}
-          </div>
-        `;
-        container.appendChild(card);
-      });
-      refreshLucide();
-    }
-
-    function renderUsers() {
-      const container = document.getElementById("usersListContainer");
-      const searchVal = (document.getElementById("searchUserInput")?.value || "").trim().toLowerCase();
-      const activeChip = document.querySelector("#userFilterChips .u-chip.bg-slate-900")?.getAttribute("data-filter") || "all";
-
-      const filtered = users.filter(u => {
-        if (searchVal) {
-          const match =
-            u.id.toLowerCase().includes(searchVal) ||
-            u.name.toLowerCase().includes(searchVal) ||
-            u.phone.toLowerCase().includes(searchVal);
-          if (!match) return false;
-        }
-        if (activeChip === "honin") return u.userType.includes("本人");
-        if (activeChip === "care") return u.userType.includes("代理") || u.userType.includes("ケアマネ");
-        return true;
-      });
-
-      container.innerHTML = "";
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-2 py-8 text-center text-xs text-slate-400">該当する利用者情報はありません</div>`;
-        return;
-      }
-
-      filtered.forEach(u => {
-        const isAgency = u.userType.includes("代理") || u.userType.includes("ケアマネ");
-        const card = document.createElement("div");
-        card.className = "rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2 text-xs";
-        card.innerHTML = `
-          <div class="flex items-start justify-between border-b border-slate-100 pb-2">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(u.id)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${isAgency ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${escapeHtml(u.userType)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${u.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
-                  ${u.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
-                </span>
-              </div>
-              <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(u.name)} 様</h4>
-            </div>
-            <a href="tel:${escapeHtml(u.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
-              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
-              <span>発信</span>
-            </a>
-          </div>
-          <div class="space-y-1 text-slate-600">
-            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i><span>連絡先: <strong class="text-slate-800 font-mono">${escapeHtml(u.phone)}</strong></span></div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-      refreshLucide();
-    }
-
-    function getEnvelopeBreakdown(amt) {
-      let rem = Math.round(amt);
-      const denoms = [10000, 5000, 1000, 500, 100, 50, 10];
-      const res = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
-      for (const d of denoms) {
-        if (rem >= d) {
-          res[d] = Math.floor(rem / d);
-          rem %= d;
-        }
-      }
-      return res;
-    }
-
-    function formatDenomMemo(env) {
-      const parts = [];
-      if (env[10000] > 0) parts.push(`1万円:${env[10000]}枚`);
-      if (env[5000] > 0) parts.push(`5千円:${env[5000]}枚`);
-      if (env[1000] > 0) parts.push(`千円:${env[1000]}枚`);
-      if (env[500] > 0) parts.push(`500円:${env[500]}枚`);
-      if (env[100] > 0) parts.push(`100円:${env[100]}枚`);
-      if (env[50] > 0) parts.push(`50円:${env[50]}枚`);
-      if (env[10] > 0) parts.push(`10円:${env[10]}枚`);
-      return parts.length > 0 ? parts.join(' / ') : 'なし';
-    }
-
-    function formatJpDate(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-    }
-
-    function updateSettlementView() {
-      const sDate = document.getElementById("settleStartDate").value;
-      const eDate = document.getElementById("settleEndDate").value;
-
-      const filtered = records.filter(r => {
-        if (sDate && r.targetDate < sDate) return false;
-        if (eDate && r.targetDate > eDate) return false;
-        return true;
-      });
-
-      const driverMap = {};
-      drivers.forEach(d => {
-        driverMap[d.id] = {
-          id: d.id,
-          name: d.name,
-          trips: 0,
-          passengers: 0,
-          distance: 0,
-          fuelFee: 0,
-          otherExpense: 0,
-          totalPayout: 0
-        };
-      });
-
-      let totalTrips = 0;
-      let totalPassengers = 0;
-      let totalDist = 0;
-      let totalPayout = 0;
-
-      filtered.forEach(r => {
-        const dId = r.driverId;
-        if (!driverMap[dId]) {
-          driverMap[dId] = {
-            id: dId || '----',
-            name: r.driverName || 'ドライバー',
-            trips: 0,
-            passengers: 0,
-            distance: 0,
-            fuelFee: 0,
-            otherExpense: 0,
-            totalPayout: 0
-          };
-        }
-
-        const fee = Number(r.totalFee) || 0;
-        const other = Number(r.otherExpense) || 0;
-        const fuel = Number(r.fuelFee) || Math.max(0, fee - other);
-        const dist = (r.tripType === '片道') ? Number(r.oneWayDistance) : Number(r.roundTripDistance);
-        const pass = Number(r.totalPassengers) || 0;
-
-        driverMap[dId].trips += 1;
-        driverMap[dId].passengers += pass;
-        driverMap[dId].distance += dist;
-        driverMap[dId].fuelFee += fuel;
-        driverMap[dId].otherExpense += other;
-        driverMap[dId].totalPayout += fee;
-
-        totalTrips += 1;
-        totalPassengers += pass;
-        totalDist += dist;
-        totalPayout += fee;
-      });
-
-      document.getElementById("settleTotalTrips").textContent = totalTrips;
-      document.getElementById("settleTotalPassengers").textContent = totalPassengers;
-      document.getElementById("settleTotalDistance").textContent = (Math.round(totalDist * 10) / 10).toFixed(1);
-      document.getElementById("settleTotalPayout").textContent = totalPayout.toLocaleString();
-
-      const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
-      const driverSummaryList = Object.values(driverMap).filter(d => d.trips > 0 || (d.id && d.id.startsWith("101")));
-
-      driverSummaryList.forEach(d => {
-        if (d.totalPayout > 0) {
-          const env = getEnvelopeBreakdown(d.totalPayout);
-          for (const k in bankTotals) {
-            bankTotals[k] += env[k];
-          }
-        }
-      });
-
-      document.getElementById("denom10000").textContent = bankTotals[10000];
-      document.getElementById("denom5000").textContent = bankTotals[5000];
-      document.getElementById("denom1000").textContent = bankTotals[1000];
-      document.getElementById("denom500").textContent = bankTotals[500];
-      document.getElementById("denom100").textContent = bankTotals[100];
-      document.getElementById("denom50").textContent = bankTotals[50];
-      document.getElementById("denom10").textContent = bankTotals[10];
-
-      const tbody = document.getElementById("settleTableBody");
-      tbody.innerHTML = "";
-      if (driverSummaryList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">指定期間の実績データはありません</td></tr>`;
-        return;
-      }
-
-      driverSummaryList.sort((a, b) => a.id.localeCompare(b.id)).forEach(d => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50/70";
-        tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-slate-500">${escapeHtml(d.id)}</td>
-          <td class="p-3 font-bold text-slate-900">${escapeHtml(d.name)} 様</td>
-          <td class="p-3 text-right font-mono">${d.trips}</td>
-          <td class="p-3 text-right font-mono">${d.passengers}</td>
-          <td class="p-3 text-right font-mono">${(Math.round(d.distance * 10) / 10).toFixed(1)} km</td>
-          <td class="p-3 text-right font-mono text-slate-700">¥${d.fuelFee.toLocaleString()}</td>
-          <td class="p-3 text-right font-mono text-slate-500">¥${d.otherExpense.toLocaleString()}</td>
-          <td class="p-3 text-right font-mono font-bold text-emerald-700">¥${d.totalPayout.toLocaleString()}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function openPrintPreview() {
-      const sDate = document.getElementById("settleStartDate").value;
-      const eDate = document.getElementById("settleEndDate").value;
-      
-      let periodText = "全期間";
-      if (sDate && eDate) {
-        periodText = `${formatJpDate(sDate)} 〜 ${formatJpDate(eDate)}`;
-      } else if (sDate) {
-        periodText = `${formatJpDate(sDate)} 以降`;
-      } else if (eDate) {
-        periodText = `${formatJpDate(eDate)} まで`;
-      }
-
-      const listArea = document.getElementById("voucherListArea");
-      listArea.innerHTML = "";
-
-      const sBodyRows = document.querySelectorAll("#settleTableBody tr");
-      let voucherCount = 0;
-
-      sBodyRows.forEach(r => {
-        const cols = r.querySelectorAll("td");
-        if (cols.length < 8) return;
-        const id = cols[0].textContent.trim();
-        const name = cols[1].textContent.trim().replace(/ 様$/, '');
-        const trips = parseInt(cols[2].textContent.trim(), 10) || 0;
-        const totalStr = cols[7].textContent.trim();
-        const amtNum = parseInt(totalStr.replace(/[^0-9]/g, ""), 10) || 0;
-
-        if (amtNum > 0 || trips > 0) {
-          voucherCount++;
-          const env = getEnvelopeBreakdown(amtNum);
-          const denomMemoStr = formatDenomMemo(env);
-
-          const ticketWrap = document.createElement("div");
-          ticketWrap.className = "voucher-ticket-wrap";
-
-          ticketWrap.innerHTML = `
-            <div class="voucher-ticket border border-slate-300 rounded-lg p-5 bg-white relative flex flex-col justify-between" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
-              <div>
-                <div class="flex items-center justify-between text-xs text-slate-600 font-mono">
-                  <div>受領書番号 <strong>${voucherCount}</strong></div>
-                  <div class="text-[11px]">おでかけサポート送迎支援事業</div>
-                </div>
-                <h2 class="text-center text-lg font-bold tracking-widest mt-1 text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
-                  ボランティア実費弁償 受領書
-                </h2>
-              </div>
-
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-800 my-2">
-                <div>登録番号 <strong class="font-mono text-sm">${escapeHtml(id)}</strong></div>
-                <div>お名前 <strong class="text-sm">${escapeHtml(name)}</strong> 様</div>
-                <div class="col-span-2">運行期間 ${periodText} 分</div>
-                <div>運行回数 <strong class="font-mono">${trips}</strong> 回</div>
-              </div>
-
-              <div class="my-1.5">
-                <div class="flex items-baseline gap-2 border-b-2 border-slate-900 pb-1">
-                  <span class="text-sm font-bold">領収金額</span>
-                  <span class="font-mono text-2xl font-black tracking-wider text-slate-900 ml-4">
-                    ¥ ${amtNum.toLocaleString()} -
-                  </span>
-                </div>
-                <p class="text-[11px] text-slate-700 mt-1">
-                  上記金額を移動支援に伴う走行実費弁償として正に受領いたしました。
-                </p>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-slate-200">
-                <div class="space-y-1">
-                  <div>受領日 令和  年  月  日</div>
-                  <div>支払元 <strong>おでかけサポート事務局</strong></div>
-                  <div class="text-[10px] text-slate-500 font-mono pt-0.5">
-                    【金種メモ】 ${denomMemoStr}
-                  </div>
-                </div>
-                <div class="flex flex-col justify-end">
-                  <div class="flex items-end justify-between border-b border-slate-800 pb-1">
-                    <span class="text-xs">名前（自署）</span>
-                    <span class="text-[10px] text-slate-400 mr-2">㊞</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="voucher-cut-line py-3 text-center text-slate-400 text-xs font-mono select-none" style="display:none;">
-              ✂ ---------------------------------------------------- 切り取り線 ----------------------------------------------------
-            </div>
-          `;
-          listArea.appendChild(ticketWrap);
-        }
-      });
-
-      if (voucherCount === 0) {
-        listArea.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">対象期間内の受領書発行対象データはありません</div>`;
-      }
-
-      document.getElementById("printPreviewModal").classList.remove("hidden");
-      refreshLucide();
-    }
-
-    function attachEventHandlers() {
-      document.querySelectorAll(".btn-copy-line").forEach(btn => {
-        btn.onclick = () => {
-          const qid = btn.getAttribute("data-qid");
-          const type = btn.getAttribute("data-type");
-          const q = quests.find(item => String(item.id) === String(qid));
-          if (q) copyLineMessage(q, type);
-        };
-      });
-
-      document.querySelectorAll(".btn-detail").forEach(btn => {
-        btn.onclick = () => {
-          const qid = btn.getAttribute("data-qid");
-          const q = quests.find(item => String(item.id) === String(qid));
-          if (q) openDetailModal(q);
-        };
-      });
-    }
-
-    function copyLineMessage(quest, type) {
-      let text = "";
-      if (type === "remind") {
-        text = `【活動記録 ご入力のお願い】\n\n${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。\n本日の送迎ボランティア、大変お疲れ様でした！\n\n以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。\nお忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 集合日時：${quest.targetDate} ${quest.targetTime}\n■ ご利用者：${quest.userName} 様\n■ 行先：${quest.dropoff}\n━━━━━━━━━━━━━━━\n\n▼ 活動記録の入力画面はこちら：\nhttps://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}\n\n※すでにご送信済みの場合は、行き違いをご容赦ください。\nよろしくお願い申し上げます。`;
-      } else {
-        text = `【至急のご相談】直前運行のお願い\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご連絡となり大変恐縮です。\nお近くでの運行案件でまだドライバーが決まっておらず、大変困っております。\nもしお時間がございましたら、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。\n\nよろしくお願い申し上げます。`;
-      }
-
-      navigator.clipboard.writeText(text);
-      showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
-    }
-
-    function copyDriverWelcomeLine() {
-      if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
-      const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
-      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
-
-      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。\n\nご不明な点がございましたら事務局までお気軽にお声がけください。\nこれからどうぞよろしくお願いいたします！\n\nおでかけサポート事務局`;
-
-      navigator.clipboard.writeText(text);
-      showToast("LINE送信用の登録案内文をコピーしました");
-    }
-
-    function openDetailModal(quest) {
-      selectedQuest = quest;
-      const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
-
-      document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
-      document.getElementById("modalQuestStatus").textContent = quest.status;
-      document.getElementById("modalDatetime").textContent = `${quest.targetDate} ${quest.targetTime} 集合`;
-      document.getElementById("modalTripPlan").textContent = quest.tripPlan;
-      document.getElementById("modalPickup").textContent = quest.pickup;
-      document.getElementById("modalDropoff").textContent = quest.dropoff;
-      document.getElementById("modalUserName").textContent = `${quest.userName} 様 (${quest.passengers})`;
-      document.getElementById("modalUserPhone").querySelector("span").textContent = quest.userPhone || "未登録";
-
-      const driverInfoEl = document.getElementById("modalDriverInfo");
-      if (quest.driverName) {
-        driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
-        driverInfoEl.className = quest.isUnreported ? "mt-0.5 font-bold text-rose-700" : "mt-0.5 font-bold text-emerald-700";
-      } else if (quest.status === "マッチング不成立") {
-        driverInfoEl.textContent = "担当者なし（前日17:00期限切れ不成立）";
-        driverInfoEl.className = "mt-0.5 font-bold text-purple-700";
-      } else {
-        driverInfoEl.textContent = "未定（現在ドライバー募集中）";
-        driverInfoEl.className = "mt-0.5 font-bold text-red-600";
-      }
-
-      document.getElementById("modalNote").textContent = quest.note || "特になし";
-
-      const sysInfoArea = document.getElementById("modalSysInfoArea");
-      if (quest.systemInfo) {
-        document.getElementById("modalSysInfo").textContent = quest.systemInfo;
-        sysInfoArea.classList.remove("hidden");
-      } else {
-        sysInfoArea.classList.add("hidden");
-      }
-
-      const copyBtn = document.getElementById("btnModalCopyLine");
-      const copyBtnText = document.getElementById("modalCopyBtnText");
-
-      if (quest.isUnreported) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
-        copyBtnText.textContent = "催促LINE文をコピー";
-        copyBtn.classList.remove("hidden");
-      } else if (isActionRequired) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
-        copyBtnText.textContent = "LINE打診文をコピー";
-        copyBtn.classList.remove("hidden");
-      } else {
-        copyBtn.classList.add("hidden");
-      }
-
-      isAccordionOpen = false;
-      document.getElementById("accordionContent").classList.add("hidden");
-      document.getElementById("accordionIcon").classList.remove("rotate-180");
-
-      document.getElementById("detailModalOverlay").classList.remove("hidden");
-      refreshLucide();
-    }
-
-    function closeDetailModal() {
-      document.getElementById("detailModalOverlay").classList.add("hidden");
-      selectedQuest = null;
-    }
-
-    function formatLocalYMD(year, monthIndex, day) {
-      const m = ('0' + (monthIndex + 1)).slice(-2);
-      const d = ('0' + day).slice(-2);
-      return `${year}-${m}-${d}`;
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      refreshLucide();
-      fetchDashboardData();
-
-      document.getElementById("btnRefresh").onclick = () => fetchDashboardData(false);
-
-      // メインタブ切り替え
-      document.querySelectorAll(".main-tab-btn").forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll(".main-tab-btn").forEach(b => {
-            b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100";
-          });
-          btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white";
-
-          const target = btn.getAttribute("data-tab");
-          document.getElementById("tabContentOps").classList.toggle("hidden", target !== "ops");
-          document.getElementById("tabContentRoster").classList.toggle("hidden", target !== "roster");
-          document.getElementById("tabContentSettlement").classList.toggle("hidden", target !== "settlement");
-
-          if (target === "settlement") updateSettlementView();
-          refreshLucide();
-        };
-      });
-
-      // サブタブ切替
-      document.getElementById("subTabOpsQuests").onclick = () => {
-        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
-        document.getElementById("opsQuestsView").classList.remove("hidden");
-        document.getElementById("opsRecordsView").classList.add("hidden");
-      };
-      document.getElementById("subTabOpsRecords").onclick = () => {
-        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
-        document.getElementById("opsRecordsView").classList.remove("hidden");
-        document.getElementById("opsQuestsView").classList.add("hidden");
-      };
-
-      document.getElementById("subTabRosterDrivers").onclick = () => {
-        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
-        document.getElementById("rosterDriversView").classList.remove("hidden");
-        document.getElementById("rosterUsersView").classList.add("hidden");
-      };
-      document.getElementById("subTabRosterUsers").onclick = () => {
-        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
-        document.getElementById("rosterUsersView").classList.remove("hidden");
-        document.getElementById("rosterDriversView").classList.add("hidden");
-      };
-
-      document.getElementById("searchDriverInput")?.addEventListener("input", renderDrivers);
-      document.getElementById("searchUserInput")?.addEventListener("input", renderUsers);
-
-      document.querySelectorAll("#driverFilterChips .d-chip").forEach(chip => {
-        chip.onclick = () => {
-          document.querySelectorAll("#driverFilterChips .d-chip").forEach(c => {
-            c.className = "d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
-          });
-          chip.className = "d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
-          renderDrivers();
-        };
-      });
-
-      document.querySelectorAll("#userFilterChips .u-chip").forEach(chip => {
-        chip.onclick = () => {
-          document.querySelectorAll("#userFilterChips .u-chip").forEach(c => {
-            c.className = "u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
-          });
-          chip.className = "u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
-          renderUsers();
-        };
-      });
-
-      const searchInput = document.getElementById("searchInput");
-      const btnClearSearch = document.getElementById("btnClearSearch");
-      searchInput.oninput = () => {
-        btnClearSearch.classList.toggle("hidden", searchInput.value.trim() === "");
-        renderQuests();
-      };
-      btnClearSearch.onclick = () => {
-        searchInput.value = "";
-        btnClearSearch.classList.add("hidden");
-        renderQuests();
-      };
-
-      const startDateInput = document.getElementById("startDateInput");
-      const endDateInput = document.getElementById("endDateInput");
-      startDateInput.onchange = renderQuests;
-      endDateInput.onchange = renderQuests;
-
-      document.getElementById("btnQuickThisMonth").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        renderQuests();
-        showToast("「今月」の期間を設定しました");
-      };
-
-      document.getElementById("btnQuickNextMonth").onclick = () => {
-        const now = new Date();
-        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        const y = nextMonthDate.getFullYear();
-        const m = nextMonthDate.getMonth();
-        startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        renderQuests();
-        showToast("「来月」の期間を設定しました");
-      };
-
-      document.getElementById("btnClearDates").onclick = () => {
-        startDateInput.value = "";
-        endDateInput.value = "";
-        renderQuests();
-        showToast("期間指定を解除しました（全期間表示）");
-      };
-
-      document.querySelectorAll(".chip-btn").forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll(".chip-btn").forEach(b => {
-            b.className = "chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100";
-          });
-          btn.className = "chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs";
-          currentFilterTag = btn.getAttribute("data-filter");
-          renderQuests();
-        };
-      });
-
-      document.querySelectorAll(".metric-card").forEach(card => {
-        card.onclick = () => {
-          const target = card.getAttribute("data-filter");
-          const chip = document.querySelector(`.chip-btn[data-filter="${target}"]`);
-          if (chip) chip.click();
-        };
-      });
-
-      const settleStart = document.getElementById("settleStartDate");
-      const settleEnd = document.getElementById("settleEndDate");
-      settleStart.onchange = updateSettlementView;
-      settleEnd.onchange = updateSettlementView;
-
-      document.getElementById("btnSettleThisMonth").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        settleStart.value = formatLocalYMD(y, m, 1);
-        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        updateSettlementView();
-      };
-
-      document.getElementById("btnSettleLastMonth").onclick = () => {
-        const now = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const y = prev.getFullYear();
-        const m = prev.getMonth();
-        settleStart.value = formatLocalYMD(y, m, 1);
-        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        updateSettlementView();
-      };
-
-      document.getElementById("btnSettleFiscalYear").onclick = () => {
-        const now = new Date();
-        const curY = now.getFullYear();
-        const curM = now.getMonth();
-        const fyStart = (curM >= 3) ? curY : curY - 1;
-        settleStart.value = `${fyStart}-04-01`;
-        settleEnd.value = `${fyStart + 1}-03-31`;
-        updateSettlementView();
-        showToast("「今年度」の期間を設定しました");
-      };
-
-      document.getElementById("btnSettleAll").onclick = () => {
-        settleStart.value = "";
-        settleEnd.value = "";
-        updateSettlementView();
-        showToast("全期間の精算データを表示します");
-      };
-
-      document.getElementById("btnPrintPreview").onclick = openPrintPreview;
-      document.getElementById("btnClosePrintPreview").onclick = () => {
-        document.getElementById("printPreviewModal").classList.add("hidden");
-      };
-      document.getElementById("btnTriggerPrint").onclick = () => {
-        window.print();
-      };
-
-      const dModal = document.getElementById("driverRegisterModal");
-      const dSuccessModal = document.getElementById("driverSuccessModal");
-      const preRegSelect = document.getElementById("preRegSelect");
-
-      document.getElementById("btnOpenDriverRegister").onclick = () => {
-        dModal.classList.remove("hidden");
-        loadPreRegistrations();
-        refreshLucide();
-      };
-
-      document.getElementById("btnReloadPreReg").onclick = loadPreRegistrations;
-      document.getElementById("btnCloseDriverModal").onclick = () => dModal.classList.add("hidden");
-      document.getElementById("btnCancelDriverModal").onclick = () => dModal.classList.add("hidden");
-      document.getElementById("btnCloseDriverSuccess").onclick = () => dSuccessModal.classList.add("hidden");
-      document.getElementById("btnCopyDriverLine").onclick = copyDriverWelcomeLine;
-
-      preRegSelect.onchange = () => {
-        const val = preRegSelect.value;
-        if (val !== "" && preRegList[val]) {
-          const item = preRegList[val];
-          document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
-          document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
-          document.getElementById("dRegNote").value = item.carInfo || "";
-          if (item.address) document.getElementById("dRegAddress").value = item.address;
-        }
-      };
-
-      document.getElementById("driverRegisterForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const submitBtn = document.getElementById("btnSubmitDriver");
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i><span>登録中...</span>';
-        refreshLucide();
-
-        const payload = {
-          action: "registerDriver",
-          driverId: document.getElementById("dRegId").value.trim(),
-          name: document.getElementById("dRegName").value.trim(),
-          phone: document.getElementById("dRegPhone").value.trim(),
-          licenseType: document.getElementById("dRegLicense").value,
-          certNo: document.getElementById("dRegCertNo").value.trim(),
-          trainingDate: document.getElementById("dRegTrainingDate").value,
-          address: document.getElementById("dRegAddress").value.trim(),
-          emergencyContact: document.getElementById("dRegEmergency").value.trim(),
-          note: document.getElementById("dRegNote").value.trim()
-        };
-
-        try {
-          const res = await fetch(`${GAS_API_URL}?action=registerDriver`, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-          });
-          const result = await res.json();
-
-          if (result.success) {
-            dModal.classList.add("hidden");
-            document.getElementById("driverRegisterForm").reset();
-
-            lastRegisteredDriver = {
-              id: result.driverId,
-              name: result.name,
-              phone: payload.phone
-            };
-
-            document.getElementById("issuedDriverId").textContent = result.driverId;
-            document.getElementById("issuedDriverName").textContent = `${result.name} 様`;
-            dSuccessModal.classList.remove("hidden");
-            refreshLucide();
-            fetchDashboardData();
-            showToast("ドライバーを登録しました！");
-          } else {
-            alert("登録エラー: " + (result.message || "登録に失敗しました"));
-          }
-        } catch (err) {
-          alert("通信エラー: " + err.message);
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5"></i><span>この内容で登録する</span>';
-          refreshLucide();
-        }
-      };
-
-      document.getElementById("btnCloseModal").onclick = closeDetailModal;
-      document.getElementById("btnCloseModalBtn").onclick = closeDetailModal;
-      document.getElementById("detailModalOverlay").onclick = (e) => {
-        if (e.target.id === "detailModalOverlay") closeDetailModal();
-      };
-
-      document.getElementById("btnModalCopyLine").onclick = () => {
-        if (selectedQuest) {
-          const type = selectedQuest.isUnreported ? "remind" : "urgent";
-          copyLineMessage(selectedQuest, type);
-        }
-      };
-
-      document.getElementById("btnAccordionToggle").onclick = () => {
-        isAccordionOpen = !isAccordionOpen;
-        const content = document.getElementById("accordionContent");
-        const icon = document.getElementById("accordionIcon");
-        if (isAccordionOpen) {
-          content.classList.remove("hidden");
-          icon.classList.add("rotate-180");
-        } else {
-          content.classList.add("hidden");
-          icon.classList.remove("rotate-180");
-        }
-      };
-    });
-  </script>
-</body>
-</html>
+    let currentFilterTag = "
