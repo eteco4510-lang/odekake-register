@@ -503,7 +503,7 @@
     </div>
   </div>
 
-  <!-- 8. ドライバー登録完了ポップアップ -->
+  <!-- ★8. ドライバー登録完了ポップアップ（LINE案内文コピー機能付き） -->
   <div id="driverSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
@@ -522,7 +522,7 @@
         <div class="font-bold text-slate-900 mb-1">【対面での次のステップ・操作レクチャー】</div>
         <div class="flex items-start gap-1.5">
           <span class="font-bold text-emerald-600">1.</span>
-          <span>ドライバー本人へ上記の<strong>登録番号</strong>をお伝えください。</span>
+          <span>下のボタンから<strong>LINE案内文をコピー</strong>して、本人のLINEへ送信してください。</span>
         </div>
         <div class="flex items-start gap-1.5">
           <span class="font-bold text-emerald-600">2.</span>
@@ -534,13 +534,24 @@
         </div>
       </div>
 
-      <button
-        type="button"
-        id="btnCloseDriverSuccess"
-        class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800"
-      >
-        閉じる
-      </button>
+      <!-- アクションボタンエリア（LINE文面コピー ＆ 閉じる） -->
+      <div class="mt-4 flex flex-col gap-2">
+        <button
+          type="button"
+          id="btnCopyDriverLine"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95"
+        >
+          <i data-lucide="copy" class="h-4 w-4"></i>
+          <span>LINE案内文をコピー</span>
+        </button>
+        <button
+          type="button"
+          id="btnCloseDriverSuccess"
+          class="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+        >
+          閉じる
+        </button>
+      </div>
     </div>
   </div>
 
@@ -563,6 +574,9 @@
     let toastTimer = null;
     let isAccordionOpen = false;
     let preRegList = [];
+
+    // ★登録直後のドライバー情報（LINE案内文コピー用）
+    let lastRegisteredDriver = { id: '', name: '', phone: '' };
 
     function refreshLucide() {
       if (window.lucide) {
@@ -903,6 +917,39 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
     }
 
+    // ★登録完了ドライバーへのLINE案内文コピー関数
+    function copyDriverWelcomeLine() {
+      if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
+      const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
+      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
+
+      const text = `【おでかけサポート】ドライバー登録完了のお知らせ
+
+${lastRegisteredDriver.name} 様
+
+おでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。
+登録手続きが完了いたしましたので、登録情報をお知らせいたします。
+
+━━━━━━━━━━━━━━━
+■ ドライバー登録番号：${lastRegisteredDriver.id}
+■ お名前：${lastRegisteredDriver.name} 様
+■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）
+━━━━━━━━━━━━━━━
+
+【はじめの手順】
+1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。
+2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。
+3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。
+
+ご不明な点がございましたら事務局までお気軽にお声がけください。
+これからどうぞよろしくお願いいたします！
+
+おでかけサポート事務局`;
+
+      navigator.clipboard.writeText(text);
+      showToast("LINE送信用の登録案内文をコピーしました");
+    }
+
     function openDetailModal(quest) {
       selectedQuest = quest;
       const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
@@ -1114,6 +1161,9 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       document.getElementById("btnCancelDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCloseDriverSuccess").onclick = () => dSuccessModal.classList.add("hidden");
 
+      // ★LINE案内文コピーボタンのクリックイベント
+      document.getElementById("btnCopyDriverLine").onclick = copyDriverWelcomeLine;
+
       // 事前登録者選択時の自動流し込み（住所・緊急連絡先も対応）
       preRegSelect.onchange = () => {
         const val = preRegSelect.value;
@@ -1125,7 +1175,7 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         }
       };
 
-      // ドライバー登録送信（action: "registerDriver" を明示的に付与して確実にPOST）
+      // ドライバー登録送信（action: "registerDriver" を含めて確実にPOST）
       document.getElementById("driverRegisterForm").onsubmit = async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById("btnSubmitDriver");
@@ -1157,6 +1207,13 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
           if (result.success) {
             dModal.classList.add("hidden");
             document.getElementById("driverRegisterForm").reset();
+
+            // ★登録直後の情報を変数に退避
+            lastRegisteredDriver = {
+              id: result.driverId,
+              name: result.name,
+              phone: payload.phone
+            };
 
             document.getElementById("issuedDriverId").textContent = result.driverId;
             document.getElementById("issuedDriverName").textContent = `${result.name} 様`;
