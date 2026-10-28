@@ -17,7 +17,6 @@
     .lucide {
       stroke-width: 2;
     }
-    /* 日付ピッカーのフォント調整 */
     input[type="date"] {
       font-family: inherit;
     }
@@ -56,9 +55,8 @@
   </header>
 
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <!-- 2. サマリーカード（要対応に統合） -->
+    <!-- 2. サマリーカード -->
     <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-      <!-- 要対応カード -->
       <button
         type="button"
         id="cardActionRequired"
@@ -76,7 +74,6 @@
         <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
       </button>
 
-      <!-- 実績未報告カード -->
       <button
         type="button"
         id="cardUnreported"
@@ -94,7 +91,6 @@
         <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
       </button>
 
-      <!-- 本日の運行予定カード -->
       <button
         type="button"
         id="cardToday"
@@ -112,7 +108,6 @@
         <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
       </button>
 
-      <!-- 募集中総数カード -->
       <button
         type="button"
         id="cardOpen"
@@ -131,9 +126,8 @@
       </button>
     </section>
 
-    <!-- 3. 検索バー ＆ 期間指定フィルターコントロール -->
+    <!-- 3. 検索バー ＆ 期間指定フィルター -->
     <section class="mb-4 space-y-2.5">
-      <!-- キーワード検索バー -->
       <div class="relative w-full">
         <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
         <input
@@ -151,7 +145,7 @@
         </button>
       </div>
 
-      <!-- ★新設：日付期間選択バー（開始日 〜 終了日 ＆ クイック設定） -->
+      <!-- 日付期間選択バー -->
       <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
           <span class="flex items-center gap-1 text-slate-500">
@@ -199,8 +193,7 @@
         </div>
       </div>
 
-      <!-- 4. 案件分類チップス（指定順序に完全準拠） -->
-      <!-- 順番: 募集中 ➔ 受注済 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告 ➔ マッチング不成立 ➔ 完了・中止 ➔ すべて -->
+      <!-- 4. 案件分類チップス -->
       <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
         <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
@@ -215,7 +208,6 @@
 
     <!-- 5. 運行案件一覧 -->
     <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-      <!-- スケルトンスクリーン -->
       <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
         <div class="flex animate-pulse items-center justify-between pt-3">
           <div class="space-y-2">
@@ -233,13 +225,11 @@
         </div>
       </div>
 
-      <!-- 空状態表示 -->
       <div id="emptyState" class="py-12 text-center hidden">
         <i data-lucide="file-text" class="mx-auto h-8 w-8 text-slate-300"></i>
         <p class="mt-2 text-sm font-semibold text-slate-500">該当する運行案件はありません</p>
       </div>
 
-      <!-- 案件データリスト -->
       <div id="questListContainer" class="divide-y divide-slate-100 hidden"></div>
     </section>
   </main>
@@ -282,7 +272,6 @@
           </div>
         </div>
 
-        <!-- 利用者情報 -->
         <div class="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3">
           <div>
             <span class="text-[11px] text-slate-400">利用者名</span>
@@ -297,13 +286,11 @@
           </div>
         </div>
 
-        <!-- 担当ドライバー情報 -->
         <div class="rounded-xl border border-slate-200 p-3">
           <span class="text-[11px] text-slate-400">担当ボランティアドライバー</span>
           <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
         </div>
 
-        <!-- 特記事項・介助メモ -->
         <div class="rounded-xl border border-slate-200 overflow-hidden">
           <button
             type="button"
@@ -360,7 +347,6 @@
 
     let quests = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
-    // 初期選択は「募集中」
     let currentFilterTag = "recruiting";
     let selectedQuest = null;
     let toastTimer = null;
@@ -479,7 +465,6 @@
       const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
       const todayStr = new Date().toISOString().split("T")[0];
 
-      // ★日付範囲の取得
       const startDate = document.getElementById("startDateInput").value;
       const endDate = document.getElementById("endDateInput").value;
 
@@ -744,6 +729,13 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       });
     }
 
+    // ★日本時間(JST)で YYYY-MM-DD 形式の文字列を作成する補助関数
+    function formatLocalYMD(year, monthIndex, day) {
+      const m = ('0' + (monthIndex + 1)).slice(-2);
+      const d = ('0' + day).slice(-2);
+      return `${year}-${m}-${d}`;
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       refreshLucide();
       fetchDashboardData();
@@ -768,34 +760,34 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         renderQuests();
       };
 
-      // ★日付範囲ピッカーの変更イベント
       const startDateInput = document.getElementById("startDateInput");
       const endDateInput = document.getElementById("endDateInput");
 
       startDateInput.onchange = renderQuests;
       endDateInput.onchange = renderQuests;
 
-      // ★クイック期間ボタン（今月・来月・全期間）
+      // ★修正：タイムゾーンズレを排除したクイック期間ボタン
       document.getElementById("btnQuickThisMonth").onclick = () => {
         const now = new Date();
         const y = now.getFullYear();
         const m = now.getMonth();
-        const firstDay = new Date(y, m, 1).toISOString().split("T")[0];
-        const lastDay = new Date(y, m + 1, 0).toISOString().split("T")[0];
-        startDateInput.value = firstDay;
-        endDateInput.value = lastDay;
+        const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
+
+        startDateInput.value = formatLocalYMD(y, m, 1);
+        endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
         renderQuests();
         showToast("「今月」の期間を設定しました");
       };
 
       document.getElementById("btnQuickNextMonth").onclick = () => {
         const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth() + 1;
-        const firstDay = new Date(y, m, 1).toISOString().split("T")[0];
-        const lastDay = new Date(y, m + 1, 0).toISOString().split("T")[0];
-        startDateInput.value = firstDay;
-        endDateInput.value = lastDay;
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const y = nextMonthDate.getFullYear();
+        const m = nextMonthDate.getMonth();
+        const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
+
+        startDateInput.value = formatLocalYMD(y, m, 1);
+        endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
         renderQuests();
         showToast("「来月」の期間を設定しました");
       };
@@ -807,7 +799,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         showToast("期間指定を解除しました（全期間表示）");
       };
 
-      // チップスボタン切り替え
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
@@ -819,7 +810,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         };
       });
 
-      // サマリーカードクリック時のフィルタ連動
       document.querySelectorAll(".metric-card").forEach(card => {
         card.onclick = () => {
           const target = card.getAttribute("data-filter");
