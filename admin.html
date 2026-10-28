@@ -42,7 +42,7 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- ★新設：ドライバー新規登録ボタン -->
+        <!-- ドライバー新規登録ボタン -->
         <button
           type="button"
           id="btnOpenDriverRegister"
@@ -68,6 +68,7 @@
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
     <!-- 2. サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
     <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <!-- 募集中カード -->
       <button
         type="button"
         id="cardOpen"
@@ -85,6 +86,7 @@
         <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
       </button>
 
+      <!-- 要対応カード -->
       <button
         type="button"
         id="cardActionRequired"
@@ -102,6 +104,7 @@
         <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
       </button>
 
+      <!-- 本日の運行カード -->
       <button
         type="button"
         id="cardToday"
@@ -119,6 +122,7 @@
         <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
       </button>
 
+      <!-- 実績未報告カード -->
       <button
         type="button"
         id="cardUnreported"
@@ -178,6 +182,7 @@
           </div>
         </div>
 
+        <!-- クイック期間ボタン -->
         <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold">
           <button
             type="button"
@@ -336,7 +341,7 @@
     </div>
   </div>
 
-  <!-- ★7. 【新設】ドライバー新規登録モーダル（事前登録フォーム自動流し込み対応） -->
+  <!-- 7. ドライバー新規登録モーダル（事前登録フォーム回答自動流し込み対応） -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -350,7 +355,7 @@
       </div>
 
       <form id="driverRegisterForm" class="my-4 space-y-3.5 text-xs">
-     <!-- 事前登録フォーム回答者からの自動入力セレクト -->
+        <!-- 事前登録フォーム回答者からの自動入力セレクト -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
           <div class="flex items-center justify-between mb-1">
             <label class="font-bold text-emerald-900 flex items-center gap-1">
@@ -475,7 +480,7 @@
     </div>
   </div>
 
-  <!-- ★8. 【新設】ドライバー登録完了ポップアップ（番号通知＆レクチャー案内） -->
+  <!-- 8. ドライバー登録完了ポップアップ -->
   <div id="driverSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
@@ -624,30 +629,50 @@
       }
     }
 
-    // ★事前登録フォーム回答者一覧の取得
+    // 事前登録フォーム回答者一覧の取得
     async function loadPreRegistrations() {
+      const select = document.getElementById("preRegSelect");
+      const statusText = document.getElementById("preRegStatusText");
+      
+      select.disabled = true;
+      select.innerHTML = '<option value="">⏳ 読み込み中...</option>';
+      if (statusText) statusText.textContent = "事前登録フォームの回答を取得中...";
+
       try {
         const res = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations`);
         const data = await res.json();
+        
         if (data.success) {
           preRegList = data.preRegistrations || [];
-          const select = document.getElementById("preRegSelect");
           select.innerHTML = '<option value="">-- 事前登録者を選択してください --</option>';
 
-          preRegList.forEach((item, idx) => {
-            const opt = document.createElement("option");
-            opt.value = String(idx);
-            opt.textContent = `${item.name} 様 (${item.phone})`;
-            select.appendChild(opt);
-          });
+          if (preRegList.length === 0) {
+            select.innerHTML = '<option value="">-- 未登録の事前登録データはありません（0件） --</option>';
+            if (statusText) statusText.textContent = data.message || "Form Responses 5 に未登録のデータはありません";
+          } else {
+            preRegList.forEach((item, idx) => {
+              const opt = document.createElement("option");
+              opt.value = String(idx);
+              const tag = item.isRegistered ? " [名簿登録済]" : "";
+              opt.textContent = `${item.name} 様 (${item.phone})${tag}`;
+              select.appendChild(opt);
+            });
+            if (statusText) statusText.textContent = `${preRegList.length}件の事前登録データを取得しました。選択すると自動入力されます。`;
+          }
 
-          // 自動採番の初期セット
           if (data.nextDriverId) {
             document.getElementById("dRegId").value = data.nextDriverId;
           }
+        } else {
+          select.innerHTML = '<option value="">⚠️ 取得失敗（GASの更新が必要です）</option>';
+          if (statusText) statusText.textContent = `エラー: ${data.message || 'GASが新バージョンでデプロイされているかご確認ください'}`;
         }
       } catch (e) {
-        console.warn("事前登録一覧取得失敗:", e);
+        select.innerHTML = '<option value="">⚠️ 通信エラー</option>';
+        if (statusText) statusText.textContent = "通信エラー: GASが新バージョンでデプロイされているかご確認ください";
+      } finally {
+        select.disabled = false;
+        refreshLucide();
       }
     }
 
@@ -1050,9 +1075,7 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         }
       };
 
-      // ==========================================
-      // ★ドライバー新規登録モーダルの制御
-      // ==========================================
+      // ドライバー新規登録モーダルの制御
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
       const preRegSelect = document.getElementById("preRegSelect");
@@ -1063,17 +1086,18 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
         refreshLucide();
       };
 
+      document.getElementById("btnReloadPreReg").onclick = loadPreRegistrations;
       document.getElementById("btnCloseDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCancelDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCloseDriverSuccess").onclick = () => dSuccessModal.classList.add("hidden");
 
-      // 事前登録者選択時の自動流し込みイベント
+      // 事前登録者選択時の自動流し込み
       preRegSelect.onchange = () => {
         const val = preRegSelect.value;
         if (val !== "" && preRegList[val]) {
           const item = preRegList[val];
-          document.getElementById("dRegName").value = item.name;
-          document.getElementById("dRegPhone").value = item.phone;
+          document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
+          document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
           document.getElementById("dRegNote").value = item.carInfo || "";
         }
       };
@@ -1108,7 +1132,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
             dModal.classList.add("hidden");
             document.getElementById("driverRegisterForm").reset();
 
-            // 完了モーダルで番号を強調表示
             document.getElementById("issuedDriverId").textContent = result.driverId;
             document.getElementById("issuedDriverName").textContent = `${result.name} 様`;
             dSuccessModal.classList.remove("hidden");
