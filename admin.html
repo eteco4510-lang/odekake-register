@@ -21,6 +21,7 @@
       font-family: inherit;
     }
 
+    /* A4用紙に3枚収まる受領書印刷用スタイル */
     @media print {
       body * {
         visibility: hidden !important;
@@ -830,6 +831,19 @@
   </div>
 
   <script>
+    // ==========================================
+    // ★HTMLエスケープ関数（最上段に配置して未定義エラーを完全防止）
+    // ==========================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
     let quests = [];
@@ -878,7 +892,7 @@
       }
     }
 
-    // ★改善：タイムアウト40秒＆自動リトライ付きデータ取得関数
+    // ★タイムアウト40秒＆自動リトライ付きデータ取得関数
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
@@ -893,11 +907,9 @@
       }
 
       const controller = new AbortController();
-      // タイムアウトを40秒に拡大（GASのスピンアップ待機対応）
       const timeoutId = setTimeout(() => controller.abort(), 40000);
 
       try {
-        // キャッシュバスター（_t）付与で常に最新を取得
         const cacheBuster = `&_t=${Date.now()}`;
         const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
           signal: controller.signal
@@ -933,7 +945,6 @@
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        // コールドスタート等で初回到達失敗した場合、1回だけ自動で即時リトライ
         if (!isRetry) {
           console.warn("初回取得失敗、再試行中...", err);
           return await fetchDashboardData(true);
@@ -1185,7 +1196,6 @@
       refreshLucide();
     }
 
-    // ドライバー名簿の描画（住所横に「地図を表示」ボタン配置）
     function renderDrivers() {
       const container = document.getElementById("driversListContainer");
       const searchVal = (document.getElementById("searchDriverInput")?.value || "").trim().toLowerCase();
@@ -1464,7 +1474,6 @@
       });
     }
 
-    // A4 3分割 受領書印刷プレビュー生成
     function openPrintPreview() {
       const sDate = document.getElementById("settleStartDate").value;
       const eDate = document.getElementById("settleEndDate").value;
@@ -1582,6 +1591,92 @@
           if (q) openDetailModal(q);
         };
       });
+    }
+
+    function copyLineMessage(quest, type) {
+      let text = "";
+      if (type === "remind") {
+        text = `【活動記録 ご入力のお願い】\n\n${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。\n本日の送迎ボランティア、大変お疲れ様でした！\n\n以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。\nお忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 集合日時：${quest.targetDate} ${quest.targetTime}\n■ ご利用者：${quest.userName} 様\n■ 行先：${quest.dropoff}\n━━━━━━━━━━━━━━━\n\n▼ 活動記録の入力画面はこちら：\nhttps://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}\n\n※すでにご送信済みの場合は、行き違いをご容赦ください。\nよろしくお願い申し上げます。`;
+      } else {
+        text = `【至急のご相談】直前運行のお願い\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご連絡となり大変恐縮です。\nお近くでの運行案件でまだドライバーが決まっておらず、大変困っております。\nもしお時間がございましたら、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。\n\nよろしくお願い申し上げます。`;
+      }
+
+      navigator.clipboard.writeText(text);
+      showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
+    }
+
+    function copyDriverWelcomeLine() {
+      if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
+      const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
+      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
+
+      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。\n\nご不明な点がございましたら事務局までお気軽にお声がけください。\nこれからどうぞよろしくお願いいたします！\n\nおでかけサポート事務局`;
+
+      navigator.clipboard.writeText(text);
+      showToast("LINE送信用の登録案内文をコピーしました");
+    }
+
+    function openDetailModal(quest) {
+      selectedQuest = quest;
+      const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
+
+      document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
+      document.getElementById("modalQuestStatus").textContent = quest.status;
+      document.getElementById("modalDatetime").textContent = `${quest.targetDate} ${quest.targetTime} 集合`;
+      document.getElementById("modalTripPlan").textContent = quest.tripPlan;
+      document.getElementById("modalPickup").textContent = quest.pickup;
+      document.getElementById("modalDropoff").textContent = quest.dropoff;
+      document.getElementById("modalUserName").textContent = `${quest.userName} 様 (${quest.passengers})`;
+      document.getElementById("modalUserPhone").querySelector("span").textContent = quest.userPhone || "未登録";
+
+      const driverInfoEl = document.getElementById("modalDriverInfo");
+      if (quest.driverName) {
+        driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
+        driverInfoEl.className = quest.isUnreported ? "mt-0.5 font-bold text-rose-700" : "mt-0.5 font-bold text-emerald-700";
+      } else if (quest.status === "マッチング不成立") {
+        driverInfoEl.textContent = "担当者なし（前日17:00期限切れ不成立）";
+        driverInfoEl.className = "mt-0.5 font-bold text-purple-700";
+      } else {
+        driverInfoEl.textContent = "未定（現在ドライバー募集中）";
+        driverInfoEl.className = "mt-0.5 font-bold text-red-600";
+      }
+
+      document.getElementById("modalNote").textContent = quest.note || "特になし";
+
+      const sysInfoArea = document.getElementById("modalSysInfoArea");
+      if (quest.systemInfo) {
+        document.getElementById("modalSysInfo").textContent = quest.systemInfo;
+        sysInfoArea.classList.remove("hidden");
+      } else {
+        sysInfoArea.classList.add("hidden");
+      }
+
+      const copyBtn = document.getElementById("btnModalCopyLine");
+      const copyBtnText = document.getElementById("modalCopyBtnText");
+
+      if (quest.isUnreported) {
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
+        copyBtnText.textContent = "催促LINE文をコピー";
+        copyBtn.classList.remove("hidden");
+      } else if (isActionRequired) {
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
+        copyBtnText.textContent = "LINE打診文をコピー";
+        copyBtn.classList.remove("hidden");
+      } else {
+        copyBtn.classList.add("hidden");
+      }
+
+      isAccordionOpen = false;
+      document.getElementById("accordionContent").classList.add("hidden");
+      document.getElementById("accordionIcon").classList.remove("rotate-180");
+
+      document.getElementById("detailModalOverlay").classList.remove("hidden");
+      refreshLucide();
+    }
+
+    function closeDetailModal() {
+      document.getElementById("detailModalOverlay").classList.add("hidden");
+      selectedQuest = null;
     }
 
     function formatLocalYMD(year, monthIndex, day) {
