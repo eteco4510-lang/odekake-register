@@ -20,9 +20,33 @@
     input[type="date"] {
       font-family: inherit;
     }
+
+    /* A4印刷用スタイル（画面外では非表示、印刷時のみA4帳票として出力） */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printContainer, #printContainer * {
+        visibility: visible !important;
+      }
+      #printContainer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 12mm 10mm;
+      }
+    }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-16">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
   <!-- 1. スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
@@ -37,12 +61,11 @@
           <span class="text-slate-800 font-semibold">事務局コックピット</span>
         </nav>
         <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl">
-          運行予定・アラート管理
+          統合業務コックピット
         </h1>
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- ドライバー新規登録ボタン -->
         <button
           type="button"
           id="btnOpenDriverRegister"
@@ -52,7 +75,6 @@
           <span>ドライバー登録</span>
         </button>
 
-        <!-- 最新情報更新ボタン -->
         <button
           type="button"
           id="btnRefresh"
@@ -63,181 +85,460 @@
         </button>
       </div>
     </div>
-  </header>
 
-  <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <!-- 2. サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
-    <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-      <button
-        type="button"
-        id="cardOpen"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="recruiting"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700">募集中</span>
-          <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
-      </button>
-
-      <button
-        type="button"
-        id="cardActionRequired"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="action_required"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-red-700">要対応</span>
-          <i data-lucide="alert-circle" class="h-4 w-4 text-red-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricActionRequiredCount" class="text-2xl font-black text-red-600">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
-      </button>
-
-      <button
-        type="button"
-        id="cardToday"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="today"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-blue-700">本日の運行</span>
-          <i data-lucide="car" class="h-4 w-4 text-blue-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricTodayCount" class="text-2xl font-black text-blue-600">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
-      </button>
-
-      <button
-        type="button"
-        id="cardUnreported"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="unreported"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-rose-700">実績未報告</span>
-          <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
-      </button>
-    </section>
-
-    <!-- 3. 検索バー ＆ 期間指定フィルター -->
-    <section class="mb-4 space-y-2.5">
-      <div class="relative w-full">
-        <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
-          class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
-        />
+    <!-- ★メイン業務タブバー（案A：セグメントコントロール） -->
+    <div class="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6">
+      <div class="mx-auto flex max-w-6xl items-center gap-2 py-2">
         <button
           type="button"
-          id="btnClearSearch"
-          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white"
+          data-tab="ops"
         >
-          <i data-lucide="x" class="h-4 w-4"></i>
+          <i data-lucide="calendar-check" class="h-3.5 w-3.5"></i>
+          <span>運行・活動管理</span>
+        </button>
+        <button
+          type="button"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+          data-tab="roster"
+        >
+          <i data-lucide="users" class="h-3.5 w-3.5"></i>
+          <span>名簿マスタ</span>
+        </button>
+        <button
+          type="button"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+          data-tab="settlement"
+        >
+          <i data-lucide="receipt" class="h-3.5 w-3.5"></i>
+          <span>実費精算・受領書</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 pt-5 sm:px-6">
+
+    <!-- ======================================================== -->
+    <!-- タブ1：運行・活動管理セクション (ops)                       -->
+    <!-- ======================================================== -->
+    <section id="tabContentOps" class="space-y-5">
+      <!-- サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <button
+          type="button"
+          id="cardOpen"
+          class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+          data-filter="recruiting"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">募集中</span>
+            <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
+            <span class="text-xs font-medium text-slate-500">件</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
+        </button>
+
+        <button
+          type="button"
+          id="cardActionRequired"
+          class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+          data-filter="action_required"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-red-700">要対応</span>
+            <i data-lucide="alert-circle" class="h-4 w-4 text-red-600"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="metricActionRequiredCount" class="text-2xl font-black text-red-600">0</span>
+            <span class="text-xs font-medium text-slate-500">件</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
+        </button>
+
+        <button
+          type="button"
+          id="cardToday"
+          class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+          data-filter="today"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-blue-700">本日の運行</span>
+            <i data-lucide="car" class="h-4 w-4 text-blue-600"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="metricTodayCount" class="text-2xl font-black text-blue-600">0</span>
+            <span class="text-xs font-medium text-slate-500">件</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
+        </button>
+
+        <button
+          type="button"
+          id="cardUnreported"
+          class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+          data-filter="unreported"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-rose-700">実績未報告</span>
+            <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
+            <span class="text-xs font-medium text-slate-500">件</span>
+          </div>
+          <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
         </button>
       </div>
 
-      <!-- 日付期間選択バー -->
-      <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <!-- サブ表示切替：運行予定 vs 活動記録ログ -->
+      <div class="flex items-center justify-between">
+        <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
+          <button
+            type="button"
+            id="subTabOpsQuests"
+            class="rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold"
+          >
+            運行予定・アラート
+          </button>
+          <button
+            type="button"
+            id="subTabOpsRecords"
+            class="rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900"
+          >
+            活動記録ログ（実績一覧）
+          </button>
+        </div>
+      </div>
+
+      <!-- 運行予定ビュー -->
+      <div id="opsQuestsView" class="space-y-3">
+        <!-- 検索バー ＆ 期間フィルター -->
+        <div class="space-y-2.5">
+          <div class="relative w-full">
+            <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
+            />
+            <button
+              type="button"
+              id="btnClearSearch"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden"
+            >
+              <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+          </div>
+
+          <!-- 日付期間選択バー -->
+          <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
+              <span class="flex items-center gap-1 text-slate-500">
+                <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400"></i>
+                <span>期間指定:</span>
+              </span>
+              <div class="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  id="startDateInput"
+                  class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+                />
+                <span class="text-slate-400">〜</span>
+                <input
+                  type="date"
+                  id="endDateInput"
+                  class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold">
+              <button
+                type="button"
+                id="btnQuickThisMonth"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
+              >
+                今月
+              </button>
+              <button
+                type="button"
+                id="btnQuickNextMonth"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
+              >
+                来月
+              </button>
+              <button
+                type="button"
+                id="btnClearDates"
+                class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 transition active:scale-95"
+              >
+                全期間
+              </button>
+            </div>
+          </div>
+
+          <!-- 案件分類チップス -->
+          <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-red-600 hover:bg-red-50" data-filter="action_required">要対応</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
+            <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
+            <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="all">すべて</button>
+          </div>
+        </div>
+
+        <!-- 運行案件一覧コンテナ -->
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+          <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
+            <div class="flex animate-pulse items-center justify-between pt-3">
+              <div class="space-y-2">
+                <div class="h-4 w-32 rounded bg-slate-200"></div>
+                <div class="h-3 w-48 rounded bg-slate-100"></div>
+              </div>
+              <div class="h-8 w-20 rounded bg-slate-200"></div>
+            </div>
+          </div>
+          <div id="emptyState" class="py-12 text-center hidden">
+            <i data-lucide="file-text" class="mx-auto h-8 w-8 text-slate-300"></i>
+            <p class="mt-2 text-sm font-semibold text-slate-500">該当する運行案件はありません</p>
+          </div>
+          <div id="questListContainer" class="divide-y divide-slate-100 hidden"></div>
+        </div>
+      </div>
+
+      <!-- 活動記録ログビュー -->
+      <div id="opsRecordsView" class="space-y-3 hidden">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧</p>
+          <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">0件</span>
+        </div>
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+          <div id="recordEmptyState" class="py-12 text-center hidden">
+            <i data-lucide="clipboard-list" class="mx-auto h-8 w-8 text-slate-300"></i>
+            <p class="mt-2 text-sm font-semibold text-slate-500">活動記録ログはありません</p>
+          </div>
+          <div id="recordListContainer" class="divide-y divide-slate-100"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- タブ2：名簿マスタセクション (roster)                        -->
+    <!-- ======================================================== -->
+    <section id="tabContentRoster" class="space-y-5 hidden">
+      <!-- サブ表示切替：ドライバー名簿 vs 利用者名簿 -->
+      <div class="flex items-center justify-between">
+        <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
+          <button
+            type="button"
+            id="subTabRosterDrivers"
+            class="rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold"
+          >
+            ドライバー名簿
+          </button>
+          <button
+            type="button"
+            id="subTabRosterUsers"
+            class="rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900"
+          >
+            利用者名簿
+          </button>
+        </div>
+      </div>
+
+      <!-- ドライバー名簿ビュー -->
+      <div id="rosterDriversView" class="space-y-3">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="relative w-full sm:w-80">
+            <i data-lucide="search" class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"></i>
+            <input
+              type="text"
+              id="searchDriverInput"
+              placeholder="登録番号、氏名、電話番号、住所で検索..."
+              class="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div class="flex items-center gap-1 text-xs font-semibold" id="driverFilterChips">
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white" data-filter="all">すべて</button>
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="linked">LINE連携済</button>
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="unlinked">未連携</button>
+          </div>
+        </div>
+
+        <div id="driversListContainer" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+      </div>
+
+      <!-- 利用者名簿ビュー -->
+      <div id="rosterUsersView" class="space-y-3 hidden">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="relative w-full sm:w-80">
+            <i data-lucide="search" class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"></i>
+            <input
+              type="text"
+              id="searchUserInput"
+              placeholder="利用者番号、氏名、電話番号で検索..."
+              class="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div class="flex items-center gap-1 text-xs font-semibold" id="userFilterChips">
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white" data-filter="all">すべて</button>
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="honin">本人申請 (20101〜)</button>
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="care">ケアマネ代理 (30101〜)</button>
+          </div>
+        </div>
+
+        <div id="usersListContainer" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- タブ3：実費精算・受領書セクション (settlement)             -->
+    <!-- ======================================================== -->
+    <section id="tabContentSettlement" class="space-y-5 hidden">
+      <!-- 期間選択＆アクションバー -->
+      <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
           <span class="flex items-center gap-1 text-slate-500">
             <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400"></i>
-            <span>期間指定:</span>
+            <span>集計対象期間:</span>
           </span>
           <div class="flex items-center gap-1.5">
             <input
               type="date"
-              id="startDateInput"
-              class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+              id="settleStartDate"
+              class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none focus:border-blue-600"
             />
             <span class="text-slate-400">〜</span>
             <input
               type="date"
-              id="endDateInput"
-              class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+              id="settleEndDate"
+              class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-800 outline-none focus:border-blue-600"
             />
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+          <button type="button" id="btnSettleThisMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">今月</button>
+          <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
+          <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
+          <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
           <button
             type="button"
-            id="btnQuickThisMonth"
-            class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
+            id="btnPrintPreview"
+            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1 text-white shadow-xs hover:bg-slate-800 active:scale-95"
           >
-            今月
-          </button>
-          <button
-            type="button"
-            id="btnQuickNextMonth"
-            class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
-          >
-            来月
-          </button>
-          <button
-            type="button"
-            id="btnClearDates"
-            class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 transition active:scale-95"
-          >
-            全期間
+            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+            <span>受領書A4印刷</span>
           </button>
         </div>
       </div>
 
-      <!-- 4. 案件分類チップス -->
-      <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-red-600 hover:bg-red-50" data-filter="action_required">要対応</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
-        <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
-        <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
-        <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="all">すべて</button>
-      </div>
-    </section>
-
-    <!-- 5. 運行案件一覧 -->
-    <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-      <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
-        <div class="flex animate-pulse items-center justify-between pt-3">
-          <div class="space-y-2">
-            <div class="h-4 w-32 rounded bg-slate-200"></div>
-            <div class="h-3 w-48 rounded bg-slate-100"></div>
+      <!-- 精算サマリーKPI -->
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <span class="text-xs font-bold text-slate-500">運行回数合計</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="settleTotalTrips" class="text-2xl font-black text-slate-900">0</span>
+            <span class="text-xs font-medium text-slate-500">回</span>
           </div>
-          <div class="h-8 w-20 rounded bg-slate-200"></div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <span class="text-xs font-bold text-slate-500">延べ乗車人数</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="settleTotalPassengers" class="text-2xl font-black text-blue-700">0</span>
+            <span class="text-xs font-medium text-slate-500">人回</span>
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <span class="text-xs font-bold text-slate-500">総走行距離</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="settleTotalDistance" class="text-2xl font-black text-slate-900">0</span>
+            <span class="text-xs font-medium text-slate-500">km</span>
+          </div>
+        </div>
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-xs">
+          <span class="text-xs font-bold text-emerald-800">実費弁償 支給総額</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="settleTotalPayout" class="text-2xl font-black text-emerald-700">0</span>
+            <span class="text-xs font-medium text-emerald-800">円</span>
+          </div>
         </div>
       </div>
 
-      <div id="emptyState" class="py-12 text-center hidden">
-        <i data-lucide="file-text" class="mx-auto h-8 w-8 text-slate-300"></i>
-        <p class="mt-2 text-sm font-semibold text-slate-500">該当する運行案件はありません</p>
+      <!-- 金種計算カード（銀行両替用メモ） -->
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+            <i data-lucide="coins" class="h-4 w-4 text-emerald-600"></i>
+            <span>金種別 必要枚数（銀行両替・現金封入用メモ）</span>
+          </div>
+          <span class="text-[11px] text-slate-500">※各ドライバーの個別支給額を元に自動算出</span>
+        </div>
+        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 pt-1 text-center font-mono">
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">1万円札</span>
+            <span id="denom10000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">5千円札</span>
+            <span id="denom5000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">千円札</span>
+            <span id="denom1000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">500円玉</span>
+            <span id="denom500" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">100円玉</span>
+            <span id="denom100" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">50円玉</span>
+            <span id="denom50" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+            <span class="text-[11px] text-slate-500 block">10円玉</span>
+            <span id="denom10" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
+          </div>
+        </div>
       </div>
 
-      <div id="questListContainer" class="divide-y divide-slate-100 hidden"></div>
+      <!-- ドライバー別 活動集計・累計テーブル -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+            <tr>
+              <th class="p-3">番号</th>
+              <th class="p-3">ドライバー氏名</th>
+              <th class="p-3 text-right">運行回数</th>
+              <th class="p-3 text-right">延べ人数</th>
+              <th class="p-3 text-right">走行距離</th>
+              <th class="p-3 text-right">ガソリン代実費</th>
+              <th class="p-3 text-right">その他立替</th>
+              <th class="p-3 text-right">支給合計額</th>
+            </tr>
+          </thead>
+          <tbody id="settleTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
+        </table>
+      </div>
     </section>
+
   </main>
 
-  <!-- 6. 案件詳細モーダル -->
+  <!-- ======================================================== -->
+  <!-- 案件詳細モーダル                                          -->
+  <!-- ======================================================== -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -336,7 +637,9 @@
     </div>
   </div>
 
-  <!-- 7. ドライバー新規登録モーダル（住所・緊急連絡先欄対応） -->
+  <!-- ======================================================== -->
+  <!-- ドライバー新規登録モーダル                                -->
+  <!-- ======================================================== -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -350,7 +653,6 @@
       </div>
 
       <form id="driverRegisterForm" class="my-4 space-y-3.5 text-xs">
-        <!-- 事前登録フォーム回答者からの自動入力セレクト -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
           <div class="flex items-center justify-between mb-1">
             <label class="font-bold text-emerald-900 flex items-center gap-1">
@@ -374,47 +676,21 @@
           </p>
         </div>
 
-        <!-- A列: 登録番号 ＆ B列: 氏名 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">
-              ドライバー登録番号 <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="dRegId"
-              placeholder="10101"
-              required
-              class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-2.5 font-mono font-bold text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
-            />
+            <label class="block font-bold text-slate-700 mb-1">ドライバー登録番号 <span class="text-red-500">*</span></label>
+            <input type="text" id="dRegId" placeholder="10101" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-2.5 font-mono font-bold text-slate-900 outline-none focus:border-blue-600 focus:bg-white" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">
-              氏名（漢字） <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="dRegName"
-              placeholder="例: 相模 太郎"
-              required
-              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-bold text-slate-900 outline-none focus:border-blue-600"
-            />
+            <label class="block font-bold text-slate-700 mb-1">氏名（漢字） <span class="text-red-500">*</span></label>
+            <input type="text" id="dRegName" placeholder="例: 相模 太郎" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-bold text-slate-900 outline-none focus:border-blue-600" />
           </div>
         </div>
 
-        <!-- C列: 電話番号 ＆ F列: 免許区分 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">
-              連絡先電話番号 <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              id="dRegPhone"
-              placeholder="090-1234-5678"
-              required
-              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-mono text-slate-900 outline-none focus:border-blue-600"
-            />
+            <label class="block font-bold text-slate-700 mb-1">連絡先電話番号 <span class="text-red-500">*</span></label>
+            <input type="tel" id="dRegPhone" placeholder="090-1234-5678" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-mono text-slate-900 outline-none focus:border-blue-600" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">運転免許区分</label>
@@ -425,7 +701,6 @@
           </div>
         </div>
 
-        <!-- G列: 担い手修了証No ＆ H列: 研修受講年月日 -->
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
           <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
             <input type="checkbox" id="dRegInsuranceCheck" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-0" required />
@@ -443,58 +718,31 @@
           </div>
         </div>
 
-        <!-- I列: 住所 ＆ J列: 緊急連絡先 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
               <i data-lucide="map-pin" class="h-3 w-3 text-slate-400"></i>
               <span>住所（I列）</span>
             </label>
-            <input
-              type="text"
-              id="dRegAddress"
-              placeholder="例: 相模原市緑区中野1-2-3"
-              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"
-            />
+            <input type="text" id="dRegAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
               <i data-lucide="phone-call" class="h-3 w-3 text-slate-400"></i>
               <span>緊急連絡先（J列）</span>
             </label>
-            <input
-              type="text"
-              id="dRegEmergency"
-              placeholder="例: 090-9999-8888（配偶者）"
-              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"
-            />
+            <input type="text" id="dRegEmergency" placeholder="例: 090-9999-8888（配偶者）" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
           </div>
         </div>
 
-        <!-- E列: 備考（車両情報・運転可能曜日など） -->
         <div>
           <label class="block font-bold text-slate-700 mb-1">車両情報・運転可能曜日・備考（E列）</label>
-          <textarea
-            id="dRegNote"
-            rows="2"
-            placeholder="車種、ナンバープレート、稼働可能曜日など"
-            class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-900 outline-none focus:border-blue-600"
-          ></textarea>
+          <textarea id="dRegNote" rows="2" placeholder="車種、ナンバープレート、稼働可能曜日など" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-900 outline-none focus:border-blue-600"></textarea>
         </div>
 
         <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-          <button
-            type="button"
-            id="btnCancelDriverModal"
-            class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            キャンセル
-          </button>
-          <button
-            type="submit"
-            id="btnSubmitDriver"
-            class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
-          >
+          <button type="button" id="btnCancelDriverModal" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">キャンセル</button>
+          <button type="submit" id="btnSubmitDriver" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50">
             <i data-lucide="check" class="h-3.5 w-3.5"></i>
             <span>この内容で登録する</span>
           </button>
@@ -503,7 +751,9 @@
     </div>
   </div>
 
-  <!-- ★8. ドライバー登録完了ポップアップ（LINE案内文コピー機能付き） -->
+  <!-- ======================================================== -->
+  <!-- ドライバー登録完了ポップアップ                            -->
+  <!-- ======================================================== -->
   <div id="driverSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
@@ -534,28 +784,97 @@
         </div>
       </div>
 
-      <!-- アクションボタンエリア（LINE文面コピー ＆ 閉じる） -->
       <div class="mt-4 flex flex-col gap-2">
-        <button
-          type="button"
-          id="btnCopyDriverLine"
-          class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95"
-        >
+        <button type="button" id="btnCopyDriverLine" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95">
           <i data-lucide="copy" class="h-4 w-4"></i>
           <span>LINE案内文をコピー</span>
         </button>
-        <button
-          type="button"
-          id="btnCloseDriverSuccess"
-          class="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
-        >
+        <button type="button" id="btnCloseDriverSuccess" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
           閉じる
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 9. トースト通知 -->
+  <!-- ======================================================== -->
+  <!-- A4受領書印刷用プレビューモーダル                          -->
+  <!-- ======================================================== -->
+  <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="printer" class="h-4 w-4 text-slate-600"></i>
+          <span>活動実費弁償金 支給明細兼受領書（A4印刷プレビュー）</span>
+        </h3>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700 active:scale-95">
+            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+            <span>この内容で印刷する</span>
+          </button>
+          <button type="button" id="btnClosePrintPreview" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+            閉じる
+          </button>
+        </div>
+      </div>
+
+      <!-- 印刷対象領域（画面プレビュー兼印刷コンテナ） -->
+      <div id="printContainer" class="p-4 sm:p-6 bg-white text-slate-900 text-xs">
+        <div class="border-b-2 border-slate-800 pb-2 mb-4 text-center">
+          <h2 class="text-lg font-bold tracking-wider">活動実費弁償金 支給明細兼受領書</h2>
+          <div class="flex justify-between items-end mt-2 text-[11px] text-slate-600">
+            <div>団体名: <strong>おでかけサポート事務局</strong></div>
+            <div>対象期間: <strong id="printPeriodText">----</strong></div>
+            <div>発行日: <strong id="printIssueDate">----</strong></div>
+          </div>
+        </div>
+
+        <div class="mb-4 flex items-center justify-between text-xs border border-slate-300 rounded p-2.5 bg-slate-50/50">
+          <div>支給対象者数: <strong id="printDriverCount">0</strong> 名</div>
+          <div>総運行回数: <strong id="printTotalTrips">0</strong> 回</div>
+          <div>延べ乗車人数: <strong id="printTotalPassengers">0</strong> 人回</div>
+          <div>支給総額: <strong id="printTotalAmount" class="text-sm font-bold">¥0</strong></div>
+        </div>
+
+        <table class="w-full border-collapse border border-slate-300 text-left text-[11px] mb-4">
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="border border-slate-300 p-1.5 text-center w-12">番号</th>
+              <th class="border border-slate-300 p-1.5">ドライバー氏名</th>
+              <th class="border border-slate-300 p-1.5 text-right w-16">回数</th>
+              <th class="border border-slate-300 p-1.5 text-right w-16">延べ人数</th>
+              <th class="border border-slate-300 p-1.5 text-right w-20">走行距離</th>
+              <th class="border border-slate-300 p-1.5 text-right w-24">支給額</th>
+              <th class="border border-slate-300 p-1.5 text-center w-36">受領印・自署</th>
+            </tr>
+          </thead>
+          <tbody id="printTableBody"></tbody>
+        </table>
+
+        <div class="grid grid-cols-2 gap-4 border-t border-slate-200 pt-3 text-[11px]">
+          <div class="border border-slate-300 p-2 rounded">
+            <span class="font-bold block mb-1">【金種別必要枚数（銀行両替用）】</span>
+            <div id="printDenomText" class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-slate-700"></div>
+          </div>
+          <div class="flex justify-around items-center border border-slate-300 p-2 rounded text-center">
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-3">会長</span>
+              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-3">会計</span>
+              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-3">担当者</span>
+              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
   <div
     id="toastNotification"
     class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-lg transition-all duration-200 opacity-0 translate-y-3 pointer-events-none"
@@ -568,14 +887,15 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
     let quests = [];
+    let records = [];
+    let drivers = [];
+    let users = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
     let currentFilterTag = "recruiting";
     let selectedQuest = null;
     let toastTimer = null;
     let isAccordionOpen = false;
     let preRegList = [];
-
-    // ★登録直後のドライバー情報（LINE案内文コピー用）
     let lastRegisteredDriver = { id: '', name: '', phone: '' };
 
     function refreshLucide() {
@@ -626,7 +946,7 @@
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       try {
         const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData`, {
@@ -637,6 +957,10 @@
         const data = await res.json();
         if (data.success) {
           quests = data.quests || [];
+          records = data.records || [];
+          drivers = data.drivers || [];
+          users = data.users || [];
+
           if (data.metrics) {
             metrics = {
               actionRequiredCount: (data.metrics.actionRequiredCount !== undefined)
@@ -649,24 +973,23 @@
           }
           updateMetricsUI();
           renderQuests();
+          renderRecords();
+          renderDrivers();
+          renderUsers();
+          updateSettlementView();
           showToast("最新データを取得しました");
         } else {
           showToast("取得エラー: " + (data.message || ""));
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        if (err.name === "AbortError") {
-          showToast("通信タイムアウト: GASの応答がありませんでした");
-        } else {
-          showToast("通信エラー: " + err.message);
-        }
+        showToast(err.name === "AbortError" ? "通信タイムアウト: 応答がありませんでした" : "通信エラー: " + err.message);
       } finally {
         setRefreshing(false);
         skeleton.classList.add("hidden");
       }
     }
 
-    // 事前登録フォーム回答者一覧の取得
     async function loadPreRegistrations() {
       const select = document.getElementById("preRegSelect");
       const statusText = document.getElementById("preRegStatusText");
@@ -722,14 +1045,10 @@
       const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
 
       const chipUnreported = document.getElementById("chipUnreported");
-      if (chipUnreported) {
-        chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount})`;
-      }
+      if (chipUnreported) chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount})`;
 
       const chipFailed = document.getElementById("chipFailed");
-      if (chipFailed) {
-        chipFailed.textContent = `マッチング不成立 (${failedCount})`;
-      }
+      if (chipFailed) chipFailed.textContent = `マッチング不成立 (${failedCount})`;
     }
 
     function renderQuests() {
@@ -857,94 +1176,408 @@
       attachEventHandlers();
     }
 
+    // 活動記録ログの描画
+    function renderRecords() {
+      const container = document.getElementById("recordListContainer");
+      const empty = document.getElementById("recordEmptyState");
+      const badge = document.getElementById("recordCountBadge");
+
+      badge.textContent = `${records.length}件`;
+
+      if (records.length === 0) {
+        container.innerHTML = "";
+        empty.classList.remove("hidden");
+        refreshLucide();
+        return;
+      }
+
+      empty.classList.add("hidden");
+      container.innerHTML = "";
+
+      records.forEach(r => {
+        const item = document.createElement("div");
+        item.className = "flex flex-col gap-2 p-3.5 transition hover:bg-slate-50 text-xs sm:flex-row sm:items-center sm:justify-between";
+        item.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-mono font-bold text-slate-600">#${escapeHtml(r.questId || '----')}</span>
+              <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700">${escapeHtml(r.tripType)}</span>
+              <span class="text-slate-500 flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i>${escapeHtml(r.recordDate)}</span>
+              <span class="text-slate-500">所要: <strong>${r.duration}分</strong></span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-slate-800">
+              <span>担当: <strong>${escapeHtml(r.driverName)}</strong> (ID:${escapeHtml(r.driverId)})</span>
+              <span>乗客: <strong>${escapeHtml(r.passengers || '同乗者なし')}</strong> (${r.totalPassengers}人回)</span>
+              <span>実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 pt-1 sm:pt-0">
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 block">実費弁償額</span>
+              <span class="text-sm font-black text-emerald-700">¥${Number(r.totalFee).toLocaleString()}</span>
+              ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
+            </div>
+            ${r.arrMapUrl ? `
+              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs" title="Googleマップで確認">
+                <i data-lucide="map-pin" class="h-4 w-4"></i>
+              </a>
+            ` : ''}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      refreshLucide();
+    }
+
+    // ドライバー名簿の描画
+    function renderDrivers() {
+      const container = document.getElementById("driversListContainer");
+      const searchVal = (document.getElementById("searchDriverInput")?.value || "").trim().toLowerCase();
+      const activeChip = document.querySelector("#driverFilterChips .d-chip.bg-slate-900")?.getAttribute("data-filter") || "all";
+
+      const filtered = drivers.filter(d => {
+        if (searchVal) {
+          const match =
+            d.id.toLowerCase().includes(searchVal) ||
+            d.name.toLowerCase().includes(searchVal) ||
+            d.phone.toLowerCase().includes(searchVal) ||
+            d.address.toLowerCase().includes(searchVal) ||
+            d.note.toLowerCase().includes(searchVal);
+          if (!match) return false;
+        }
+        if (activeChip === "linked") return d.hasLine;
+        if (activeChip === "unlinked") return !d.hasLine;
+        return true;
+      });
+
+      container.innerHTML = "";
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-2 py-8 text-center text-xs text-slate-400">該当するドライバー情報はありません</div>`;
+        return;
+      }
+
+      filtered.forEach(d => {
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2 text-xs";
+        card.innerHTML = `
+          <div class="flex items-start justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(d.id)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${d.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                  ${d.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
+                </span>
+                <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">${escapeHtml(d.licenseType)}</span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(d.name)} 様</h4>
+            </div>
+            <a href="tel:${escapeHtml(d.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
+              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
+              <span>発信</span>
+            </a>
+          </div>
+          <div class="space-y-1 text-slate-600">
+            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i><span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span></div>
+            ${d.address ? `<div class="flex items-center gap-1.5"><i data-lucide="map-pin" class="h-3.5 w-3.5 text-slate-400"></i><span>住所: ${escapeHtml(d.address)}</span></div>` : ''}
+            ${d.emergencyContact ? `<div class="flex items-center gap-1.5"><i data-lucide="phone-call" class="h-3.5 w-3.5 text-slate-400"></i><span>緊急連絡: ${escapeHtml(d.emergencyContact)}</span></div>` : ''}
+            ${d.certNo ? `<div class="text-[11px] text-slate-500 pt-0.5">修了証No: ${escapeHtml(d.certNo)} / 研修受講: ${escapeHtml(d.trainingDate || '未記入')}</div>` : ''}
+            ${d.note ? `<div class="mt-1 rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600 border border-slate-100">${escapeHtml(d.note)}</div>` : ''}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      refreshLucide();
+    }
+
+    // 利用者名簿の描画
+    function renderUsers() {
+      const container = document.getElementById("usersListContainer");
+      const searchVal = (document.getElementById("searchUserInput")?.value || "").trim().toLowerCase();
+      const activeChip = document.querySelector("#userFilterChips .u-chip.bg-slate-900")?.getAttribute("data-filter") || "all";
+
+      const filtered = users.filter(u => {
+        if (searchVal) {
+          const match =
+            u.id.toLowerCase().includes(searchVal) ||
+            u.name.toLowerCase().includes(searchVal) ||
+            u.phone.toLowerCase().includes(searchVal);
+          if (!match) return false;
+        }
+        if (activeChip === "honin") return u.userType.includes("本人");
+        if (activeChip === "care") return u.userType.includes("代理") || u.userType.includes("ケアマネ");
+        return true;
+      });
+
+      container.innerHTML = "";
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-2 py-8 text-center text-xs text-slate-400">該当する利用者情報はありません</div>`;
+        return;
+      }
+
+      filtered.forEach(u => {
+        const isAgency = u.userType.includes("代理") || u.userType.includes("ケアマネ");
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2 text-xs";
+        card.innerHTML = `
+          <div class="flex items-start justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(u.id)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${isAgency ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${escapeHtml(u.userType)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${u.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                  ${u.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
+                </span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(u.name)} 様</h4>
+            </div>
+            <a href="tel:${escapeHtml(u.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
+              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
+              <span>発信</span>
+            </a>
+          </div>
+          <div class="space-y-1 text-slate-600">
+            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i><span>連絡先: <strong class="text-slate-800 font-mono">${escapeHtml(u.phone)}</strong></span></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      refreshLucide();
+    }
+
+    // 金種計算ロジック（各ドライバーの個別支給額を元に両替用枚数を算出）
+    function getEnvelopeBreakdown(amt) {
+      let rem = Math.round(amt);
+      const denoms = [10000, 5000, 1000, 500, 100, 50, 10];
+      const res = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
+      for (const d of denoms) {
+        if (rem >= d) {
+          res[d] = Math.floor(rem / d);
+          rem %= d;
+        }
+      }
+      return res;
+    }
+
+    // 実費精算・累計ビューの集計＆描画
+    function updateSettlementView() {
+      const sDate = document.getElementById("settleStartDate").value;
+      const eDate = document.getElementById("settleEndDate").value;
+
+      // 期間で活動記録をフィルタ
+      const filtered = records.filter(r => {
+        if (sDate && r.targetDate < sDate) return false;
+        if (eDate && r.targetDate > eDate) return false;
+        return true;
+      });
+
+      // ドライバー別集計マップ
+      const driverMap = {};
+      drivers.forEach(d => {
+        driverMap[d.id] = {
+          id: d.id,
+          name: d.name,
+          trips: 0,
+          passengers: 0,
+          distance: 0,
+          fuelFee: 0,
+          otherExpense: 0,
+          totalPayout: 0
+        };
+      });
+
+      let totalTrips = 0;
+      let totalPassengers = 0;
+      let totalDist = 0;
+      let totalPayout = 0;
+
+      filtered.forEach(r => {
+        const dId = r.driverId;
+        if (!driverMap[dId]) {
+          driverMap[dId] = {
+            id: dId || '----',
+            name: r.driverName || 'ドライバー',
+            trips: 0,
+            passengers: 0,
+            distance: 0,
+            fuelFee: 0,
+            otherExpense: 0,
+            totalPayout: 0
+          };
+        }
+
+        const fee = Number(r.totalFee) || 0;
+        const other = Number(r.otherExpense) || 0;
+        const fuel = Number(r.fuelFee) || Math.max(0, fee - other);
+        const dist = (r.tripType === '片道') ? Number(r.oneWayDistance) : Number(r.roundTripDistance);
+        const pass = Number(r.totalPassengers) || 0;
+
+        driverMap[dId].trips += 1;
+        driverMap[dId].passengers += pass;
+        driverMap[dId].distance += dist;
+        driverMap[dId].fuelFee += fuel;
+        driverMap[dId].otherExpense += other;
+        driverMap[dId].totalPayout += fee;
+
+        totalTrips += 1;
+        totalPassengers += pass;
+        totalDist += dist;
+        totalPayout += fee;
+      });
+
+      document.getElementById("settleTotalTrips").textContent = totalTrips;
+      document.getElementById("settleTotalPassengers").textContent = totalPassengers;
+      document.getElementById("settleTotalDistance").textContent = (Math.round(totalDist * 10) / 10).toFixed(1);
+      document.getElementById("settleTotalPayout").textContent = totalPayout.toLocaleString();
+
+      // 金種計算の合算
+      const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
+      const driverSummaryList = Object.values(driverMap).filter(d => d.trips > 0 || (d.id && d.id.startsWith("101")));
+
+      driverSummaryList.forEach(d => {
+        if (d.totalPayout > 0) {
+          const env = getEnvelopeBreakdown(d.totalPayout);
+          for (const k in bankTotals) {
+            bankTotals[k] += env[k];
+          }
+        }
+      });
+
+      document.getElementById("denom10000").textContent = bankTotals[10000];
+      document.getElementById("denom5000").textContent = bankTotals[5000];
+      document.getElementById("denom1000").textContent = bankTotals[1000];
+      document.getElementById("denom500").textContent = bankTotals[500];
+      document.getElementById("denom100").textContent = bankTotals[100];
+      document.getElementById("denom50").textContent = bankTotals[50];
+      document.getElementById("denom10").textContent = bankTotals[10];
+
+      // テーブル行描画
+      const tbody = document.getElementById("settleTableBody");
+      tbody.innerHTML = "";
+      if (driverSummaryList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">指定期間の実績データはありません</td></tr>`;
+        return;
+      }
+
+      driverSummaryList.sort((a, b) => a.id.localeCompare(b.id)).forEach(d => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50/70";
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold text-slate-500">${escapeHtml(d.id)}</td>
+          <td class="p-3 font-bold text-slate-900">${escapeHtml(d.name)} 様</td>
+          <td class="p-3 text-right font-mono">${d.trips}</td>
+          <td class="p-3 text-right font-mono">${d.passengers}</td>
+          <td class="p-3 text-right font-mono">${(Math.round(d.distance * 10) / 10).toFixed(1)} km</td>
+          <td class="p-3 text-right font-mono text-slate-700">¥${d.fuelFee.toLocaleString()}</td>
+          <td class="p-3 text-right font-mono text-slate-500">¥${d.otherExpense.toLocaleString()}</td>
+          <td class="p-3 text-right font-mono font-bold text-emerald-700">¥${d.totalPayout.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // A4受領書印刷プレビュー生成
+    function openPrintPreview() {
+      const sDate = document.getElementById("settleStartDate").value;
+      const eDate = document.getElementById("settleEndDate").value;
+      const periodText = (sDate && eDate) ? `${sDate} 〜 ${eDate}` : "全期間";
+
+      document.getElementById("printPeriodText").textContent = periodText;
+      document.getElementById("printIssueDate").textContent = new Date().toLocaleDateString('ja-JP');
+
+      const tbody = document.getElementById("printTableBody");
+      const denomText = document.getElementById("printDenomText");
+      tbody.innerHTML = "";
+      denomText.innerHTML = "";
+
+      const sBodyRows = document.querySelectorAll("#settleTableBody tr");
+      let count = 0;
+      let totalAmount = 0;
+      let totalTrips = 0;
+      let totalPass = 0;
+
+      sBodyRows.forEach(r => {
+        const cols = r.querySelectorAll("td");
+        if (cols.length < 8) return;
+        const id = cols[0].textContent.trim();
+        const name = cols[1].textContent.trim();
+        const trips = parseInt(cols[2].textContent.trim(), 10) || 0;
+        const pass = parseInt(cols[3].textContent.trim(), 10) || 0;
+        const dist = cols[4].textContent.trim();
+        const fuel = cols[5].textContent.trim();
+        const other = cols[6].textContent.trim();
+        const total = cols[7].textContent.trim();
+        const amtNum = parseInt(total.replace(/[^0-9]/g, ""), 10) || 0;
+
+        if (amtNum > 0 || trips > 0) {
+          count++;
+          totalAmount += amtNum;
+          totalTrips += trips;
+          totalPass += pass;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="border border-slate-300 p-1 text-center font-mono">${id}</td>
+            <td class="border border-slate-300 p-1 font-bold">${name}</td>
+            <td class="border border-slate-300 p-1 text-right font-mono">${trips}</td>
+            <td class="border border-slate-300 p-1 text-right font-mono">${pass}</td>
+            <td class="border border-slate-300 p-1 text-right font-mono">${dist}</td>
+            <td class="border border-slate-300 p-1 text-right font-mono font-bold">${total}</td>
+            <td class="border border-slate-300 p-1 text-center text-slate-300">印</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      document.getElementById("printDriverCount").textContent = count;
+      document.getElementById("printTotalTrips").textContent = totalTrips;
+      document.getElementById("printTotalPassengers").textContent = totalPass;
+      document.getElementById("printTotalAmount").textContent = `¥${totalAmount.toLocaleString()}`;
+
+      // 金種メモの反映
+      const denoms = [
+        ["1万円札", document.getElementById("denom10000").textContent],
+        ["5千円札", document.getElementById("denom5000").textContent],
+        ["千円札", document.getElementById("denom1000").textContent],
+        ["500円玉", document.getElementById("denom500").textContent],
+        ["100円玉", document.getElementById("denom100").textContent],
+        ["50円玉", document.getElementById("denom50").textContent],
+        ["10円玉", document.getElementById("denom10").textContent]
+      ];
+
+      denoms.forEach(([label, cnt]) => {
+        const item = document.createElement("div");
+        item.textContent = `${label}: ${cnt}枚`;
+        denomText.appendChild(item);
+      });
+
+      document.getElementById("printPreviewModal").classList.remove("hidden");
+      refreshLucide();
+    }
+
     function escapeHtml(str) {
       if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
     function copyLineMessage(quest, type) {
       let text = "";
       if (type === "remind") {
-        text = `【活動記録 ご入力のお願い】
-
-${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。
-本日の送迎ボランティア、大変お疲れ様でした！
-
-以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。
-お忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。
-
-━━━━━━━━━━━━━━━
-■ 案件番号：#${quest.id}
-■ 集合日時：${quest.targetDate} ${quest.targetTime}
-■ ご利用者：${quest.userName} 様
-■ 行先：${quest.dropoff}
-━━━━━━━━━━━━━━━
-
-▼ 活動記録の入力画面はこちら：
-https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
-
-※すでにご送信済みの場合は、行き違いをご容赦ください。
-よろしくお願い申し上げます。`;
+        text = `【活動記録 ご入力のお願い】\n\n${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。\n本日の送迎ボランティア、大変お疲れ様でした！\n\n以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。\nお忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 集合日時：${quest.targetDate} ${quest.targetTime}\n■ ご利用者：${quest.userName} 様\n■ 行先：${quest.dropoff}\n━━━━━━━━━━━━━━━\n\n▼ 活動記録の入力画面はこちら：\nhttps://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}\n\n※すでにご送信済みの場合は、行き違いをご容赦ください。\nよろしくお願い申し上げます。`;
       } else {
-        text = `【至急のご相談】直前運行のお願い
-
-いつも大変お世話になっております。おでかけサポート事務局です。
-
-直前・緊急のご連絡となり大変恐縮です。
-お近くでの運行案件でまだドライバーが決まっておらず、大変困っております。
-もしお時間がございましたら、お力をお貸しいただけないでしょうか。
-
-━━━━━━━━━━━━━━━
-■ 案件番号：#${quest.id}
-■ 日時：${quest.targetDate} ${quest.targetTime} 集合
-■ 出発地：${quest.pickup}
-■ 行先：${quest.dropoff}
-■ 区分：${quest.tripPlan}
-■ 備考：${quest.note || "特になし"}
-━━━━━━━━━━━━━━━
-
-お引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。
-
-よろしくお願い申し上げます。`;
+        text = `【至急のご相談】直前運行のお願い\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご連絡となり大変恐縮です。\nお近くでの運行案件でまだドライバーが決まっておらず、大変困っております。\nもしお時間がございましたら、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。\n\nよろしくお願い申し上げます。`;
       }
 
       navigator.clipboard.writeText(text);
       showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
     }
 
-    // ★登録完了ドライバーへのLINE案内文コピー関数
     function copyDriverWelcomeLine() {
       if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
       const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
       const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
 
-      const text = `【おでかけサポート】ドライバー登録完了のお知らせ
-
-${lastRegisteredDriver.name} 様
-
-おでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。
-登録手続きが完了いたしましたので、登録情報をお知らせいたします。
-
-━━━━━━━━━━━━━━━
-■ ドライバー登録番号：${lastRegisteredDriver.id}
-■ お名前：${lastRegisteredDriver.name} 様
-■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）
-━━━━━━━━━━━━━━━
-
-【はじめの手順】
-1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。
-2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。
-3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。
-
-ご不明な点がございましたら事務局までお気軽にお声がけください。
-これからどうぞよろしくお願いいたします！
-
-おでかけサポート事務局`;
+      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。\n\nご不明な点がございましたら事務局までお気軽にお声がけください。\nこれからどうぞよろしくお願いいたします！\n\nおでかけサポート事務局`;
 
       navigator.clipboard.writeText(text);
       showToast("LINE送信用の登録案内文をコピーしました");
@@ -1044,27 +1677,96 @@ ${lastRegisteredDriver.name} 様
 
       document.getElementById("btnRefresh").onclick = fetchDashboardData;
 
-      const searchInput = document.getElementById("searchInput");
-      const btnClearSearch = document.getElementById("btnClearSearch");
+      // ★メインタブバーの切り替え制御
+      document.querySelectorAll(".main-tab-btn").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".main-tab-btn").forEach(b => {
+            b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100";
+          });
+          btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white";
 
-      searchInput.oninput = () => {
-        if (searchInput.value.trim() !== "") {
-          btnClearSearch.classList.remove("hidden");
-        } else {
-          btnClearSearch.classList.add("hidden");
-        }
-        renderQuests();
+          const target = btn.getAttribute("data-tab");
+          document.getElementById("tabContentOps").classList.toggle("hidden", target !== "ops");
+          document.getElementById("tabContentRoster").classList.toggle("hidden", target !== "roster");
+          document.getElementById("tabContentSettlement").classList.toggle("hidden", target !== "settlement");
+
+          if (target === "settlement") {
+            updateSettlementView();
+          }
+          refreshLucide();
+        };
+      });
+
+      // サブタブ切替：運行予定 vs 活動記録ログ
+      document.getElementById("subTabOpsQuests").onclick = () => {
+        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
+        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("opsQuestsView").classList.remove("hidden");
+        document.getElementById("opsRecordsView").classList.add("hidden");
+      };
+      document.getElementById("subTabOpsRecords").onclick = () => {
+        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
+        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("opsRecordsView").classList.remove("hidden");
+        document.getElementById("opsQuestsView").classList.add("hidden");
       };
 
+      // サブタブ切替：ドライバー名簿 vs 利用者名簿
+      document.getElementById("subTabRosterDrivers").onclick = () => {
+        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
+        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("rosterDriversView").classList.remove("hidden");
+        document.getElementById("rosterUsersView").classList.add("hidden");
+      };
+      document.getElementById("subTabRosterUsers").onclick = () => {
+        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
+        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("rosterUsersView").classList.remove("hidden");
+        document.getElementById("rosterDriversView").classList.add("hidden");
+      };
+
+      // 名簿検索
+      document.getElementById("searchDriverInput")?.addEventListener("input", renderDrivers);
+      document.getElementById("searchUserInput")?.addEventListener("input", renderUsers);
+
+      // ドライバーフィルターチップス
+      document.querySelectorAll("#driverFilterChips .d-chip").forEach(chip => {
+        chip.onclick = () => {
+          document.querySelectorAll("#driverFilterChips .d-chip").forEach(c => {
+            c.className = "d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
+          });
+          chip.className = "d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
+          renderDrivers();
+        };
+      });
+
+      // 利用者フィルターチップス
+      document.querySelectorAll("#userFilterChips .u-chip").forEach(chip => {
+        chip.onclick = () => {
+          document.querySelectorAll("#userFilterChips .u-chip").forEach(c => {
+            c.className = "u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
+          });
+          chip.className = "u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
+          renderUsers();
+        };
+      });
+
+      // 運行予定の検索バー
+      const searchInput = document.getElementById("searchInput");
+      const btnClearSearch = document.getElementById("btnClearSearch");
+      searchInput.oninput = () => {
+        btnClearSearch.classList.toggle("hidden", searchInput.value.trim() === "");
+        renderQuests();
+      };
       btnClearSearch.onclick = () => {
         searchInput.value = "";
         btnClearSearch.classList.add("hidden");
         renderQuests();
       };
 
+      // 運行日付範囲ピッカー
       const startDateInput = document.getElementById("startDateInput");
       const endDateInput = document.getElementById("endDateInput");
-
       startDateInput.onchange = renderQuests;
       endDateInput.onchange = renderQuests;
 
@@ -1073,7 +1775,6 @@ ${lastRegisteredDriver.name} 様
         const y = now.getFullYear();
         const m = now.getMonth();
         const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
-
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
         renderQuests();
@@ -1086,7 +1787,6 @@ ${lastRegisteredDriver.name} 様
         const y = nextMonthDate.getFullYear();
         const m = nextMonthDate.getMonth();
         const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
-
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
         renderQuests();
@@ -1100,6 +1800,7 @@ ${lastRegisteredDriver.name} 様
         showToast("期間指定を解除しました（全期間表示）");
       };
 
+      // 運行分類チップス
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
@@ -1111,6 +1812,7 @@ ${lastRegisteredDriver.name} 様
         };
       });
 
+      // サマリーカードクリック時
       document.querySelectorAll(".metric-card").forEach(card => {
         card.onclick = () => {
           const target = card.getAttribute("data-filter");
@@ -1119,33 +1821,59 @@ ${lastRegisteredDriver.name} 様
         };
       });
 
-      document.getElementById("btnCloseModal").onclick = closeDetailModal;
-      document.getElementById("btnCloseModalBtn").onclick = closeDetailModal;
-      document.getElementById("detailModalOverlay").onclick = (e) => {
-        if (e.target.id === "detailModalOverlay") closeDetailModal();
+      // 実費精算タブの日付コントロール
+      const settleStart = document.getElementById("settleStartDate");
+      const settleEnd = document.getElementById("settleEndDate");
+      settleStart.onchange = updateSettlementView;
+      settleEnd.onchange = updateSettlementView;
+
+      document.getElementById("btnSettleThisMonth").onclick = () => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        settleStart.value = formatLocalYMD(y, m, 1);
+        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        updateSettlementView();
       };
 
-      document.getElementById("btnModalCopyLine").onclick = () => {
-        if (selectedQuest) {
-          const type = selectedQuest.isUnreported ? "remind" : "urgent";
-          copyLineMessage(selectedQuest, type);
-        }
+      document.getElementById("btnSettleLastMonth").onclick = () => {
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const y = prev.getFullYear();
+        const m = prev.getMonth();
+        settleStart.value = formatLocalYMD(y, m, 1);
+        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        updateSettlementView();
       };
 
-      document.getElementById("btnAccordionToggle").onclick = () => {
-        isAccordionOpen = !isAccordionOpen;
-        const content = document.getElementById("accordionContent");
-        const icon = document.getElementById("accordionIcon");
-        if (isAccordionOpen) {
-          content.classList.remove("hidden");
-          icon.classList.add("rotate-180");
-        } else {
-          content.classList.add("hidden");
-          icon.classList.remove("rotate-180");
-        }
+      document.getElementById("btnSettleFiscalYear").onclick = () => {
+        const now = new Date();
+        const curY = now.getFullYear();
+        const curM = now.getMonth();
+        const fyStart = (curM >= 3) ? curY : curY - 1;
+        settleStart.value = `${fyStart}-04-01`;
+        settleEnd.value = `${fyStart + 1}-03-31`;
+        updateSettlementView();
+        showToast("「今年度」の期間を設定しました");
       };
 
-      // ドライバー新規登録モーダルの制御
+      document.getElementById("btnSettleAll").onclick = () => {
+        settleStart.value = "";
+        settleEnd.value = "";
+        updateSettlementView();
+        showToast("全期間の精算データを表示します");
+      };
+
+      // 印刷プレビューモーダルの制御
+      document.getElementById("btnPrintPreview").onclick = openPrintPreview;
+      document.getElementById("btnClosePrintPreview").onclick = () => {
+        document.getElementById("printPreviewModal").classList.add("hidden");
+      };
+      document.getElementById("btnTriggerPrint").onclick = () => {
+        window.print();
+      };
+
+      // ドライバー新規登録モーダル
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
       const preRegSelect = document.getElementById("preRegSelect");
@@ -1160,11 +1888,8 @@ ${lastRegisteredDriver.name} 様
       document.getElementById("btnCloseDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCancelDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCloseDriverSuccess").onclick = () => dSuccessModal.classList.add("hidden");
-
-      // ★LINE案内文コピーボタンのクリックイベント
       document.getElementById("btnCopyDriverLine").onclick = copyDriverWelcomeLine;
 
-      // 事前登録者選択時の自動流し込み（住所・緊急連絡先も対応）
       preRegSelect.onchange = () => {
         const val = preRegSelect.value;
         if (val !== "" && preRegList[val]) {
@@ -1172,10 +1897,10 @@ ${lastRegisteredDriver.name} 様
           document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
           document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
           document.getElementById("dRegNote").value = item.carInfo || "";
+          if (item.address) document.getElementById("dRegAddress").value = item.address;
         }
       };
 
-      // ドライバー登録送信（action: "registerDriver" を含めて確実にPOST）
       document.getElementById("driverRegisterForm").onsubmit = async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById("btnSubmitDriver");
@@ -1208,7 +1933,6 @@ ${lastRegisteredDriver.name} 様
             dModal.classList.add("hidden");
             document.getElementById("driverRegisterForm").reset();
 
-            // ★登録直後の情報を変数に退避
             lastRegisteredDriver = {
               id: result.driverId,
               name: result.name,
@@ -1219,9 +1943,10 @@ ${lastRegisteredDriver.name} 様
             document.getElementById("issuedDriverName").textContent = `${result.name} 様`;
             dSuccessModal.classList.remove("hidden");
             refreshLucide();
+            fetchDashboardData();
             showToast("ドライバーを登録しました！");
           } else {
-            alert("登録エラー: " + (result.message || "スプレッドシートの登録に失敗しました"));
+            alert("登録エラー: " + (result.message || "登録に失敗しました"));
           }
         } catch (err) {
           alert("通信エラー: " + err.message);
@@ -1229,6 +1954,32 @@ ${lastRegisteredDriver.name} 様
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5"></i><span>この内容で登録する</span>';
           refreshLucide();
+        }
+      };
+
+      document.getElementById("btnCloseModal").onclick = closeDetailModal;
+      document.getElementById("btnCloseModalBtn").onclick = closeDetailModal;
+      document.getElementById("detailModalOverlay").onclick = (e) => {
+        if (e.target.id === "detailModalOverlay") closeDetailModal();
+      };
+
+      document.getElementById("btnModalCopyLine").onclick = () => {
+        if (selectedQuest) {
+          const type = selectedQuest.isUnreported ? "remind" : "urgent";
+          copyLineMessage(selectedQuest, type);
+        }
+      };
+
+      document.getElementById("btnAccordionToggle").onclick = () => {
+        isAccordionOpen = !isAccordionOpen;
+        const content = document.getElementById("accordionContent");
+        const icon = document.getElementById("accordionIcon");
+        if (isAccordionOpen) {
+          content.classList.remove("hidden");
+          icon.classList.add("rotate-180");
+        } else {
+          content.classList.add("hidden");
+          icon.classList.remove("rotate-180");
         }
       };
     });
