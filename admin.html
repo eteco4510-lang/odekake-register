@@ -55,8 +55,27 @@
   </header>
 
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <!-- 2. サマリーカード -->
+    <!-- 2. サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
     <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <!-- ① 募集中カード -->
+      <button
+        type="button"
+        id="cardOpen"
+        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
+        data-filter="recruiting"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700">募集中</span>
+          <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
+          <span class="text-xs font-medium text-slate-500">件</span>
+        </div>
+        <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
+      </button>
+
+      <!-- ② 要対応カード -->
       <button
         type="button"
         id="cardActionRequired"
@@ -74,23 +93,7 @@
         <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
       </button>
 
-      <button
-        type="button"
-        id="cardUnreported"
-        class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="unreported"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-rose-700">実績未報告</span>
-          <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
-        </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
-          <span class="text-xs font-medium text-slate-500">件</span>
-        </div>
-        <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
-      </button>
-
+      <!-- ③ 本日の運行カード -->
       <button
         type="button"
         id="cardToday"
@@ -108,21 +111,22 @@
         <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
       </button>
 
+      <!-- ④ 実績未報告カード -->
       <button
         type="button"
-        id="cardOpen"
+        id="cardUnreported"
         class="metric-card flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xs transition hover:border-slate-300"
-        data-filter="recruiting"
+        data-filter="unreported"
       >
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700">募集中総数</span>
-          <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
+          <span class="text-xs font-bold text-rose-700">実績未報告</span>
+          <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
         </div>
         <div class="mt-2 flex items-baseline gap-1">
-          <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
+          <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
           <span class="text-xs font-medium text-slate-500">件</span>
         </div>
-        <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
+        <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
       </button>
     </section>
 
@@ -441,10 +445,10 @@
     }
 
     function updateMetricsUI() {
-      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount;
-      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount;
-      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
       document.getElementById("metricOpenCount").textContent = metrics.openCount;
+      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount;
+      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount;
+      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount;
 
       const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
 
@@ -729,7 +733,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       });
     }
 
-    // ★日本時間(JST)で YYYY-MM-DD 形式の文字列を作成する補助関数
     function formatLocalYMD(year, monthIndex, day) {
       const m = ('0' + (monthIndex + 1)).slice(-2);
       const d = ('0' + day).slice(-2);
@@ -766,7 +769,6 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       startDateInput.onchange = renderQuests;
       endDateInput.onchange = renderQuests;
 
-      // ★修正：タイムゾーンズレを排除したクイック期間ボタン
       document.getElementById("btnQuickThisMonth").onclick = () => {
         const now = new Date();
         const y = now.getFullYear();
