@@ -68,7 +68,6 @@
   <main class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
     <!-- 2. サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
     <section class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-      <!-- 募集中カード -->
       <button
         type="button"
         id="cardOpen"
@@ -86,7 +85,6 @@
         <p class="mt-1 text-[11px] text-slate-500">掲示板掲載中の全案件</p>
       </button>
 
-      <!-- 要対応カード -->
       <button
         type="button"
         id="cardActionRequired"
@@ -104,7 +102,6 @@
         <p class="mt-1 text-[11px] text-slate-500">至急打診・警告中案件</p>
       </button>
 
-      <!-- 本日の運行カード -->
       <button
         type="button"
         id="cardToday"
@@ -122,7 +119,6 @@
         <p class="mt-1 text-[11px] text-slate-500">本日出動・運行完了</p>
       </button>
 
-      <!-- 実績未報告カード -->
       <button
         type="button"
         id="cardUnreported"
@@ -182,7 +178,6 @@
           </div>
         </div>
 
-        <!-- クイック期間ボタン -->
         <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold">
           <button
             type="button"
@@ -341,7 +336,7 @@
     </div>
   </div>
 
-  <!-- 7. ドライバー新規登録モーダル（事前登録フォーム回答自動流し込み対応） -->
+  <!-- 7. ドライバー新規登録モーダル（★住所・緊急連絡先欄を追加） -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -379,7 +374,7 @@
           </p>
         </div>
 
-        <!-- 登録番号 ＆ 氏名 -->
+        <!-- A列: 登録番号 ＆ B列: 氏名 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">
@@ -407,7 +402,7 @@
           </div>
         </div>
 
-        <!-- 電話番号 ＆ 免許区分 -->
+        <!-- C列: 電話番号 ＆ F列: 免許区分 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">
@@ -430,7 +425,7 @@
           </div>
         </div>
 
-        <!-- 資格確認チェック -->
+        <!-- G列: 担い手修了証No ＆ H列: 研修受講年月日 -->
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
           <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
             <input type="checkbox" id="dRegInsuranceCheck" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-0" required />
@@ -438,7 +433,7 @@
           </label>
           <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200">
             <div>
-              <span class="block text-[11px] text-slate-500 mb-0.5">担い手養成講座修了証No.</span>
+              <span class="block text-[11px] text-slate-500 mb-0.5">担い手養成講座終了証No.</span>
               <input type="text" id="dRegCertNo" placeholder="例: 第1234号" class="w-full h-7 rounded border border-slate-200 bg-white px-2 text-xs" />
             </div>
             <div>
@@ -448,9 +443,37 @@
           </div>
         </div>
 
-        <!-- 車両・備考 -->
+        <!-- ★I列: 住所 ＆ J列: 緊急連絡先 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
+              <i data-lucide="map-pin" class="h-3 w-3 text-slate-400"></i>
+              <span>住所（I列）</span>
+            </label>
+            <input
+              type="text"
+              id="dRegAddress"
+              placeholder="例: 相模原市緑区中野1-2-3"
+              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
+              <i data-lucide="phone-call" class="h-3 w-3 text-slate-400"></i>
+              <span>緊急連絡先（J列）</span>
+            </label>
+            <input
+              type="text"
+              id="dRegEmergency"
+              placeholder="例: 090-9999-8888（配偶者）"
+              class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+        </div>
+
+        <!-- E列: 備考（車両情報・運転可能曜日など） -->
         <div>
-          <label class="block font-bold text-slate-700 mb-1">車両情報・運転可能曜日・備考</label>
+          <label class="block font-bold text-slate-700 mb-1">車両情報・運転可能曜日・備考（E列）</label>
           <textarea
             id="dRegNote"
             rows="2"
@@ -1091,7 +1114,7 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
       document.getElementById("btnCancelDriverModal").onclick = () => dModal.classList.add("hidden");
       document.getElementById("btnCloseDriverSuccess").onclick = () => dSuccessModal.classList.add("hidden");
 
-      // 事前登録者選択時の自動流し込み
+      // 事前登録者選択時の自動流し込み（住所・緊急連絡先も対応）
       preRegSelect.onchange = () => {
         const val = preRegSelect.value;
         if (val !== "" && preRegList[val]) {
@@ -1099,10 +1122,12 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
           document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
           document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
           document.getElementById("dRegNote").value = item.carInfo || "";
+          if (item.address) document.getElementById("dRegAddress").value = item.address;
+          if (item.emergencyContact) document.getElementById("dRegEmergency").value = item.emergencyContact;
         }
       };
 
-      // ドライバー登録送信
+      // ドライバー登録送信（I列:住所、J列:緊急連絡先を確実に送信）
       document.getElementById("driverRegisterForm").onsubmit = async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById("btnSubmitDriver");
@@ -1117,6 +1142,8 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
           licenseType: document.getElementById("dRegLicense").value,
           certNo: document.getElementById("dRegCertNo").value.trim(),
           trainingDate: document.getElementById("dRegTrainingDate").value,
+          address: document.getElementById("dRegAddress").value.trim(),
+          emergencyContact: document.getElementById("dRegEmergency").value.trim(),
           note: document.getElementById("dRegNote").value.trim()
         };
 
