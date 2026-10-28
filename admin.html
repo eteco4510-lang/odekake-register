@@ -21,7 +21,7 @@
       font-family: inherit;
     }
 
-    /* A4印刷用スタイル（画面外では非表示、印刷時のみA4帳票として出力） */
+    /* ★A4用紙に3枚収まる受領書印刷用スタイル */
     @media print {
       body * {
         visibility: hidden !important;
@@ -38,10 +38,27 @@
         padding: 0 !important;
         background: white !important;
         color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       @page {
         size: A4 portrait;
-        margin: 12mm 10mm;
+        margin: 8mm 10mm;
+      }
+      .voucher-ticket {
+        height: 86mm !important;
+        max-height: 87mm !important;
+        box-sizing: border-box !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      /* 3枚ごとに自動改ページ */
+      .voucher-ticket-wrap:nth-child(3n) {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .voucher-cut-line {
+        display: block !important;
       }
     }
   </style>
@@ -86,7 +103,7 @@
       </div>
     </div>
 
-    <!-- ★メイン業務タブバー（案A：セグメントコントロール） -->
+    <!-- メイン業務タブバー -->
     <div class="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6">
       <div class="mx-auto flex max-w-6xl items-center gap-2 py-2">
         <button
@@ -123,7 +140,6 @@
     <!-- タブ1：運行・活動管理セクション (ops)                       -->
     <!-- ======================================================== -->
     <section id="tabContentOps" class="space-y-5">
-      <!-- サマリーカード（並び順：募集中 ➔ 要対応 ➔ 本日の運行 ➔ 実績未報告） -->
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <button
           type="button"
@@ -216,7 +232,6 @@
 
       <!-- 運行予定ビュー -->
       <div id="opsQuestsView" class="space-y-3">
-        <!-- 検索バー ＆ 期間フィルター -->
         <div class="space-y-2.5">
           <div class="relative w-full">
             <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
@@ -235,7 +250,6 @@
             </button>
           </div>
 
-          <!-- 日付期間選択バー -->
           <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
               <span class="flex items-center gap-1 text-slate-500">
@@ -282,7 +296,6 @@
             </div>
           </div>
 
-          <!-- 案件分類チップス -->
           <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
             <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
             <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
@@ -295,7 +308,6 @@
           </div>
         </div>
 
-        <!-- 運行案件一覧コンテナ -->
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
           <div id="skeletonLoader" class="divide-y divide-slate-100 p-4 space-y-4">
             <div class="flex animate-pulse items-center justify-between pt-3">
@@ -334,7 +346,6 @@
     <!-- タブ2：名簿マスタセクション (roster)                        -->
     <!-- ======================================================== -->
     <section id="tabContentRoster" class="space-y-5 hidden">
-      <!-- サブ表示切替：ドライバー名簿 vs 利用者名簿 -->
       <div class="flex items-center justify-between">
         <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
           <button
@@ -403,7 +414,6 @@
     <!-- タブ3：実費精算・受領書セクション (settlement)             -->
     <!-- ======================================================== -->
     <section id="tabContentSettlement" class="space-y-5 hidden">
-      <!-- 期間選択＆アクションバー -->
       <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
           <span class="flex items-center gap-1 text-slate-500">
@@ -430,13 +440,14 @@
           <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
           <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
           <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
+          <!-- ★受領書印刷ボタン -->
           <button
             type="button"
             id="btnPrintPreview"
-            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1 text-white shadow-xs hover:bg-slate-800 active:scale-95"
+            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
           >
             <i data-lucide="printer" class="h-3.5 w-3.5"></i>
-            <span>受領書A4印刷</span>
+            <span>受領書A4印刷（3分割）</span>
           </button>
         </div>
       </div>
@@ -797,17 +808,20 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- A4受領書印刷用プレビューモーダル                          -->
+  <!-- ★受領書 印刷プレビューモーダル（個人別・A4 3分割仕様）    -->
   <!-- ======================================================== -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <i data-lucide="printer" class="h-4 w-4 text-slate-600"></i>
-          <span>活動実費弁償金 支給明細兼受領書（A4印刷プレビュー）</span>
-        </h3>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="printer" class="h-4 w-4 text-slate-600"></i>
+            <span>ボランティア実費弁償 受領書（A4 3分割印刷プレビュー）</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。切り取り線で切ってご利用ください。</p>
+        </div>
         <div class="flex items-center gap-2">
-          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700 active:scale-95">
+          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95">
             <i data-lucide="printer" class="h-3.5 w-3.5"></i>
             <span>この内容で印刷する</span>
           </button>
@@ -817,59 +831,9 @@
         </div>
       </div>
 
-      <!-- 印刷対象領域（画面プレビュー兼印刷コンテナ） -->
-      <div id="printContainer" class="p-4 sm:p-6 bg-white text-slate-900 text-xs">
-        <div class="border-b-2 border-slate-800 pb-2 mb-4 text-center">
-          <h2 class="text-lg font-bold tracking-wider">活動実費弁償金 支給明細兼受領書</h2>
-          <div class="flex justify-between items-end mt-2 text-[11px] text-slate-600">
-            <div>団体名: <strong>おでかけサポート事務局</strong></div>
-            <div>対象期間: <strong id="printPeriodText">----</strong></div>
-            <div>発行日: <strong id="printIssueDate">----</strong></div>
-          </div>
-        </div>
-
-        <div class="mb-4 flex items-center justify-between text-xs border border-slate-300 rounded p-2.5 bg-slate-50/50">
-          <div>支給対象者数: <strong id="printDriverCount">0</strong> 名</div>
-          <div>総運行回数: <strong id="printTotalTrips">0</strong> 回</div>
-          <div>延べ乗車人数: <strong id="printTotalPassengers">0</strong> 人回</div>
-          <div>支給総額: <strong id="printTotalAmount" class="text-sm font-bold">¥0</strong></div>
-        </div>
-
-        <table class="w-full border-collapse border border-slate-300 text-left text-[11px] mb-4">
-          <thead class="bg-slate-100 text-slate-700">
-            <tr>
-              <th class="border border-slate-300 p-1.5 text-center w-12">番号</th>
-              <th class="border border-slate-300 p-1.5">ドライバー氏名</th>
-              <th class="border border-slate-300 p-1.5 text-right w-16">回数</th>
-              <th class="border border-slate-300 p-1.5 text-right w-16">延べ人数</th>
-              <th class="border border-slate-300 p-1.5 text-right w-20">走行距離</th>
-              <th class="border border-slate-300 p-1.5 text-right w-24">支給額</th>
-              <th class="border border-slate-300 p-1.5 text-center w-36">受領印・自署</th>
-            </tr>
-          </thead>
-          <tbody id="printTableBody"></tbody>
-        </table>
-
-        <div class="grid grid-cols-2 gap-4 border-t border-slate-200 pt-3 text-[11px]">
-          <div class="border border-slate-300 p-2 rounded">
-            <span class="font-bold block mb-1">【金種別必要枚数（銀行両替用）】</span>
-            <div id="printDenomText" class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-slate-700"></div>
-          </div>
-          <div class="flex justify-around items-center border border-slate-300 p-2 rounded text-center">
-            <div>
-              <span class="text-[10px] text-slate-500 block mb-3">会長</span>
-              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-500 block mb-3">会計</span>
-              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-500 block mb-3">担当者</span>
-              <div class="w-10 h-10 border border-slate-300 mx-auto rounded-full"></div>
-            </div>
-          </div>
-        </div>
+      <!-- ★印刷用コンテナ（画面プレビュー兼プリンタ出力領域） -->
+      <div id="printContainer" class="p-2 sm:p-4 bg-white text-slate-900">
+        <div id="voucherListArea" class="space-y-4"></div>
       </div>
     </div>
   </div>
@@ -1176,7 +1140,6 @@
       attachEventHandlers();
     }
 
-    // 活動記録ログの描画
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1230,7 +1193,7 @@
       refreshLucide();
     }
 
-    // ドライバー名簿の描画
+    // ★改修：ドライバー名簿の描画（住所の横に「地図を表示」ボタンを追加）
     function renderDrivers() {
       const container = document.getElementById("driversListContainer");
       const searchVal = (document.getElementById("searchDriverInput")?.value || "").trim().toLowerCase();
@@ -1277,9 +1240,31 @@
               <span>発信</span>
             </a>
           </div>
-          <div class="space-y-1 text-slate-600">
-            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i><span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span></div>
-            ${d.address ? `<div class="flex items-center gap-1.5"><i data-lucide="map-pin" class="h-3.5 w-3.5 text-slate-400"></i><span>住所: ${escapeHtml(d.address)}</span></div>` : ''}
+          <div class="space-y-1.5 text-slate-600">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i>
+              <span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span>
+            </div>
+
+            <!-- ★住所 ＆ 既定の地図アプリ起動ボタン -->
+            ${d.address ? `
+              <div class="flex items-center justify-between gap-1.5 pt-0.5">
+                <div class="flex items-center gap-1.5 min-w-0 flex-1 text-slate-800">
+                  <i data-lucide="map-pin" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
+                  <span class="truncate">住所: <strong>${escapeHtml(d.address)}</strong></span>
+                </div>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95"
+                >
+                  <i data-lucide="map" class="h-3 w-3 text-blue-600"></i>
+                  <span>地図を表示</span>
+                </a>
+              </div>
+            ` : ''}
+
             ${d.emergencyContact ? `<div class="flex items-center gap-1.5"><i data-lucide="phone-call" class="h-3.5 w-3.5 text-slate-400"></i><span>緊急連絡: ${escapeHtml(d.emergencyContact)}</span></div>` : ''}
             ${d.certNo ? `<div class="text-[11px] text-slate-500 pt-0.5">修了証No: ${escapeHtml(d.certNo)} / 研修受講: ${escapeHtml(d.trainingDate || '未記入')}</div>` : ''}
             ${d.note ? `<div class="mt-1 rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600 border border-slate-100">${escapeHtml(d.note)}</div>` : ''}
@@ -1290,7 +1275,6 @@
       refreshLucide();
     }
 
-    // 利用者名簿の描画
     function renderUsers() {
       const container = document.getElementById("usersListContainer");
       const searchVal = (document.getElementById("searchUserInput")?.value || "").trim().toLowerCase();
@@ -1345,7 +1329,7 @@
       refreshLucide();
     }
 
-    // 金種計算ロジック（各ドライバーの個別支給額を元に両替用枚数を算出）
+    // 金種計算ロジック
     function getEnvelopeBreakdown(amt) {
       let rem = Math.round(amt);
       const denoms = [10000, 5000, 1000, 500, 100, 50, 10];
@@ -1359,19 +1343,36 @@
       return res;
     }
 
-    // 実費精算・累計ビューの集計＆描画
+    function formatDenomMemo(env) {
+      const parts = [];
+      if (env[10000] > 0) parts.push(`1万円:${env[10000]}枚`);
+      if (env[5000] > 0) parts.push(`5千円:${env[5000]}枚`);
+      if (env[1000] > 0) parts.push(`千円:${env[1000]}枚`);
+      if (env[500] > 0) parts.push(`500円:${env[500]}枚`);
+      if (env[100] > 0) parts.push(`100円:${env[100]}枚`);
+      if (env[50] > 0) parts.push(`50円:${env[50]}枚`);
+      if (env[10] > 0) parts.push(`10円:${env[10]}枚`);
+      return parts.length > 0 ? parts.join(' / ') : 'なし';
+    }
+
+    // 日付を和暦（または YYYY年M月D日）形式にフォーマット
+    function formatJpDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
     function updateSettlementView() {
       const sDate = document.getElementById("settleStartDate").value;
       const eDate = document.getElementById("settleEndDate").value;
 
-      // 期間で活動記録をフィルタ
       const filtered = records.filter(r => {
         if (sDate && r.targetDate < sDate) return false;
         if (eDate && r.targetDate > eDate) return false;
         return true;
       });
 
-      // ドライバー別集計マップ
       const driverMap = {};
       drivers.forEach(d => {
         driverMap[d.id] = {
@@ -1430,7 +1431,6 @@
       document.getElementById("settleTotalDistance").textContent = (Math.round(totalDist * 10) / 10).toFixed(1);
       document.getElementById("settleTotalPayout").textContent = totalPayout.toLocaleString();
 
-      // 金種計算の合算
       const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
       const driverSummaryList = Object.values(driverMap).filter(d => d.trips > 0 || (d.id && d.id.startsWith("101")));
 
@@ -1451,7 +1451,6 @@
       document.getElementById("denom50").textContent = bankTotals[50];
       document.getElementById("denom10").textContent = bankTotals[10];
 
-      // テーブル行描画
       const tbody = document.getElementById("settleTableBody");
       tbody.innerHTML = "";
       if (driverSummaryList.length === 0) {
@@ -1476,174 +1475,111 @@
       });
     }
 
-    // A4受領書印刷プレビュー生成
+    // ★改修：個人ごとの受領書（添付画像デザインに準拠・A4 3分割チケット形式）生成
     function openPrintPreview() {
       const sDate = document.getElementById("settleStartDate").value;
       const eDate = document.getElementById("settleEndDate").value;
-      const periodText = (sDate && eDate) ? `${sDate} 〜 ${eDate}` : "全期間";
+      
+      let periodText = "全期間";
+      if (sDate && eDate) {
+        periodText = `${formatJpDate(sDate)} 〜 ${formatJpDate(eDate)}`;
+      } else if (sDate) {
+        periodText = `${formatJpDate(sDate)} 以降`;
+      } else if (eDate) {
+        periodText = `${formatJpDate(eDate)} まで`;
+      }
 
-      document.getElementById("printPeriodText").textContent = periodText;
-      document.getElementById("printIssueDate").textContent = new Date().toLocaleDateString('ja-JP');
-
-      const tbody = document.getElementById("printTableBody");
-      const denomText = document.getElementById("printDenomText");
-      tbody.innerHTML = "";
-      denomText.innerHTML = "";
+      const listArea = document.getElementById("voucherListArea");
+      listArea.innerHTML = "";
 
       const sBodyRows = document.querySelectorAll("#settleTableBody tr");
-      let count = 0;
-      let totalAmount = 0;
-      let totalTrips = 0;
-      let totalPass = 0;
+      let voucherCount = 0;
 
       sBodyRows.forEach(r => {
         const cols = r.querySelectorAll("td");
         if (cols.length < 8) return;
         const id = cols[0].textContent.trim();
-        const name = cols[1].textContent.trim();
+        const name = cols[1].textContent.trim().replace(/ 様$/, '');
         const trips = parseInt(cols[2].textContent.trim(), 10) || 0;
-        const pass = parseInt(cols[3].textContent.trim(), 10) || 0;
-        const dist = cols[4].textContent.trim();
-        const fuel = cols[5].textContent.trim();
-        const other = cols[6].textContent.trim();
-        const total = cols[7].textContent.trim();
-        const amtNum = parseInt(total.replace(/[^0-9]/g, ""), 10) || 0;
+        const totalStr = cols[7].textContent.trim();
+        const amtNum = parseInt(totalStr.replace(/[^0-9]/g, ""), 10) || 0;
 
+        // 支給額があるドライバー（または運行実績があるドライバー）を対象に受領書チケットを発行
         if (amtNum > 0 || trips > 0) {
-          count++;
-          totalAmount += amtNum;
-          totalTrips += trips;
-          totalPass += pass;
+          voucherCount++;
+          const env = getEnvelopeBreakdown(amtNum);
+          const denomMemoStr = formatDenomMemo(env);
 
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="border border-slate-300 p-1 text-center font-mono">${id}</td>
-            <td class="border border-slate-300 p-1 font-bold">${name}</td>
-            <td class="border border-slate-300 p-1 text-right font-mono">${trips}</td>
-            <td class="border border-slate-300 p-1 text-right font-mono">${pass}</td>
-            <td class="border border-slate-300 p-1 text-right font-mono">${dist}</td>
-            <td class="border border-slate-300 p-1 text-right font-mono font-bold">${total}</td>
-            <td class="border border-slate-300 p-1 text-center text-slate-300">印</td>
+          const ticketWrap = document.createElement("div");
+          ticketWrap.className = "voucher-ticket-wrap";
+
+          ticketWrap.innerHTML = `
+            <div class="voucher-ticket border border-slate-300 rounded-lg p-5 bg-white relative flex flex-col justify-between" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
+              <!-- 上部ヘッダー -->
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-600 font-mono">
+                  <div>受領書番号 <strong>${voucherCount}</strong></div>
+                  <div class="text-[11px]">おでかけサポート送迎支援事業</div>
+                </div>
+                <h2 class="text-center text-lg font-bold tracking-widest mt-1 text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+                  ボランティア実費弁償 受領書
+                </h2>
+              </div>
+
+              <!-- 運行情報 -->
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-800 my-2">
+                <div>登録番号 <strong class="font-mono text-sm">${escapeHtml(id)}</strong></div>
+                <div>お名前 <strong class="text-sm">${escapeHtml(name)}</strong> 様</div>
+                <div class="col-span-2">運行期間 ${periodText} 分</div>
+                <div>運行回数 <strong class="font-mono">${trips}</strong> 回</div>
+              </div>
+
+              <!-- 領収金額＆宣誓文 -->
+              <div class="my-1.5">
+                <div class="flex items-baseline gap-2 border-b-2 border-slate-900 pb-1">
+                  <span class="text-sm font-bold">領収金額</span>
+                  <span class="font-mono text-2xl font-black tracking-wider text-slate-900 ml-4">
+                    ¥ ${amtNum.toLocaleString()} -
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-700 mt-1">
+                  上記金額を移動支援に伴う走行実費弁償として正に受領いたしました。
+                </p>
+              </div>
+
+              <!-- 自署欄・受領日・支払元 -->
+              <div class="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-slate-200">
+                <div class="space-y-1">
+                  <div>受領日 令和  年  月  日</div>
+                  <div>支払元 <strong>おでかけサポート事務局</strong></div>
+                  <div class="text-[10px] text-slate-500 font-mono pt-0.5">
+                    【金種メモ】 ${denomMemoStr}
+                  </div>
+                </div>
+                <div class="flex flex-col justify-end">
+                  <div class="flex items-end justify-between border-b border-slate-800 pb-1">
+                    <span class="text-xs">名前（自署）</span>
+                    <span class="text-[10px] text-slate-400 mr-2">㊞</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 切り取り線（ハサミマーク付き） -->
+            <div class="voucher-cut-line py-3 text-center text-slate-400 text-xs font-mono select-none" style="display:none;">
+              ✂ ---------------------------------------------------- 切り取り線 ----------------------------------------------------
+            </div>
           `;
-          tbody.appendChild(tr);
+          listArea.appendChild(ticketWrap);
         }
       });
 
-      document.getElementById("printDriverCount").textContent = count;
-      document.getElementById("printTotalTrips").textContent = totalTrips;
-      document.getElementById("printTotalPassengers").textContent = totalPass;
-      document.getElementById("printTotalAmount").textContent = `¥${totalAmount.toLocaleString()}`;
-
-      // 金種メモの反映
-      const denoms = [
-        ["1万円札", document.getElementById("denom10000").textContent],
-        ["5千円札", document.getElementById("denom5000").textContent],
-        ["千円札", document.getElementById("denom1000").textContent],
-        ["500円玉", document.getElementById("denom500").textContent],
-        ["100円玉", document.getElementById("denom100").textContent],
-        ["50円玉", document.getElementById("denom50").textContent],
-        ["10円玉", document.getElementById("denom10").textContent]
-      ];
-
-      denoms.forEach(([label, cnt]) => {
-        const item = document.createElement("div");
-        item.textContent = `${label}: ${cnt}枚`;
-        denomText.appendChild(item);
-      });
+      if (voucherCount === 0) {
+        listArea.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">対象期間内の受領書発行対象データはありません</div>`;
+      }
 
       document.getElementById("printPreviewModal").classList.remove("hidden");
       refreshLucide();
-    }
-
-    function escapeHtml(str) {
-      if (!str) return "";
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-
-    function copyLineMessage(quest, type) {
-      let text = "";
-      if (type === "remind") {
-        text = `【活動記録 ご入力のお願い】\n\n${quest.driverName ? quest.driverName + " 様\n\n" : ""}おでかけサポート事務局です。\n本日の送迎ボランティア、大変お疲れ様でした！\n\n以下の送迎につきまして、まだ活動記録（実績）の送信が確認できておりません。\nお忙しいところ恐れ入りますが、以下のリンクより実績の記録・送信をお願い申し上げます。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 集合日時：${quest.targetDate} ${quest.targetTime}\n■ ご利用者：${quest.userName} 様\n■ 行先：${quest.dropoff}\n━━━━━━━━━━━━━━━\n\n▼ 活動記録の入力画面はこちら：\nhttps://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}\n\n※すでにご送信済みの場合は、行き違いをご容赦ください。\nよろしくお願い申し上げます。`;
-      } else {
-        text = `【至急のご相談】直前運行のお願い\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご連絡となり大変恐縮です。\nお近くでの運行案件でまだドライバーが決まっておらず、大変困っております。\nもしお時間がございましたら、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。\n\nよろしくお願い申し上げます。`;
-      }
-
-      navigator.clipboard.writeText(text);
-      showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
-    }
-
-    function copyDriverWelcomeLine() {
-      if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
-      const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
-      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
-
-      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。\n\nご不明な点がございましたら事務局までお気軽にお声がけください。\nこれからどうぞよろしくお願いいたします！\n\nおでかけサポート事務局`;
-
-      navigator.clipboard.writeText(text);
-      showToast("LINE送信用の登録案内文をコピーしました");
-    }
-
-    function openDetailModal(quest) {
-      selectedQuest = quest;
-      const isActionRequired = (quest.isUrgent || quest.isWarned) && quest.status === "募集中";
-
-      document.getElementById("modalQuestId").textContent = "案件番号 #" + quest.id;
-      document.getElementById("modalQuestStatus").textContent = quest.status;
-      document.getElementById("modalDatetime").textContent = `${quest.targetDate} ${quest.targetTime} 集合`;
-      document.getElementById("modalTripPlan").textContent = quest.tripPlan;
-      document.getElementById("modalPickup").textContent = quest.pickup;
-      document.getElementById("modalDropoff").textContent = quest.dropoff;
-      document.getElementById("modalUserName").textContent = `${quest.userName} 様 (${quest.passengers})`;
-      document.getElementById("modalUserPhone").querySelector("span").textContent = quest.userPhone || "未登録";
-
-      const driverInfoEl = document.getElementById("modalDriverInfo");
-      if (quest.driverName) {
-        driverInfoEl.textContent = `${quest.driverName} 様 (ID: ${quest.driverId})`;
-        driverInfoEl.className = quest.isUnreported ? "mt-0.5 font-bold text-rose-700" : "mt-0.5 font-bold text-emerald-700";
-      } else if (quest.status === "マッチング不成立") {
-        driverInfoEl.textContent = "担当者なし（前日17:00期限切れ不成立）";
-        driverInfoEl.className = "mt-0.5 font-bold text-purple-700";
-      } else {
-        driverInfoEl.textContent = "未定（現在ドライバー募集中）";
-        driverInfoEl.className = "mt-0.5 font-bold text-red-600";
-      }
-
-      document.getElementById("modalNote").textContent = quest.note || "特になし";
-
-      const sysInfoArea = document.getElementById("modalSysInfoArea");
-      if (quest.systemInfo) {
-        document.getElementById("modalSysInfo").textContent = quest.systemInfo;
-        sysInfoArea.classList.remove("hidden");
-      } else {
-        sysInfoArea.classList.add("hidden");
-      }
-
-      const copyBtn = document.getElementById("btnModalCopyLine");
-      const copyBtnText = document.getElementById("modalCopyBtnText");
-
-      if (quest.isUnreported) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
-        copyBtnText.textContent = "催促LINE文をコピー";
-        copyBtn.classList.remove("hidden");
-      } else if (isActionRequired) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
-        copyBtnText.textContent = "LINE打診文をコピー";
-        copyBtn.classList.remove("hidden");
-      } else {
-        copyBtn.classList.add("hidden");
-      }
-
-      isAccordionOpen = false;
-      document.getElementById("accordionContent").classList.add("hidden");
-      document.getElementById("accordionIcon").classList.remove("rotate-180");
-
-      document.getElementById("detailModalOverlay").classList.remove("hidden");
-      refreshLucide();
-    }
-
-    function closeDetailModal() {
-      document.getElementById("detailModalOverlay").classList.add("hidden");
-      selectedQuest = null;
     }
 
     function attachEventHandlers() {
@@ -1677,7 +1613,7 @@
 
       document.getElementById("btnRefresh").onclick = fetchDashboardData;
 
-      // ★メインタブバーの切り替え制御
+      // メインタブ切り替え
       document.querySelectorAll(".main-tab-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".main-tab-btn").forEach(b => {
@@ -1690,9 +1626,7 @@
           document.getElementById("tabContentRoster").classList.toggle("hidden", target !== "roster");
           document.getElementById("tabContentSettlement").classList.toggle("hidden", target !== "settlement");
 
-          if (target === "settlement") {
-            updateSettlementView();
-          }
+          if (target === "settlement") updateSettlementView();
           refreshLucide();
         };
       });
@@ -1751,7 +1685,7 @@
         };
       });
 
-      // 運行予定の検索バー
+      // 運行予定検索バー
       const searchInput = document.getElementById("searchInput");
       const btnClearSearch = document.getElementById("btnClearSearch");
       searchInput.oninput = () => {
@@ -1774,9 +1708,8 @@
         const now = new Date();
         const y = now.getFullYear();
         const m = now.getMonth();
-        const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
         startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
+        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
         renderQuests();
         showToast("「今月」の期間を設定しました");
       };
@@ -1786,9 +1719,8 @@
         const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const y = nextMonthDate.getFullYear();
         const m = nextMonthDate.getMonth();
-        const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
         startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, lastDayOfMonth);
+        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
         renderQuests();
         showToast("「来月」の期間を設定しました");
       };
