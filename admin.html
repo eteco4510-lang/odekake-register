@@ -336,7 +336,7 @@
     </div>
   </div>
 
-  <!-- 7. ドライバー新規登録モーダル（A〜J列完全対応） -->
+  <!-- 7. ドライバー新規登録モーダル（住所・緊急連絡先欄対応） -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -652,6 +652,7 @@
       }
     }
 
+    // 事前登録フォーム回答者一覧の取得
     async function loadPreRegistrations() {
       const select = document.getElementById("preRegSelect");
       const statusText = document.getElementById("preRegStatusText");
@@ -1121,12 +1122,10 @@ https://liff.line.me/2011743949-unqD1uQo?qid=${quest.id}
           document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
           document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
           document.getElementById("dRegNote").value = item.carInfo || "";
-          if (item.address) document.getElementById("dRegAddress").value = item.address;
-          if (item.emergencyContact) document.getElementById("dRegEmergency").value = item.emergencyContact;
         }
       };
 
-      // ★ドライバー登録送信（actionを明示的に含めて確実に届ける）
+      // ドライバー登録送信（action: "registerDriver" を明示的に付与して確実にPOST）
       document.getElementById("driverRegisterForm").onsubmit = async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById("btnSubmitDriver");
