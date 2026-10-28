@@ -21,15 +21,19 @@
       font-family: inherit;
     }
 
-    /* A4用紙に3枚収まる受領書印刷用スタイル */
+    /* 印刷用スタイル（受領書 ＆ 市提出用実績報告書の完全分離） */
     @media print {
       body * {
         visibility: hidden !important;
       }
-      #printContainer, #printContainer * {
+
+      /* 1. 受領書 印刷モード (A4 3分割) */
+      body.print-voucher #printPreviewModal,
+      body.print-voucher #printContainer,
+      body.print-voucher #printContainer * {
         visibility: visible !important;
       }
-      #printContainer {
+      body.print-voucher #printContainer {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
@@ -41,24 +45,46 @@
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      @page {
-        size: A4 portrait;
-        margin: 8mm 10mm;
-      }
-      .voucher-ticket {
+      body.print-voucher .voucher-ticket {
         height: 86mm !important;
         max-height: 87mm !important;
         box-sizing: border-box !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
-      /* 3枚ごとに自動改ページ */
-      .voucher-ticket-wrap:nth-child(3n) {
+      body.print-voucher .voucher-ticket-wrap:nth-child(3n) {
         page-break-after: always !important;
         break-after: page !important;
       }
-      .voucher-cut-line {
+      body.print-voucher .voucher-cut-line {
         display: block !important;
+      }
+
+      /* 2. 市提出用実績報告書 印刷モード (A4縦1枚完結) */
+      body.print-report #annualReportModal,
+      body.print-report #annualReportContainer,
+      body.print-report #annualReportContainer * {
+        visibility: visible !important;
+      }
+      body.print-report #annualReportContainer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body.print-report table {
+        page-break-inside: avoid !important;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm;
       }
     }
   </style>
@@ -437,14 +463,28 @@
           <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
           <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
           <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
-          <button
-            type="button"
-            id="btnPrintPreview"
-            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
-          >
-            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
-            <span>受領書A4印刷（3分割）</span>
-          </button>
+          
+          <div class="ml-auto flex items-center gap-2">
+            <!-- 受領書A4印刷ボタン -->
+            <button
+              type="button"
+              id="btnPrintPreview"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
+            >
+              <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+              <span>受領書A4印刷（3分割）</span>
+            </button>
+
+            <!-- ★新設：市提出用 実績報告書A4印刷ボタン -->
+            <button
+              type="button"
+              id="btnAnnualReportPreview"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1 text-white font-bold shadow-xs hover:bg-blue-800 active:scale-95"
+            >
+              <i data-lucide="file-check" class="h-3.5 w-3.5"></i>
+              <span>実績報告書（市提出用）A4印刷</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -822,6 +862,136 @@
     </div>
   </div>
 
+  <!-- ======================================================== -->
+  <!-- ★新設：市提出用 事業活動実績報告書モーダル (A4縦1枚)         -->
+  <!-- ======================================================== -->
+  <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
+      <!-- 画面操作バー（印刷時は自動非表示） -->
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="file-check" class="h-4 w-4 text-blue-700"></i>
+            <span>事業活動実績報告書（市提出用・様式任意）プレビュー</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">※相模原市地域包括ケア推進課 基準準拠（A4縦1枚完結）。下線部は画面上で直接クリックして編集可能です。</p>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <!-- 年度切替セレクター -->
+          <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none">
+            <option value="2026">令和8年度 (2026年度)</option>
+            <option value="2025">令和7年度 (2025年度)</option>
+            <option value="2027">令和9年度 (2027年度)</option>
+          </select>
+
+          <button type="button" id="btnTriggerReportPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95">
+            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+            <span>A4帳票を印刷 / PDF保存</span>
+          </button>
+          <button type="button" id="btnCloseAnnualReport" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+            閉じる
+          </button>
+        </div>
+      </div>
+
+      <!-- ★A4縦1枚 帳票コンテナ -->
+      <div id="annualReportContainer" class="p-4 sm:p-6 bg-white text-slate-900 text-xs" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
+        <!-- 表題 -->
+        <div class="text-center mb-4">
+          <h1 class="text-base sm:text-lg font-bold tracking-wider text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+            <span id="repTitleYearText">令和8</span>年度 地域おでかけサポート推進事業 事業活動実績報告書
+          </h1>
+          <p class="text-[10px] text-slate-500 mt-0.5">（相模原市地域おでかけサポート推進事業費補助金 提出添付資料）</p>
+        </div>
+
+        <!-- 宛先 & 申請団体情報 -->
+        <div class="flex justify-between items-start text-xs leading-relaxed mb-4 border-b border-slate-200 pb-2">
+          <div>
+            <p>提出日：<span id="repSubmitDate" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">令和8年4月10日</span></p>
+            <p class="text-sm font-bold mt-1 text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">相 模 原 市 長 あて</p>
+          </div>
+          <div class="text-right text-[11px] space-y-0.5">
+            <p>所在地：<span id="repOrgAddress" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">相模原市緑区</span></p>
+            <p>団体名：<span id="repOrgName" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none font-bold">おでかけサポート事務局</span></p>
+            <p>代表者：<span id="repOrgRep" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none font-bold">代表 相模 太郎</span>  ㊞</p>
+            <p class="text-slate-500">連絡先：<span id="repOrgPhone" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">090-0000-0000</span></p>
+          </div>
+        </div>
+
+        <!-- 1. 年間活動実績サマリー -->
+        <div class="mb-4">
+          <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+            1. 年間活動実績サマリー（補助金額の確定根拠）
+          </h2>
+          <div class="grid grid-cols-4 gap-2 text-center">
+            <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
+              <span class="block text-[10px] text-slate-500">年間延べ乗車人数</span>
+              <span id="repSummaryPassengers" class="text-base font-bold font-mono text-slate-900">0</span>
+              <span class="text-[10px] text-slate-500 ml-0.5">人回</span>
+            </div>
+            <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
+              <span class="block text-[10px] text-slate-500">補助金確定上限枠</span>
+              <span id="repSummaryCap" class="text-xs font-bold text-slate-900">300,000円（延べ100人まで枠）</span>
+            </div>
+            <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
+              <span class="block text-[10px] text-slate-500">年間総運行回数</span>
+              <span id="repSummaryTrips" class="text-base font-bold font-mono text-slate-900">0</span>
+              <span class="text-[10px] text-slate-500 ml-0.5">回</span>
+            </div>
+            <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
+              <span class="block text-[10px] text-slate-500">実登録利用者数</span>
+              <span id="repSummaryUsers" class="text-base font-bold font-mono text-slate-900">0</span>
+              <span class="text-[10px] text-slate-500 ml-0.5">名</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">※延べ人数基準: 往復送迎は2人回、片道送迎は1人回として集計（相模原市マニュアル基準準拠）</p>
+        </div>
+
+        <!-- 2. 月別活動実績テーブル -->
+        <div class="mb-4">
+          <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+            2. 月別活動実績・運行先内訳（4月〜翌3月）
+          </h2>
+          <table class="w-full text-left text-[11px] border-collapse border border-slate-300">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="border border-slate-300 py-1 px-1.5 text-center w-12">月度</th>
+                <th class="border border-slate-300 py-1 px-1.5 text-right w-16">運行回数</th>
+                <th class="border border-slate-300 py-1 px-1.5 text-right w-20">延べ乗車人数</th>
+                <th class="border border-slate-300 py-1 px-1.5 text-right w-20">実走距離</th>
+                <th class="border border-slate-300 py-1 px-1.5 text-right w-24">実費弁償額</th>
+                <th class="border border-slate-300 py-1 px-2">主な目的地・活動内容</th>
+              </tr>
+            </thead>
+            <tbody id="reportMonthlyTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+
+        <!-- 3. 運行体制 & 4. 法令遵守確認事項 -->
+        <div class="grid grid-cols-2 gap-3 text-[11px]">
+          <div class="border border-slate-300 rounded p-2.5">
+            <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
+            <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
+              <li>登録ボランティアドライバー：実登録 <strong id="repDriverCount">0</strong> 名</li>
+              <li>相模原市担い手養成講座修了者：<strong id="repTrainedDriverCount">0</strong> 名</li>
+              <li>ボランティア活動保険：全員加入済（全社協）</li>
+              <li>運行中の重大事故・物損事故等の発生：なし（0件）</li>
+            </ul>
+          </div>
+          <div class="border border-slate-300 rounded p-2.5">
+            <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">4. 実費弁償・法令遵守に関する確認事項</h3>
+            <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
+              <li>道路運送法における「無償運送（実費弁償のみ）」を遵守。</li>
+              <li>利用者からの利用料金（運賃）の徴収は一切行っておりません（車内収受0円）。</li>
+              <li>燃料費相当額（20円/km）および有料道路・駐車場代実費のみを団体から支給。</li>
+              <li>支給明細兼受領書原本および実費レシート原本は団体にて5年間厳重保管。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- トースト通知 -->
   <div
     id="toastNotification"
@@ -833,7 +1003,7 @@
 
   <script>
     // ==========================================
-    // ★HTMLエスケープ関数（最上段に配置して未定義エラーを完全防止）
+    // HTMLエスケープ関数
     // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -893,7 +1063,6 @@
       }
     }
 
-    // ★タイムアウト40秒＆自動リトライ付きデータ取得関数
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
@@ -1475,8 +1644,11 @@
       });
     }
 
-    // ★受領書番号を削除し、左上に「ドライバー番号（例: 10101）」を明記したA4 3分割受領書生成
+    // 受領書A4 3分割プレビュー生成
     function openPrintPreview() {
+      document.body.classList.add("print-voucher");
+      document.body.classList.remove("print-report");
+
       const sDate = document.getElementById("settleStartDate").value;
       const eDate = document.getElementById("settleEndDate").value;
       
@@ -1514,7 +1686,6 @@
 
           ticketWrap.innerHTML = `
             <div class="voucher-ticket border border-slate-300 rounded-lg p-5 bg-white relative flex flex-col justify-between" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
-              <!-- 上部ヘッダー（★受領書番号を廃止し、ドライバー番号を表示） -->
               <div>
                 <div class="flex items-center justify-between text-xs text-slate-600 font-mono">
                   <div>ドライバー番号 <strong class="font-bold text-sm text-slate-900">${escapeHtml(id)}</strong></div>
@@ -1525,7 +1696,6 @@
                 </h2>
               </div>
 
-              <!-- 運行情報 -->
               <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-800 my-2">
                 <div>登録番号 <strong class="font-mono text-sm">${escapeHtml(id)}</strong></div>
                 <div>お名前 <strong class="text-sm">${escapeHtml(name)}</strong> 様</div>
@@ -1533,7 +1703,6 @@
                 <div>運行回数 <strong class="font-mono">${trips}</strong> 回</div>
               </div>
 
-              <!-- 領収金額＆宣誓文 -->
               <div class="my-1.5">
                 <div class="flex items-baseline gap-2 border-b-2 border-slate-900 pb-1">
                   <span class="text-sm font-bold">領収金額</span>
@@ -1546,7 +1715,6 @@
                 </p>
               </div>
 
-              <!-- 自署欄・受領日・支払元 -->
               <div class="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-slate-200">
                 <div class="space-y-1">
                   <div>受領日 令和  年  月  日</div>
@@ -1564,7 +1732,6 @@
               </div>
             </div>
 
-            <!-- 切り取り線（ハサミマーク付き） -->
             <div class="voucher-cut-line py-3 text-center text-slate-400 text-xs font-mono select-none" style="display:none;">
               ✂ ---------------------------------------------------- 切り取り線 ----------------------------------------------------
             </div>
@@ -1578,6 +1745,144 @@
       }
 
       document.getElementById("printPreviewModal").classList.remove("hidden");
+      refreshLucide();
+    }
+
+    // ========================================================
+    // ★新設：市提出用 事業活動実績報告書プレビュー生成
+    // ========================================================
+    function updateAnnualReportView() {
+      const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect").value, 10) || 2026;
+      const reiwaYear = selectedYear - 2018;
+      document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
+
+      // 提出日の初期値（今日）
+      const today = new Date();
+      const todayReiwa = today.getFullYear() - 2018;
+      document.getElementById("repSubmitDate").textContent = `令和${todayReiwa}年${today.getMonth() + 1}月${today.getDate()}日`;
+
+      // 団体情報の初期セット（ドライバー1人目等のデータから補完）
+      if (drivers.length > 0) {
+        if (drivers[0].address) document.getElementById("repOrgAddress").textContent = drivers[0].address;
+        if (drivers[0].name) document.getElementById("repOrgRep").textContent = `代表 ${drivers[0].name}`;
+        if (drivers[0].phone) document.getElementById("repOrgPhone").textContent = drivers[0].phone;
+      }
+
+      // クエスト行先のマップを作成（目的地抽出用）
+      const questDestMap = {};
+      quests.forEach(q => {
+        if (q.id && q.dropoff) questDestMap[q.id] = q.dropoff;
+      });
+
+      // 対象年度（4月〜翌3月）のレコードを抽出
+      const fyMonths = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
+      const monthlyData = {};
+      fyMonths.forEach(m => {
+        monthlyData[m] = { trips: 0, passengers: 0, distance: 0, expense: 0, destinations: [] };
+      });
+
+      let totalPassengersAnnual = 0;
+      let totalTripsAnnual = 0;
+      let totalDistanceAnnual = 0;
+      let totalExpenseAnnual = 0;
+
+      records.forEach(r => {
+        if (!r.targetDate) return;
+        const parts = r.targetDate.split('-');
+        if (parts.length < 3) return;
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+
+        // レコードが属する年度
+        const recordFY = (m >= 4) ? y : y - 1;
+        if (recordFY !== selectedYear) return;
+
+        const pCount = Number(r.totalPassengers) || 0;
+        const dist = (r.tripType === '片道') ? Number(r.oneWayDistance || 0) : Number(r.roundTripDistance || 0);
+        const exp = Number(r.totalFee || 0);
+
+        if (monthlyData[m]) {
+          monthlyData[m].trips += 1;
+          monthlyData[m].passengers += pCount;
+          monthlyData[m].distance += dist;
+          monthlyData[m].expense += exp;
+
+          if (r.questId && questDestMap[r.questId]) {
+            monthlyData[m].destinations.push(questDestMap[r.questId]);
+          }
+        }
+
+        totalPassengersAnnual += pCount;
+        totalTripsAnnual += 1;
+        totalDistanceAnnual += dist;
+        totalExpenseAnnual += exp;
+      });
+
+      // サマリー欄の更新
+      document.getElementById("repSummaryPassengers").textContent = totalPassengersAnnual.toLocaleString();
+      document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString();
+      document.getElementById("repSummaryUsers").textContent = users.length;
+
+      // 補助金上限枠判定
+      let capText = "300,000円（延べ100人まで枠）";
+      if (totalPassengersAnnual >= 301) {
+        capText = "500,000円（延べ301人以上枠）";
+      } else if (totalPassengersAnnual >= 101) {
+        capText = "400,000円（延べ101〜300人枠）";
+      }
+      document.getElementById("repSummaryCap").textContent = capText;
+
+      // 運行体制の更新
+      document.getElementById("repDriverCount").textContent = drivers.length;
+      const trainedDrivers = drivers.filter(d => d.certNo && d.certNo.trim() !== "").length;
+      document.getElementById("repTrainedDriverCount").textContent = trainedDrivers;
+
+      // 月別テーブルの描画
+      const tbody = document.getElementById("reportMonthlyTableBody");
+      tbody.innerHTML = "";
+
+      fyMonths.forEach(m => {
+        const item = monthlyData[m];
+        const dests = [...new Set(item.destinations)];
+        let destText = "―";
+        if (dests.length > 0) {
+          destText = dests.slice(0, 2).join('、') + (dests.length > 2 ? ' 等' : '');
+        } else if (item.trips > 0) {
+          destText = "通院・買物支援等";
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="border border-slate-300 py-1 px-1.5 text-center font-bold">${m}月</td>
+          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.trips} 回</td>
+          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.passengers} 人回</td>
+          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.distance.toFixed(1)} km</td>
+          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.expense.toLocaleString()} 円</td>
+          <td class="border border-slate-300 py-1 px-2 text-slate-700 truncate max-w-[200px]">${escapeHtml(destText)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // 合計行
+      const totalTr = document.createElement("tr");
+      totalTr.className = "bg-slate-100 font-bold border-t-2 border-slate-400 text-slate-900";
+      totalTr.innerHTML = `
+        <td class="border border-slate-300 py-1 px-1.5 text-center">合計</td>
+        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalTripsAnnual} 回</td>
+        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalPassengersAnnual} 人回</td>
+        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
+        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
+        <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援・公共施設送迎等</td>
+      `;
+      tbody.appendChild(totalTr);
+    }
+
+    function openAnnualReportPreview() {
+      document.body.classList.add("print-report");
+      document.body.classList.remove("print-voucher");
+
+      updateAnnualReportView();
+      document.getElementById("annualReportModal").classList.remove("hidden");
       refreshLucide();
     }
 
@@ -1872,11 +2177,24 @@
         showToast("全期間の精算データを表示します");
       };
 
+      // 受領書印刷プレビューモーダルの制御
       document.getElementById("btnPrintPreview").onclick = openPrintPreview;
       document.getElementById("btnClosePrintPreview").onclick = () => {
         document.getElementById("printPreviewModal").classList.add("hidden");
+        document.body.classList.remove("print-voucher");
       };
       document.getElementById("btnTriggerPrint").onclick = () => {
+        window.print();
+      };
+
+      // ★市提出用 実績報告書プレビューモーダルの制御
+      document.getElementById("btnAnnualReportPreview").onclick = openAnnualReportPreview;
+      document.getElementById("btnCloseAnnualReport").onclick = () => {
+        document.getElementById("annualReportModal").classList.add("hidden");
+        document.body.classList.remove("print-report");
+      };
+      document.getElementById("reportFiscalYearSelect").onchange = updateAnnualReportView;
+      document.getElementById("btnTriggerReportPrint").onclick = () => {
         window.print();
       };
 
