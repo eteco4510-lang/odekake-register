@@ -350,17 +350,27 @@
       </div>
 
       <form id="driverRegisterForm" class="my-4 space-y-3.5 text-xs">
-        <!-- 事前登録フォーム回答者からの自動入力セレクト -->
+     <!-- 事前登録フォーム回答者からの自動入力セレクト -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
-          <label class="block font-bold text-emerald-900 mb-1 flex items-center gap-1">
-            <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-700"></i>
-            <span>事前登録フォームの回答から自動入力（推奨）</span>
-          </label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-bold text-emerald-900 flex items-center gap-1">
+              <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-700"></i>
+              <span>事前登録フォームの回答から自動入力</span>
+            </label>
+            <button
+              type="button"
+              id="btnReloadPreReg"
+              class="inline-flex items-center gap-1 rounded bg-white border border-emerald-300 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+            >
+              <i data-lucide="refresh-cw" class="h-3 w-3"></i>
+              <span>再取得</span>
+            </button>
+          </div>
           <select id="preRegSelect" class="w-full h-8 rounded-lg border border-emerald-300 bg-white px-2 font-medium text-slate-800 outline-none">
-            <option value="">-- 事前登録者を選択してください --</option>
+            <option value="">⏳ 読み込み中...</option>
           </select>
-          <p class="mt-1 text-[11px] text-emerald-700 leading-tight">
-            ※選択すると、Googleフォームで送信された氏名・電話番号・車両情報が自動で展開されます。
+          <p id="preRegStatusText" class="mt-1 text-[11px] text-emerald-700 leading-tight">
+            事前登録データを読み込んでいます...
           </p>
         </div>
 
