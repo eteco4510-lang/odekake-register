@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>おでかけサポート 運行掲示板</title>
-  <!-- LINE LIFF SDK -->
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -320,7 +318,6 @@
   </header>
 
   <div class="container">
-    <!-- 初期ローディング（確実に非表示化される） -->
     <div id="initialLoadingBox" class="empty-box" style="margin-top:20px;">
       <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue);"></i>
       <p style="margin-top:8px;">掲示板を読み込み中...</p>
@@ -373,9 +370,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // ユーティリティ関数（最上段配置でエラー防止）
-    // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -548,16 +542,12 @@
       }
     }
 
-    // ==========================================
-    // ★高速化・キャッシュ撃退・ぐるぐる停止保証の取得処理
-    // ==========================================
     async function fetchBoardQuests(isManualRefresh = false) {
       const listArea = document.getElementById('questListArea');
       const statusBar = document.getElementById('syncStatusBar');
       const btn = document.getElementById('btnRefresh');
       const icon = document.getElementById('refreshIcon');
 
-      // ぐるぐる開始
       if (icon) icon.classList.add('animate-spin');
       if (btn) btn.disabled = true;
 
@@ -566,12 +556,10 @@
         refreshLucide();
       }
 
-      // タイムアウトを15秒に設定
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
-        // キャッシュバスター（_t）付与でスマホの古いキャッシュを強制撃退
         const cacheBuster = `&_t=${Date.now()}`;
         const url = `${GAS_API_URL}?action=getOpenQuests${cacheBuster}`;
         const res = await (await fetch(url, { signal: controller.signal })).json();
@@ -587,12 +575,10 @@
         }
       } catch (e) {
         clearTimeout(timeoutId);
-        console.warn('掲示板取得エラー:', e);
         if (statusBar) {
           statusBar.textContent = (e.name === 'AbortError') ? 'タイムアウト' : '更新エラー';
         }
       } finally {
-        // ★どんな例外が起きても必ずぐるぐるを確実に停止する
         if (icon) icon.classList.remove('animate-spin');
         if (btn) btn.disabled = false;
         hideInitialLoading();
@@ -600,9 +586,6 @@
       }
     }
 
-    // ==========================================
-    // クエスト一覧描画（例外クラッシュ完全防止）
-    // ==========================================
     function renderQuests(quests) {
       const listArea = document.getElementById('questListArea');
       if (!quests || quests.length === 0) {
@@ -681,37 +664,19 @@
       }
     }
 
-    // ==========================================
-    // 初期化処理（安全起動）
-    // ==========================================
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', () => {
       refreshLucide();
 
-      // LINE LIFF初期化（非同期で安全に実行）
-      try {
-        if (window.liff) {
-          await liff.init({ liffId: "2011743949-unqD1uQo" });
-          if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            lineUserId = profile.userId;
-          }
-        }
-      } catch (e) {
-        console.warn('LIFF初期化スキップ:', e);
-      }
-
-      // QRパラメータチェック
       const params = new URLSearchParams(window.location.search);
       const urlDriverId = params.get('authDriverId');
       const urlPhone4 = params.get('phone4');
 
       if (urlDriverId && urlPhone4) {
         hideInitialLoading();
-        await executeAuth(urlDriverId.trim(), urlPhone4.trim());
+        executeAuth(urlDriverId.trim(), urlPhone4.trim());
         return;
       }
 
-      // 端末保存ドライバー情報の確認
       const saved = localStorage.getItem('odekake_driver');
       if (saved) {
         try {
