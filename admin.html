@@ -170,9 +170,7 @@
 
   <main class="mx-auto max-w-6xl px-4 pt-5 sm:px-6">
 
-    <!-- ======================================================== -->
-    <!-- タブ1：運行・活動管理セクション (ops)                       -->
-    <!-- ======================================================== -->
+    <!-- タブ1：運行・活動管理セクション (ops) -->
     <section id="tabContentOps" class="space-y-5">
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <button
@@ -375,9 +373,7 @@
       </div>
     </section>
 
-    <!-- ======================================================== -->
-    <!-- タブ2：名簿マスタセクション (roster)                        -->
-    <!-- ======================================================== -->
+    <!-- タブ2：名簿マスタセクション (roster) -->
     <section id="tabContentRoster" class="space-y-5 hidden">
       <div class="flex items-center justify-between">
         <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
@@ -441,9 +437,7 @@
       </div>
     </section>
 
-    <!-- ======================================================== -->
-    <!-- タブ3：実費精算・受領書セクション (settlement)             -->
-    <!-- ======================================================== -->
+    <!-- タブ3：実費精算・受領書セクション (settlement) -->
     <section id="tabContentSettlement" class="space-y-5 hidden">
       <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
@@ -586,9 +580,7 @@
 
   </main>
 
-  <!-- ======================================================== -->
-  <!-- ルート地図モーダル（2地点ピン表示 ＆ 目安ルート確認）        -->
-  <!-- ======================================================== -->
+  <!-- ルート地図モーダル -->
   <div id="routeMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -662,9 +654,7 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- ★新設：ドライバー自宅マップ モーダル（ページ内表示）         -->
-  <!-- ======================================================== -->
+  <!-- ★ドライバー自宅マップ モーダル（自動ピン打ち補完対応） -->
   <div id="driverMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -773,7 +763,7 @@
           <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
         </div>
 
-        <!-- ★新設：出発地に近いドライバー（上位3名）セクション -->
+        <!-- 出発地に近いドライバー（上位3名）セクション -->
         <div class="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
           <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
             <div class="flex items-center gap-1.5 font-bold text-slate-800 text-xs">
@@ -782,9 +772,7 @@
             </div>
             <span class="text-[10px] text-slate-500 whitespace-nowrap">上位3名</span>
           </div>
-          <div id="modalNearbyDriversList" class="space-y-1.5">
-            <!-- 上位3名カードが動的に挿入されます -->
-          </div>
+          <div id="modalNearbyDriversList" class="space-y-1.5"></div>
         </div>
 
         <div class="rounded-xl border border-slate-200 overflow-hidden">
@@ -1599,7 +1587,7 @@
 
       if (depLatLng) {
         const depIcon = L.divIcon({
-          className: 'custom-map-pin',
+          className: 'bg-transparent border-0',
           html: `<div style="background-color:#16a34a; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">発</div>`,
           iconSize: [28, 28],
           iconAnchor: [14, 14]
@@ -1612,7 +1600,7 @@
 
       if (arrLatLng) {
         const arrIcon = L.divIcon({
-          className: 'custom-map-pin',
+          className: 'bg-transparent border-0',
           html: `<div style="background-color:#dc2626; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">着</div>`,
           iconSize: [28, 28],
           iconAnchor: [14, 14]
@@ -1642,9 +1630,9 @@
     }
 
     // ==========================================
-    // ★新設：ドライバー自宅マップ表示（モーダルポップアップ）
+    // ★ドライバー自宅マップ表示（自動ジオコード・ピン打ち補完対応）
     // ==========================================
-    function openDriverMapModal(d) {
+    async function openDriverMapModal(d) {
       document.getElementById("dMapId").textContent = "#" + d.id;
       document.getElementById("dMapName").textContent = d.name + " 様";
       document.getElementById("dMapAddress").textContent = d.address || "住所未登録";
@@ -1661,12 +1649,13 @@
       document.getElementById("driverMapModal").classList.remove("hidden");
       refreshLucide();
 
-      setTimeout(() => {
-        initOrUpdateDriverLeaflet(d);
+      setTimeout(async () => {
+        await initOrUpdateDriverLeaflet(d);
       }, 150);
     }
 
-    function initOrUpdateDriverLeaflet(d) {
+    // ★自動座標特定＆ピン描画ロジック
+    async function initOrUpdateDriverLeaflet(d) {
       const mapCanvas = document.getElementById("driverMapCanvas");
       if (!mapCanvas) return;
 
@@ -1675,11 +1664,44 @@
         driverMapInstance = null;
       }
 
-      // ドライバーの座標（存在すれば使用、無ければ相模原市中心地）
-      const center = (d.lat && d.lng) ? [d.lat, d.lng] : [35.586, 139.256];
+      let lat = d.lat;
+      let lng = d.lng;
+
+      // 座標が未取得の場合は、国土地理院API（高精度・完全無料）で自動特定
+      if ((!lat || !lng) && d.address) {
+        try {
+          const query = d.address.includes('相模原') ? d.address : ('相模原市' + d.address);
+          const res = await fetch(`https://msearch.gsi.go.jp/address-search/queryString?q=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          if (data && data.length > 0 && data[0].geometry && data[0].geometry.coordinates) {
+            lng = data[0].geometry.coordinates[0];
+            lat = data[0].geometry.coordinates[1];
+            d.lat = lat;
+            d.lng = lng;
+          }
+        } catch (e) {
+          console.warn('住所検索スキップ:', e);
+        }
+      }
+
+      // 国土地理院で取れなかった場合はGASのAPIへフォールバック
+      if ((!lat || !lng) && d.address) {
+        try {
+          const resGas = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(d.address)}`);
+          const dataGas = await resGas.json();
+          if (dataGas && dataGas.pickupCoords) {
+            lat = dataGas.pickupCoords.lat;
+            lng = dataGas.pickupCoords.lng;
+            d.lat = lat;
+            d.lng = lng;
+          }
+        } catch (e) {}
+      }
+
+      const center = (lat && lng) ? [lat, lng] : [35.586, 139.256];
       driverMapInstance = L.map('driverMapCanvas', {
         center: center,
-        zoom: 14,
+        zoom: (lat && lng) ? 15 : 14,
         zoomControl: true
       });
 
@@ -1688,14 +1710,15 @@
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(driverMapInstance);
 
-      if (d.lat && d.lng) {
+      // ★ピン（マーカー）の描画
+      if (lat && lng) {
         const homeIcon = L.divIcon({
-          className: 'custom-map-pin',
-          html: `<div style="background-color:#16a34a; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">家</div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14]
+          className: 'bg-transparent border-0',
+          html: `<div style="background-color:#16a34a; width:32px; height:32px; border-radius:50%; border:3px solid white; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:bold;">家</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
         });
-        L.marker([d.lat, d.lng], { icon: homeIcon })
+        L.marker([lat, lng], { icon: homeIcon })
           .bindPopup(`<strong>${escapeHtml(d.name)} 様 自宅</strong><br>${escapeHtml(d.address)}`)
           .addTo(driverMapInstance)
           .openPopup();
@@ -1712,9 +1735,7 @@
       }
     }
 
-    // ==========================================
-    // ★新設：最寄りドライバー上位3名の表示・個別打診文生成
-    // ==========================================
+    // 最寄りドライバー上位3名の表示・個別打診文生成
     async function loadNearbyDriversForQuest(quest) {
       const container = document.getElementById("modalNearbyDriversList");
       if (!container) return;
@@ -1730,17 +1751,15 @@
       let top3 = [];
 
       try {
-        // GASの最寄りドライバー算出APIを呼び出し
         const url = `${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(quest.pickup || '')}&targetDate=${encodeURIComponent(quest.targetDate || '')}`;
         const res = await (await fetch(url)).json();
         if (res.success && res.top3Drivers && res.top3Drivers.length > 0) {
           top3 = res.top3Drivers;
         }
       } catch (e) {
-        console.warn("GAS最寄りドライバーAPI失敗、ローカルフォールバック実行:", e);
+        console.warn("GAS最寄りドライバーAPIスキップ:", e);
       }
 
-      // フォールバック（GASが未対応またはオフライン時のローカル算出）
       if (top3.length === 0 && drivers.length > 0) {
         const dList = drivers.map(d => {
           let isMatch = false;
@@ -1816,7 +1835,6 @@
         container.appendChild(card);
       });
 
-      // 打診文コピーボタンのイベント登録
       container.querySelectorAll(".btn-nominate-copy").forEach(btn => {
         btn.onclick = () => {
           const did = btn.getAttribute("data-did");
@@ -1830,7 +1848,6 @@
       refreshLucide();
     }
 
-    // 個別ドライバー名入りのLINE打診文コピー
     function copyNominatedDriverLine(quest, driver) {
       const distInfo = (driver.distanceKm !== null && driver.distanceKm !== undefined && driver.distanceKm < 900)
         ? `（出発地まで約 ${driver.distanceKm.toFixed(1)} km）`
@@ -1923,7 +1940,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
                   <i data-lucide="map-pin" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
                   <span class="truncate">住所: <strong>${escapeHtml(d.address)}</strong></span>
                 </div>
-                <!-- ★ページ内マップ起動ボタン -->
                 <button
                   type="button"
                   class="btn-open-driver-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95 whitespace-nowrap"
@@ -1943,7 +1959,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         container.appendChild(card);
       });
 
-      // ドライバー地図ボタンのイベント登録
       container.querySelectorAll(".btn-open-driver-map").forEach(btn => {
         btn.onclick = () => {
           const did = btn.getAttribute("data-id");
@@ -2366,7 +2381,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalTripsAnnual} 回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalPassengersAnnual} 人回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
-        <td class="border border-slate-300 py-1 px-2 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
+        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
         <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援・公共施設送迎等</td>
       `;
       tbody.appendChild(totalTr);
@@ -2477,7 +2492,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       document.getElementById("accordionContent").classList.add("hidden");
       document.getElementById("accordionIcon").classList.remove("rotate-180");
 
-      // ★新設：出発地に近いドライバー（上位3名）の自動算出＆表示
       loadNearbyDriversForQuest(quest);
 
       document.getElementById("detailModalOverlay").classList.remove("hidden");
@@ -2700,7 +2714,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
       document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
 
-      // ★ドライバー自宅マップモーダルの閉じる制御
+      // ドライバー自宅マップモーダルの閉じる制御
       document.getElementById("btnCloseDriverMap").onclick = closeDriverMapModal;
       document.getElementById("btnCloseDriverMapBtn").onclick = closeDriverMapModal;
 
