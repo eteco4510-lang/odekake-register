@@ -24,7 +24,7 @@
       font-family: inherit;
     }
 
-    /* ★画面内の全ボタン・セレクト・チップスで不自然な文字折り返しを全面禁止 */
+    /* 画面内の全ボタン・セレクト・チップスで不自然な文字折り返しを全面禁止 */
     button, select, .chip-btn, .d-chip, .u-chip {
       white-space: nowrap !important;
     }
@@ -35,7 +35,7 @@
         visibility: hidden !important;
       }
 
-      /* 1. 受領書 印刷モード (A4 3分割) */
+      /* 1. 受領書 印刷モード */
       body.print-voucher #printPreviewModal,
       body.print-voucher #printContainer,
       body.print-voucher #printContainer * {
@@ -68,7 +68,7 @@
         display: block !important;
       }
 
-      /* 2. 市提出用実績報告書 印刷モード (A4縦1枚完結) */
+      /* 2. 市提出用実績報告書 印刷モード */
       body.print-report #annualReportModal,
       body.print-report #annualReportContainer,
       body.print-report #annualReportContainer * {
@@ -473,7 +473,6 @@
           <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 whitespace-nowrap flex-shrink-0">全期間</button>
           
           <div class="ml-auto flex items-center gap-2 flex-shrink-0">
-            <!-- 受領書A4印刷ボタン -->
             <button
               type="button"
               id="btnPrintPreview"
@@ -483,7 +482,6 @@
               <span>受領書印刷</span>
             </button>
 
-            <!-- 市提出用 実績報告書A4印刷ボタン -->
             <button
               type="button"
               id="btnAnnualReportPreview"
@@ -593,7 +591,6 @@
   <!-- ======================================================== -->
   <div id="routeMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
-      <!-- ヘッダー -->
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
@@ -610,7 +607,6 @@
         </button>
       </div>
 
-      <!-- 概要サマリーバー -->
       <div class="my-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
           <span class="text-[10px] text-slate-400 block">担当ドライバー</span>
@@ -630,10 +626,8 @@
         </div>
       </div>
 
-      <!-- 地図描画エリア (Leaflet Canvas) -->
       <div id="routeMapCanvas" class="w-full h-80 rounded-xl border border-slate-200 overflow-hidden relative shadow-inner"></div>
 
-      <!-- 凡例 & 操作フッター -->
       <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
         <div class="flex items-center gap-3 text-[11px] text-slate-600 flex-wrap">
           <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
@@ -668,9 +662,63 @@
     </div>
   </div>
 
-  <!-- 案件詳細モーダル -->
+  <!-- ======================================================== -->
+  <!-- ★新設：ドライバー自宅マップ モーダル（ページ内表示）         -->
+  <!-- ======================================================== -->
+  <div id="driverMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="dMapId" class="font-mono text-xs font-bold text-slate-500">#----</span>
+            <span class="rounded bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">登録ドライバー</span>
+          </div>
+          <h3 id="dMapName" class="mt-1 text-base font-bold text-slate-900">---- 様</h3>
+        </div>
+        <button type="button" id="btnCloseDriverMap" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="my-2.5 text-xs space-y-1 text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="map-pin" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
+          <span class="truncate">住所: <strong id="dMapAddress" class="text-slate-800">----</strong></span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
+          <span>連絡先: <strong id="dMapPhone" class="text-slate-800 font-mono">----</strong></span>
+        </div>
+      </div>
+
+      <!-- 地図描画エリア -->
+      <div id="driverMapCanvas" class="w-full h-72 rounded-xl border border-slate-200 overflow-hidden relative shadow-inner"></div>
+
+      <div class="mt-3 flex items-center justify-end gap-2 text-xs">
+        <a
+          id="btnDriverMapGoogle"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-100 shadow-2xs whitespace-nowrap flex-shrink-0"
+        >
+          <i data-lucide="external-link" class="h-3.5 w-3.5 text-slate-500"></i>
+          <span>Googleマップで開く</span>
+        </a>
+        <button
+          type="button"
+          id="btnCloseDriverMapBtn"
+          class="rounded-lg bg-slate-900 px-4 py-1.5 font-bold text-white hover:bg-slate-800 whitespace-nowrap flex-shrink-0"
+        >
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 案件詳細モーダル（最寄りドライバー上位3名表示機能付き） -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-6 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+    <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
         <div>
           <div class="flex items-center gap-2">
@@ -684,8 +732,8 @@
         </button>
       </div>
 
-      <div class="my-4 space-y-4 text-xs">
-        <div class="rounded-xl bg-slate-50 p-3.5 space-y-2 border border-slate-100">
+      <div class="my-3 space-y-3 text-xs">
+        <div class="rounded-xl bg-slate-50 p-3 space-y-2 border border-slate-100">
           <div class="flex justify-between">
             <span class="font-medium text-slate-500">運行日時:</span>
             <span id="modalDatetime" class="font-bold text-slate-900">----</span>
@@ -706,10 +754,10 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3">
+        <div class="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-2.5">
           <div>
             <span class="text-[11px] text-slate-400">利用者名</span>
-            <p id="modalUserName" class="font-bold text-slate-800">----</p>
+            <p id="modalUserName" class="font-bold text-slate-800 truncate">----</p>
           </div>
           <div>
             <span class="text-[11px] text-slate-400">緊急連絡先</span>
@@ -720,9 +768,23 @@
           </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 p-3">
+        <div class="rounded-xl border border-slate-200 p-2.5">
           <span class="text-[11px] text-slate-400">担当ボランティアドライバー</span>
           <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
+        </div>
+
+        <!-- ★新設：出発地に近いドライバー（上位3名）セクション -->
+        <div class="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+            <div class="flex items-center gap-1.5 font-bold text-slate-800 text-xs">
+              <i data-lucide="compass" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
+              <span>お迎え先に近いドライバー</span>
+            </div>
+            <span class="text-[10px] text-slate-500 whitespace-nowrap">上位3名</span>
+          </div>
+          <div id="modalNearbyDriversList" class="space-y-1.5">
+            <!-- 上位3名カードが動的に挿入されます -->
+          </div>
         </div>
 
         <div class="rounded-xl border border-slate-200 overflow-hidden">
@@ -754,7 +816,7 @@
           class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden whitespace-nowrap flex-shrink-0"
         >
           <i data-lucide="copy" class="h-3.5 w-3.5 flex-shrink-0"></i>
-          <span id="modalCopyBtnText">LINE文面をコピー</span>
+          <span id="modalCopyBtnText">LINE打診文をコピー</span>
         </button>
         <button
           type="button"
@@ -785,7 +847,7 @@
           <div class="flex items-center justify-between mb-1">
             <label class="font-bold text-emerald-900 flex items-center gap-1">
               <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-700 flex-shrink-0"></i>
-              <span>事前登録フォームの回答から自動入力</span>
+              <span>事前登録データから自動入力</span>
             </label>
             <button
               type="button"
@@ -950,10 +1012,9 @@
     </div>
   </div>
 
-  <!-- ★市提出用 事業活動実績報告書モーダル（改行バグ完全修正） -->
+  <!-- 市提出用 事業活動実績報告書モーダル -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <!-- 操作バー：画面幅が狭くてもボタンが絶対に潰れない構造 -->
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-3 mb-4">
         <div class="min-w-0 flex-1">
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 truncate">
@@ -969,7 +1030,6 @@
             <option value="2027">令和9年度 (2027年度)</option>
           </select>
 
-          <!-- ★ボタンテキスト短縮＆折り返し防止 -->
           <button type="button" id="btnTriggerReportPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95 whitespace-nowrap flex-shrink-0">
             <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i>
             <span>印刷する</span>
@@ -1013,7 +1073,7 @@
             </div>
             <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
               <span class="block text-[10px] text-slate-500">補助金確定上限枠</span>
-              <span id="repSummaryCap" class="text-xs font-bold text-slate-900">300,000円</span>
+              <span id="repSummaryCap" class="text-xs font-bold text-slate-900">300,000円（延べ100人まで枠）</span>
             </div>
             <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
               <span class="block text-[10px] text-slate-500">年間総運行回数</span>
@@ -1040,7 +1100,7 @@
                 <th class="border border-slate-300 py-1 px-1.5 text-right w-16">運行回数</th>
                 <th class="border border-slate-300 py-1 px-1.5 text-right w-20">延べ乗車人数</th>
                 <th class="border border-slate-300 py-1 px-1.5 text-right w-20">実走距離</th>
-                <th class="border border-slate-300 py-1 px-1.5 text-right w-24">実費弁償額</th>
+                <th class="border border-slate-300 py-1 px-2 text-right w-24">実費弁償額</th>
                 <th class="border border-slate-300 py-1 px-2">主な目的地・活動内容</th>
               </tr>
             </thead>
@@ -1120,6 +1180,7 @@
     let lastRegisteredDriver = { id: '', name: '', phone: '' };
 
     let routeMapInstance = null;
+    let driverMapInstance = null;
 
     function refreshLucide() {
       if (window.lucide) {
@@ -1536,7 +1597,6 @@
 
       const boundsPoints = [];
 
-      // 出発地マーカー（緑色アイコン：発）
       if (depLatLng) {
         const depIcon = L.divIcon({
           className: 'custom-map-pin',
@@ -1550,7 +1610,6 @@
         boundsPoints.push(depLatLng);
       }
 
-      // 到着地マーカー（赤色アイコン：着）
       if (arrLatLng) {
         const arrIcon = L.divIcon({
           className: 'custom-map-pin',
@@ -1580,6 +1639,230 @@
         routeMapInstance.remove();
         routeMapInstance = null;
       }
+    }
+
+    // ==========================================
+    // ★新設：ドライバー自宅マップ表示（モーダルポップアップ）
+    // ==========================================
+    function openDriverMapModal(d) {
+      document.getElementById("dMapId").textContent = "#" + d.id;
+      document.getElementById("dMapName").textContent = d.name + " 様";
+      document.getElementById("dMapAddress").textContent = d.address || "住所未登録";
+      document.getElementById("dMapPhone").textContent = d.phone || "未登録";
+
+      const googleBtn = document.getElementById("btnDriverMapGoogle");
+      if (d.address) {
+        googleBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}`;
+        googleBtn.classList.remove("hidden");
+      } else {
+        googleBtn.classList.add("hidden");
+      }
+
+      document.getElementById("driverMapModal").classList.remove("hidden");
+      refreshLucide();
+
+      setTimeout(() => {
+        initOrUpdateDriverLeaflet(d);
+      }, 150);
+    }
+
+    function initOrUpdateDriverLeaflet(d) {
+      const mapCanvas = document.getElementById("driverMapCanvas");
+      if (!mapCanvas) return;
+
+      if (driverMapInstance) {
+        driverMapInstance.remove();
+        driverMapInstance = null;
+      }
+
+      // ドライバーの座標（存在すれば使用、無ければ相模原市中心地）
+      const center = (d.lat && d.lng) ? [d.lat, d.lng] : [35.586, 139.256];
+      driverMapInstance = L.map('driverMapCanvas', {
+        center: center,
+        zoom: 14,
+        zoomControl: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(driverMapInstance);
+
+      if (d.lat && d.lng) {
+        const homeIcon = L.divIcon({
+          className: 'custom-map-pin',
+          html: `<div style="background-color:#16a34a; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">家</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        L.marker([d.lat, d.lng], { icon: homeIcon })
+          .bindPopup(`<strong>${escapeHtml(d.name)} 様 自宅</strong><br>${escapeHtml(d.address)}`)
+          .addTo(driverMapInstance)
+          .openPopup();
+      }
+
+      driverMapInstance.invalidateSize();
+    }
+
+    function closeDriverMapModal() {
+      document.getElementById("driverMapModal").classList.add("hidden");
+      if (driverMapInstance) {
+        driverMapInstance.remove();
+        driverMapInstance = null;
+      }
+    }
+
+    // ==========================================
+    // ★新設：最寄りドライバー上位3名の表示・個別打診文生成
+    // ==========================================
+    async function loadNearbyDriversForQuest(quest) {
+      const container = document.getElementById("modalNearbyDriversList");
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="py-3 text-center text-slate-400 flex items-center justify-center gap-1.5 text-xs">
+          <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-blue-600 flex-shrink-0"></i>
+          <span>最寄りのドライバー（上位3名）を算出中...</span>
+        </div>
+      `;
+      refreshLucide();
+
+      let top3 = [];
+
+      try {
+        // GASの最寄りドライバー算出APIを呼び出し
+        const url = `${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(quest.pickup || '')}&targetDate=${encodeURIComponent(quest.targetDate || '')}`;
+        const res = await (await fetch(url)).json();
+        if (res.success && res.top3Drivers && res.top3Drivers.length > 0) {
+          top3 = res.top3Drivers;
+        }
+      } catch (e) {
+        console.warn("GAS最寄りドライバーAPI失敗、ローカルフォールバック実行:", e);
+      }
+
+      // フォールバック（GASが未対応またはオフライン時のローカル算出）
+      if (top3.length === 0 && drivers.length > 0) {
+        const dList = drivers.map(d => {
+          let isMatch = false;
+          if (quest.targetDate) {
+            const dayNames = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+            const tDay = dayNames[new Date(quest.targetDate).getDay()];
+            if (d.note.includes(tDay) || d.note.includes('その都度相談') || d.note.includes('不定期')) {
+              isMatch = true;
+            }
+          }
+          return {
+            id: d.id,
+            name: d.name,
+            phone: d.phone,
+            address: d.address,
+            hasLine: d.hasLine,
+            note: d.note,
+            distanceKm: null,
+            isDayMatch: isMatch
+          };
+        });
+        top3 = dList.slice(0, 3);
+      }
+
+      if (top3.length === 0) {
+        container.innerHTML = `<div class="py-2 text-center text-slate-400 text-[11px]">登録ドライバーがいません</div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      const rankStyles = [
+        "bg-amber-100 text-amber-900 border-amber-300 font-black",
+        "bg-slate-200 text-slate-800 border-slate-300 font-bold",
+        "bg-amber-50 text-amber-800 border-amber-200 font-bold"
+      ];
+
+      top3.forEach((d, i) => {
+        const card = document.createElement("div");
+        card.className = "flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs hover:bg-slate-100/70 transition";
+
+        const distText = (d.distanceKm !== null && d.distanceKm !== undefined && d.distanceKm < 900)
+          ? `約 ${d.distanceKm.toFixed(1)} km`
+          : "距離算出中";
+
+        card.innerHTML = `
+          <div class="space-y-0.5 min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="rounded px-1.5 py-0.5 text-[10px] border ${rankStyles[i] || 'bg-slate-100 text-slate-600'} whitespace-nowrap">${i + 1}位</span>
+              <span class="font-bold text-slate-900 whitespace-nowrap">${escapeHtml(d.name)} 様</span>
+              <span class="text-slate-400 font-mono text-[11px] whitespace-nowrap">#${escapeHtml(d.id)}</span>
+              <span class="rounded px-1.5 py-0.5 text-[10px] font-bold ${d.isDayMatch ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'} whitespace-nowrap">
+                ${d.isDayMatch ? '稼働日一致' : '稼働日外'}
+              </span>
+              <span class="rounded px-1.5 py-0.5 text-[10px] font-bold ${d.hasLine ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-400'} whitespace-nowrap">
+                ${d.hasLine ? 'LINE連携済' : '未連携'}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-500">
+              <span class="whitespace-nowrap">距離: <strong class="text-slate-800 font-mono">${distText}</strong></span>
+              <span class="truncate">住所: ${escapeHtml(d.address || '未登録')}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-nominate-copy ml-2 inline-flex items-center gap-1 rounded bg-red-50 border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-700 hover:bg-red-100 shadow-2xs active:scale-95 whitespace-nowrap flex-shrink-0"
+            data-did="${escapeHtml(d.id)}"
+          >
+            <i data-lucide="copy" class="h-3 w-3 text-red-600 flex-shrink-0"></i>
+            <span>打診文コピー</span>
+          </button>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // 打診文コピーボタンのイベント登録
+      container.querySelectorAll(".btn-nominate-copy").forEach(btn => {
+        btn.onclick = () => {
+          const did = btn.getAttribute("data-did");
+          const targetD = top3.find(item => item.id === did) || drivers.find(item => item.id === did);
+          if (targetD) {
+            copyNominatedDriverLine(quest, targetD);
+          }
+        };
+      });
+
+      refreshLucide();
+    }
+
+    // 個別ドライバー名入りのLINE打診文コピー
+    function copyNominatedDriverLine(quest, driver) {
+      const distInfo = (driver.distanceKm !== null && driver.distanceKm !== undefined && driver.distanceKm < 900)
+        ? `（出発地まで約 ${driver.distanceKm.toFixed(1)} km）`
+        : "";
+
+      const text = `【至急のご相談】送迎ボランティアのお願い
+
+${driver.name} 様
+
+いつも大変お世話になっております。おでかけサポート事務局です。
+
+直前・緊急のご相談となり誠に恐縮です。
+${driver.name} 様のお近く${distInfo}での運行案件でまだドライバーが決まっておらず、大変困っております。
+もしご都合がよろしければ、お力をお貸しいただけないでしょうか。
+
+━━━━━━━━━━━━━━━
+■ 案件番号：#${quest.id}
+■ 日時：${quest.targetDate} ${quest.targetTime} 集合
+■ 出発地：${quest.pickup}
+■ 行先：${quest.dropoff}
+■ 区分：${quest.tripPlan}
+■ ご利用者：${quest.userName} 様 (${quest.passengers})
+■ 備考：${quest.note || "特になし"}
+━━━━━━━━━━━━━━━
+
+お引き受けいただける場合は、公式LINEの【運行掲示板】より受託手続きをお願い申し上げます。
+
+何卒よろしくお願い申し上げます。
+おでかけサポート事務局`;
+
+      navigator.clipboard.writeText(text);
+      showToast(`${driver.name} 様向けのLINE打診文をコピーしました`);
     }
 
     function renderDrivers() {
@@ -1640,15 +1923,15 @@
                   <i data-lucide="map-pin" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
                   <span class="truncate">住所: <strong>${escapeHtml(d.address)}</strong></span>
                 </div>
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95 whitespace-nowrap"
+                <!-- ★ページ内マップ起動ボタン -->
+                <button
+                  type="button"
+                  class="btn-open-driver-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95 whitespace-nowrap"
+                  data-id="${escapeHtml(d.id)}"
                 >
                   <i data-lucide="map" class="h-3 w-3 text-blue-600 flex-shrink-0"></i>
                   <span>地図を表示</span>
-                </a>
+                </button>
               </div>
             ` : ''}
 
@@ -1659,6 +1942,16 @@
         `;
         container.appendChild(card);
       });
+
+      // ドライバー地図ボタンのイベント登録
+      container.querySelectorAll(".btn-open-driver-map").forEach(btn => {
+        btn.onclick = () => {
+          const did = btn.getAttribute("data-id");
+          const targetD = drivers.find(d => d.id === did);
+          if (targetD) openDriverMapModal(targetD);
+        };
+      });
+
       refreshLucide();
     }
 
@@ -2029,11 +2322,11 @@
       document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString();
       document.getElementById("repSummaryUsers").textContent = users.length;
 
-      let capText = "300,000円";
+      let capText = "300,000円（延べ100人まで枠）";
       if (totalPassengersAnnual >= 301) {
-        capText = "500,000円";
+        capText = "500,000円（延べ301人以上枠）";
       } else if (totalPassengersAnnual >= 101) {
-        capText = "400,000円";
+        capText = "400,000円（延べ101〜300人枠）";
       }
       document.getElementById("repSummaryCap").textContent = capText;
 
@@ -2060,7 +2353,7 @@
           <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.trips} 回</td>
           <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.passengers} 人回</td>
           <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.distance.toFixed(1)} km</td>
-          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.expense.toLocaleString()} 円</td>
+          <td class="border border-slate-300 py-1 px-2 text-right font-mono">${item.expense.toLocaleString()} 円</td>
           <td class="border border-slate-300 py-1 px-2 text-slate-700 truncate max-w-[200px]">${escapeHtml(destText)}</td>
         `;
         tbody.appendChild(tr);
@@ -2073,7 +2366,7 @@
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalTripsAnnual} 回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalPassengersAnnual} 人回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
-        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
+        <td class="border border-slate-300 py-1 px-2 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
         <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援・公共施設送迎等</td>
       `;
       tbody.appendChild(totalTr);
@@ -2184,6 +2477,9 @@
       document.getElementById("accordionContent").classList.add("hidden");
       document.getElementById("accordionIcon").classList.remove("rotate-180");
 
+      // ★新設：出発地に近いドライバー（上位3名）の自動算出＆表示
+      loadNearbyDriversForQuest(quest);
+
       document.getElementById("detailModalOverlay").classList.remove("hidden");
       refreshLucide();
     }
@@ -2232,7 +2528,7 @@
       };
       document.getElementById("subTabOpsRecords").onclick = () => {
         document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
-        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
+        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
         document.getElementById("opsRecordsView").classList.remove("hidden");
         document.getElementById("opsQuestsView").classList.add("hidden");
       };
@@ -2403,6 +2699,10 @@
       // ルート地図モーダルの閉じる制御
       document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
       document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
+
+      // ★ドライバー自宅マップモーダルの閉じる制御
+      document.getElementById("btnCloseDriverMap").onclick = closeDriverMapModal;
+      document.getElementById("btnCloseDriverMapBtn").onclick = closeDriverMapModal;
 
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
