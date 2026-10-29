@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Leaflet CSS & JS (完全無料・APIキー不要のルート地図表示) -->
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
@@ -24,12 +24,10 @@
       font-family: inherit;
     }
 
-    /* 画面内の全ボタン・セレクト・チップスで不自然な文字折り返しを全面禁止 */
     button, select, .chip-btn, .d-chip, .u-chip {
       white-space: nowrap !important;
     }
 
-    /* 印刷用スタイル（受領書 ＆ 市提出用実績報告書の完全分離） */
     @media print {
       body * {
         visibility: hidden !important;
@@ -64,9 +62,6 @@
         page-break-after: always !important;
         break-after: page !important;
       }
-      body.print-voucher .voucher-cut-line {
-        display: block !important;
-      }
 
       /* 2. 市提出用実績報告書 印刷モード */
       body.print-report #annualReportModal,
@@ -99,7 +94,6 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
-  <!-- 1. スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
       <div class="min-w-0">
@@ -137,7 +131,6 @@
       </div>
     </div>
 
-    <!-- メイン業務タブバー -->
     <div class="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6">
       <div class="mx-auto flex max-w-6xl items-center gap-2 py-2 overflow-x-auto">
         <button
@@ -170,7 +163,7 @@
 
   <main class="mx-auto max-w-6xl px-4 pt-5 sm:px-6">
 
-    <!-- タブ1：運行・活動管理セクション (ops) -->
+    <!-- タブ1：運行・活動管理 (ops) -->
     <section id="tabContentOps" class="space-y-5">
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <button
@@ -360,7 +353,7 @@
       <!-- 活動記録ログビュー -->
       <div id="opsRecordsView" class="space-y-3 hidden">
         <div class="flex items-center justify-between">
-          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧（各行の「ルート地図」から走行マップが確認できます）</p>
+          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧</p>
           <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 whitespace-nowrap">0件</span>
         </div>
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -373,7 +366,7 @@
       </div>
     </section>
 
-    <!-- タブ2：名簿マスタセクション (roster) -->
+    <!-- タブ2：名簿マスタ (roster) -->
     <section id="tabContentRoster" class="space-y-5 hidden">
       <div class="flex items-center justify-between">
         <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
@@ -437,7 +430,7 @@
       </div>
     </section>
 
-    <!-- タブ3：実費精算・受領書セクション (settlement) -->
+    <!-- タブ3：実費精算・受領書 (settlement) -->
     <section id="tabContentSettlement" class="space-y-5 hidden">
       <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
@@ -523,9 +516,9 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
           <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
             <i data-lucide="coins" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
-            <span>金種別 必要枚数（銀行両替・現金封入用メモ）</span>
+            <span>金種別 必要枚数</span>
           </div>
-          <span class="text-[11px] text-slate-500">※各ドライバーの個別支給額を元に自動算出</span>
+          <span class="text-[11px] text-slate-500">※各ドライバーの個別支給額から自動算出</span>
         </div>
         <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 pt-1 text-center font-mono">
           <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
@@ -654,7 +647,7 @@
     </div>
   </div>
 
-  <!-- ★ドライバー自宅マップ モーダル（自動ピン打ち補完対応） -->
+  <!-- ドライバー自宅マップ モーダル -->
   <div id="driverMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -681,7 +674,6 @@
         </div>
       </div>
 
-      <!-- 地図描画エリア -->
       <div id="driverMapCanvas" class="w-full h-72 rounded-xl border border-slate-200 overflow-hidden relative shadow-inner"></div>
 
       <div class="mt-3 flex items-center justify-end gap-2 text-xs">
@@ -706,7 +698,7 @@
     </div>
   </div>
 
-  <!-- 案件詳細モーダル（最寄りドライバー上位3名表示機能付き） -->
+  <!-- 案件詳細モーダル -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-5 shadow-xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -763,7 +755,7 @@
           <p id="modalDriverInfo" class="mt-0.5 font-bold text-slate-800">----</p>
         </div>
 
-        <!-- 出発地に近いドライバー（上位3名）セクション -->
+        <!-- 出発地に近いドライバー（上位3名） -->
         <div class="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
           <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
             <div class="flex items-center gap-1.5 font-bold text-slate-800 text-xs">
@@ -790,7 +782,7 @@
               <p id="modalNote" class="mt-0.5">特になし</p>
             </div>
             <div id="modalSysInfoArea" class="pt-2 border-t border-slate-100 hidden">
-              <span class="font-semibold text-slate-500">T列システム情報:</span>
+              <span class="font-semibold text-slate-500">システム情報:</span>
               <p id="modalSysInfo" class="mt-0.5 font-mono text-[11px] text-slate-600">----</p>
             </div>
           </div>
@@ -847,7 +839,7 @@
             </button>
           </div>
           <select id="preRegSelect" class="w-full h-8 rounded-lg border border-emerald-300 bg-white px-2 font-medium text-slate-800 outline-none">
-            <option value="">⏳ 読み込み中...</option>
+            <option value="">読み込み中...</option>
           </select>
           <p id="preRegStatusText" class="mt-1 text-[11px] text-emerald-700 leading-tight">
             事前登録データを読み込んでいます...
@@ -886,7 +878,7 @@
           </label>
           <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200">
             <div>
-              <span class="block text-[11px] text-slate-500 mb-0.5">担い手養成講座終了証No.</span>
+              <span class="block text-[11px] text-slate-500 mb-0.5">担い手養成講座修了証No.</span>
               <input type="text" id="dRegCertNo" placeholder="例: 第1234号" class="w-full h-7 rounded border border-slate-200 bg-white px-2 text-xs" />
             </div>
             <div>
@@ -900,21 +892,21 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
               <i data-lucide="map-pin" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
-              <span>住所（I列）</span>
+              <span>住所</span>
             </label>
             <input type="text" id="dRegAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
               <i data-lucide="phone-call" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
-              <span>緊急連絡先（J列）</span>
+              <span>緊急連絡先</span>
             </label>
             <input type="text" id="dRegEmergency" placeholder="例: 090-9999-8888（配偶者）" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
           </div>
         </div>
 
         <div>
-          <label class="block font-bold text-slate-700 mb-1">車両情報・運転可能曜日・備考（E列）</label>
+          <label class="block font-bold text-slate-700 mb-1">車両情報・稼働可能曜日・備考</label>
           <textarea id="dRegNote" rows="2" placeholder="車種、ナンバープレート、稼働可能曜日など" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-900 outline-none focus:border-blue-600"></textarea>
         </div>
 
@@ -945,7 +937,7 @@
       </div>
 
       <div class="rounded-xl bg-slate-50 p-3.5 text-left text-xs space-y-1.5 text-slate-700 border border-slate-100">
-        <div class="font-bold text-slate-900 mb-1">【対面での次のステップ・操作レクチャー】</div>
+        <div class="font-bold text-slate-900 mb-1">【対面での次のステップ】</div>
         <div class="flex items-start gap-1.5">
           <span class="font-bold text-emerald-600 flex-shrink-0">1.</span>
           <span>下のボタンから<strong>LINE案内文をコピー</strong>して、本人のLINEへ送信してください。</span>
@@ -956,7 +948,7 @@
         </div>
         <div class="flex items-start gap-1.5">
           <span class="font-bold text-emerald-600 flex-shrink-0">3.</span>
-          <span>登録番号と電話番号下4桁でログインすると、<strong>LINE通知の連携が100%自動完了</strong>します。</span>
+          <span>登録番号と電話番号下4桁でログインすると、<strong>LINE通知の連携が自動完了</strong>します。</span>
         </div>
       </div>
 
@@ -972,7 +964,7 @@
     </div>
   </div>
 
-  <!-- A4 3分割 受領書印刷プレビューモーダル -->
+  <!-- 受領書印刷プレビューモーダル -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3">
@@ -981,7 +973,7 @@
             <i data-lucide="printer" class="h-4 w-4 text-slate-600 flex-shrink-0"></i>
             <span>ボランティア実費弁償 受領書印刷プレビュー</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。切り取り線で切ってご利用ください。</p>
+          <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。</p>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
           <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95 whitespace-nowrap flex-shrink-0">
@@ -1000,7 +992,7 @@
     </div>
   </div>
 
-  <!-- 市提出用 事業活動実績報告書モーダル -->
+  <!-- 市提出用 実績報告書モーダル -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-3 mb-4">
@@ -1009,7 +1001,7 @@
             <i data-lucide="file-check" class="h-4 w-4 text-blue-700 flex-shrink-0"></i>
             <span>事業活動実績報告書プレビュー</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-0.5">※相模原市地域包括ケア推進課 基準準拠（A4縦1枚完結）。下線部は画面上で直接クリックして編集可能です。</p>
+          <p class="text-xs text-slate-500 mt-0.5">※相模原市基準準拠。下線部は画面上で直接クリックして編集可能です。</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 self-end lg:self-auto flex-shrink-0">
           <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none whitespace-nowrap flex-shrink-0">
@@ -1074,7 +1066,7 @@
               <span class="text-[10px] text-slate-500 ml-0.5">名</span>
             </div>
           </div>
-          <p class="text-[10px] text-slate-500 mt-1">※延べ人数基準: 往復送迎は2人回、片道送迎は1人回として集計（相模原市マニュアル基準準拠）</p>
+          <p class="text-[10px] text-slate-500 mt-1">※延べ人数基準: 往復送迎は2人回、片道送迎は1人回として集計</p>
         </div>
 
         <div class="mb-4">
@@ -1146,9 +1138,7 @@
       }
       if (mapUrl) {
         const match = String(mapUrl).match(/query=([0-9.-]+),([0-9.-]+)/) || String(mapUrl).match(/q=([0-9.-]+),([0-9.-]+)/);
-        if (match) {
-          return [parseFloat(match[1]), parseFloat(match[2])];
-        }
+        if (match) return [parseFloat(match[1]), parseFloat(match[2])];
       }
       return null;
     }
@@ -1196,11 +1186,8 @@
       btn.disabled = isLoading;
       const icon = btn.querySelector("svg, i");
       if (icon) {
-        if (isLoading) {
-          icon.classList.add("animate-spin");
-        } else {
-          icon.classList.remove("animate-spin");
-        }
+        if (isLoading) icon.classList.add("animate-spin");
+        else icon.classList.remove("animate-spin");
       }
     }
 
@@ -1210,7 +1197,6 @@
       const empty = document.getElementById("emptyState");
 
       setRefreshing(true);
-
       if (quests.length === 0 && !isRetry) {
         skeleton.classList.remove("hidden");
         container.classList.add("hidden");
@@ -1256,11 +1242,8 @@
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        if (!isRetry) {
-          console.warn("初回取得失敗、再試行中...", err);
-          return await fetchDashboardData(true);
-        }
-        showToast(err.name === "AbortError" ? "通信タイムアウト: GASの応答がありませんでした" : "通信エラー: " + err.message);
+        if (!isRetry) return await fetchDashboardData(true);
+        showToast(err.name === "AbortError" ? "通信タイムアウト" : "通信エラー: " + err.message);
       } finally {
         setRefreshing(false);
         skeleton.classList.add("hidden");
@@ -1272,8 +1255,8 @@
       const statusText = document.getElementById("preRegStatusText");
       
       select.disabled = true;
-      select.innerHTML = '<option value="">⏳ 読み込み中...</option>';
-      if (statusText) statusText.textContent = "事前登録フォームの回答を取得中...";
+      select.innerHTML = '<option value="">読み込み中...</option>';
+      if (statusText) statusText.textContent = "事前登録データを取得中...";
 
       try {
         const cacheBuster = `&_t=${Date.now()}`;
@@ -1285,8 +1268,8 @@
           select.innerHTML = '<option value="">-- 事前登録者を選択してください --</option>';
 
           if (preRegList.length === 0) {
-            select.innerHTML = '<option value="">-- 未登録の事前登録データはありません（0件） --</option>';
-            if (statusText) statusText.textContent = data.message || "Form Responses 5 に未登録のデータはありません";
+            select.innerHTML = '<option value="">-- 未登録の事前登録データはありません --</option>';
+            if (statusText) statusText.textContent = "未登録のデータはありません";
           } else {
             preRegList.forEach((item, idx) => {
               const opt = document.createElement("option");
@@ -1295,19 +1278,15 @@
               opt.textContent = `${item.name} 様 (${item.phone})${tag}`;
               select.appendChild(opt);
             });
-            if (statusText) statusText.textContent = `${preRegList.length}件の事前登録データを取得しました。選択すると自動入力されます。`;
+            if (statusText) statusText.textContent = `${preRegList.length}件の事前登録データを取得しました。`;
           }
 
           if (data.nextDriverId) {
             document.getElementById("dRegId").value = data.nextDriverId;
           }
-        } else {
-          select.innerHTML = '<option value="">⚠️ 取得失敗（GASの更新が必要です）</option>';
-          if (statusText) statusText.textContent = `エラー: ${data.message || 'GASが新バージョンでデプロイされているかご確認ください'}`;
         }
       } catch (e) {
-        select.innerHTML = '<option value="">⚠️ 通信エラー</option>';
-        if (statusText) statusText.textContent = "通信エラー: GASが新バージョンでデプロイされているかご確認ください";
+        select.innerHTML = '<option value="">通信エラー</option>';
       } finally {
         select.disabled = false;
         refreshLucide();
@@ -1321,10 +1300,8 @@
       document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount;
 
       const failedCount = quests.filter(q => q.status === "マッチング不成立").length;
-
       const chipUnreported = document.getElementById("chipUnreported");
       if (chipUnreported) chipUnreported.textContent = `実績未報告 (${metrics.unreportedCount})`;
-
       const chipFailed = document.getElementById("chipFailed");
       if (chipFailed) chipFailed.textContent = `マッチング不成立 (${failedCount})`;
     }
@@ -1353,7 +1330,6 @@
         }
 
         const isActionRequired = (item.isUrgent || item.isWarned) && item.status === "募集中";
-
         if (currentFilterTag === "recruiting") return item.status === "募集中";
         if (currentFilterTag === "accepted") return item.status === "受注済";
         if (currentFilterTag === "action_required") return isActionRequired;
@@ -1361,7 +1337,6 @@
         if (currentFilterTag === "unreported") return !!item.isUnreported;
         if (currentFilterTag === "failed") return item.status === "マッチング不成立";
         if (currentFilterTag === "completed") return item.status === "運行完了" || item.status === "送迎中止";
-
         return true;
       });
 
@@ -1394,18 +1369,10 @@
           statusClass = "bg-amber-100 text-amber-800 border border-amber-200";
         }
 
-        let bgClass = "";
-        if (isUnreported) {
-          bgClass = "bg-rose-50/45";
-        } else if (isActionRequired) {
-          bgClass = "bg-red-50/40";
-        } else if (isFailed) {
-          bgClass = "bg-purple-50/25";
-        }
+        let bgClass = isUnreported ? "bg-rose-50/45" : (isActionRequired ? "bg-red-50/40" : (isFailed ? "bg-purple-50/25" : ""));
 
         const card = document.createElement("div");
         card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
-
         card.innerHTML = `
           <div class="space-y-1.5 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
@@ -1460,7 +1427,6 @@
       const badge = document.getElementById("recordCountBadge");
 
       badge.textContent = `${records.length}件`;
-
       if (records.length === 0) {
         container.innerHTML = "";
         empty.classList.remove("hidden");
@@ -1495,7 +1461,6 @@
               ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block whitespace-nowrap">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
             </div>
 
-            <!-- ルート地図ボタン -->
             <button
               type="button"
               class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
@@ -1593,7 +1558,7 @@
           iconAnchor: [14, 14]
         });
         L.marker(depLatLng, { icon: depIcon })
-          .bindPopup(`<strong>出発地</strong><br>${r.depTime ? '出発時刻: ' + r.depTime : ''}<br>座標: ${depLatLng[0].toFixed(5)}, ${depLatLng[1].toFixed(5)}`)
+          .bindPopup(`<strong>出発地</strong><br>${r.depTime ? '出発時刻: ' + r.depTime : ''}`)
           .addTo(routeMapInstance);
         boundsPoints.push(depLatLng);
       }
@@ -1606,7 +1571,7 @@
           iconAnchor: [14, 14]
         });
         L.marker(arrLatLng, { icon: arrIcon })
-          .bindPopup(`<strong>到着地</strong><br>${r.arrTime ? '到着時刻: ' + r.arrTime : ''}<br>座標: ${arrLatLng[0].toFixed(5)}, ${arrLatLng[1].toFixed(5)}`)
+          .bindPopup(`<strong>到着地</strong><br>${r.arrTime ? '到着時刻: ' + r.arrTime : ''}`)
           .addTo(routeMapInstance);
         boundsPoints.push(arrLatLng);
       }
@@ -1629,9 +1594,6 @@
       }
     }
 
-    // ==========================================
-    // ★ドライバー自宅マップ表示（自動ジオコード・ピン打ち補完対応）
-    // ==========================================
     async function openDriverMapModal(d) {
       document.getElementById("dMapId").textContent = "#" + d.id;
       document.getElementById("dMapName").textContent = d.name + " 様";
@@ -1654,7 +1616,6 @@
       }, 150);
     }
 
-    // ★自動座標特定＆ピン描画ロジック
     async function initOrUpdateDriverLeaflet(d) {
       const mapCanvas = document.getElementById("driverMapCanvas");
       if (!mapCanvas) return;
@@ -1667,7 +1628,6 @@
       let lat = d.lat;
       let lng = d.lng;
 
-      // 座標が未取得の場合は、国土地理院API（高精度・完全無料）で自動特定
       if ((!lat || !lng) && d.address) {
         try {
           const query = d.address.includes('相模原') ? d.address : ('相模原市' + d.address);
@@ -1676,22 +1636,6 @@
           if (data && data.length > 0 && data[0].geometry && data[0].geometry.coordinates) {
             lng = data[0].geometry.coordinates[0];
             lat = data[0].geometry.coordinates[1];
-            d.lat = lat;
-            d.lng = lng;
-          }
-        } catch (e) {
-          console.warn('住所検索スキップ:', e);
-        }
-      }
-
-      // 国土地理院で取れなかった場合はGASのAPIへフォールバック
-      if ((!lat || !lng) && d.address) {
-        try {
-          const resGas = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(d.address)}`);
-          const dataGas = await resGas.json();
-          if (dataGas && dataGas.pickupCoords) {
-            lat = dataGas.pickupCoords.lat;
-            lng = dataGas.pickupCoords.lng;
             d.lat = lat;
             d.lng = lng;
           }
@@ -1710,7 +1654,6 @@
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(driverMapInstance);
 
-      // ★ピン（マーカー）の描画
       if (lat && lng) {
         const homeIcon = L.divIcon({
           className: 'bg-transparent border-0',
@@ -1735,7 +1678,6 @@
       }
     }
 
-    // 最寄りドライバー上位3名の表示・個別打診文生成
     async function loadNearbyDriversForQuest(quest) {
       const container = document.getElementById("modalNearbyDriversList");
       if (!container) return;
@@ -1749,16 +1691,13 @@
       refreshLucide();
 
       let top3 = [];
-
       try {
         const url = `${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(quest.pickup || '')}&targetDate=${encodeURIComponent(quest.targetDate || '')}`;
         const res = await (await fetch(url)).json();
         if (res.success && res.top3Drivers && res.top3Drivers.length > 0) {
           top3 = res.top3Drivers;
         }
-      } catch (e) {
-        console.warn("GAS最寄りドライバーAPIスキップ:", e);
-      }
+      } catch (e) {}
 
       if (top3.length === 0 && drivers.length > 0) {
         const dList = drivers.map(d => {
@@ -1766,19 +1705,11 @@
           if (quest.targetDate) {
             const dayNames = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
             const tDay = dayNames[new Date(quest.targetDate).getDay()];
-            if (d.note.includes(tDay) || d.note.includes('その都度相談') || d.note.includes('不定期')) {
-              isMatch = true;
-            }
+            if (d.note.includes(tDay) || d.note.includes('その都度相談') || d.note.includes('不定期')) isMatch = true;
           }
           return {
-            id: d.id,
-            name: d.name,
-            phone: d.phone,
-            address: d.address,
-            hasLine: d.hasLine,
-            note: d.note,
-            distanceKm: null,
-            isDayMatch: isMatch
+            id: d.id, name: d.name, phone: d.phone, address: d.address,
+            hasLine: d.hasLine, note: d.note, distanceKm: null, isDayMatch: isMatch
           };
         });
         top3 = dList.slice(0, 3);
@@ -1831,7 +1762,6 @@
             <span>打診文コピー</span>
           </button>
         `;
-
         container.appendChild(card);
       });
 
@@ -1839,9 +1769,7 @@
         btn.onclick = () => {
           const did = btn.getAttribute("data-did");
           const targetD = top3.find(item => item.id === did) || drivers.find(item => item.id === did);
-          if (targetD) {
-            copyNominatedDriverLine(quest, targetD);
-          }
+          if (targetD) copyNominatedDriverLine(quest, targetD);
         };
       });
 
@@ -1853,30 +1781,7 @@
         ? `（出発地まで約 ${driver.distanceKm.toFixed(1)} km）`
         : "";
 
-      const text = `【至急のご相談】送迎ボランティアのお願い
-
-${driver.name} 様
-
-いつも大変お世話になっております。おでかけサポート事務局です。
-
-直前・緊急のご相談となり誠に恐縮です。
-${driver.name} 様のお近く${distInfo}での運行案件でまだドライバーが決まっておらず、大変困っております。
-もしご都合がよろしければ、お力をお貸しいただけないでしょうか。
-
-━━━━━━━━━━━━━━━
-■ 案件番号：#${quest.id}
-■ 日時：${quest.targetDate} ${quest.targetTime} 集合
-■ 出発地：${quest.pickup}
-■ 行先：${quest.dropoff}
-■ 区分：${quest.tripPlan}
-■ ご利用者：${quest.userName} 様 (${quest.passengers})
-■ 備考：${quest.note || "特になし"}
-━━━━━━━━━━━━━━━
-
-お引き受けいただける場合は、公式LINEの【運行掲示板】より受託手続きをお願い申し上げます。
-
-何卒よろしくお願い申し上げます。
-おでかけサポート事務局`;
+      const text = `【至急のご相談】送迎ボランティアのお願い\n\n${driver.name} 様\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご相談となり誠に恐縮です。\n${driver.name} 様のお近く${distInfo}での運行案件でまだドライバーが決まっておらず、大変困っております。\nもしご都合がよろしければ、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ ご利用者：${quest.userName} 様 (${quest.passengers})\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、公式LINEの【運行掲示板】より受託手続きをお願い申し上げます。\n\n何卒よろしくお願い申し上げます。\nおでかけサポート事務局`;
 
       navigator.clipboard.writeText(text);
       showToast(`${driver.name} 様向けのLINE打診文をコピーしました`);
@@ -2069,34 +1974,19 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       const driverMap = {};
       drivers.forEach(d => {
         driverMap[d.id] = {
-          id: d.id,
-          name: d.name,
-          trips: 0,
-          passengers: 0,
-          distance: 0,
-          fuelFee: 0,
-          otherExpense: 0,
-          totalPayout: 0
+          id: d.id, name: d.name, trips: 0, passengers: 0,
+          distance: 0, fuelFee: 0, otherExpense: 0, totalPayout: 0
         };
       });
 
-      let totalTrips = 0;
-      let totalPassengers = 0;
-      let totalDist = 0;
-      let totalPayout = 0;
+      let totalTrips = 0, totalPassengers = 0, totalDist = 0, totalPayout = 0;
 
       filtered.forEach(r => {
         const dId = r.driverId;
         if (!driverMap[dId]) {
           driverMap[dId] = {
-            id: dId || '----',
-            name: r.driverName || 'ドライバー',
-            trips: 0,
-            passengers: 0,
-            distance: 0,
-            fuelFee: 0,
-            otherExpense: 0,
-            totalPayout: 0
+            id: dId || '----', name: r.driverName || 'ドライバー', trips: 0,
+            passengers: 0, distance: 0, fuelFee: 0, otherExpense: 0, totalPayout: 0
           };
         }
 
@@ -2130,9 +2020,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       driverSummaryList.forEach(d => {
         if (d.totalPayout > 0) {
           const env = getEnvelopeBreakdown(d.totalPayout);
-          for (const k in bankTotals) {
-            bankTotals[k] += env[k];
-          }
+          for (const k in bankTotals) bankTotals[k] += env[k];
         }
       });
 
@@ -2176,13 +2064,9 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       const eDate = document.getElementById("settleEndDate").value;
       
       let periodText = "全期間";
-      if (sDate && eDate) {
-        periodText = `${formatJpDate(sDate)} 〜 ${formatJpDate(eDate)}`;
-      } else if (sDate) {
-        periodText = `${formatJpDate(sDate)} 以降`;
-      } else if (eDate) {
-        periodText = `${formatJpDate(eDate)} まで`;
-      }
+      if (sDate && eDate) periodText = `${formatJpDate(sDate)} 〜 ${formatJpDate(eDate)}`;
+      else if (sDate) periodText = `${formatJpDate(sDate)} 以降`;
+      else if (eDate) periodText = `${formatJpDate(eDate)} まで`;
 
       const listArea = document.getElementById("voucherListArea");
       listArea.innerHTML = "";
@@ -2206,7 +2090,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
 
           const ticketWrap = document.createElement("div");
           ticketWrap.className = "voucher-ticket-wrap";
-
           ticketWrap.innerHTML = `
             <div class="voucher-ticket border border-slate-300 rounded-lg p-5 bg-white relative flex flex-col justify-between" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
               <div>
@@ -2254,10 +2137,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
                 </div>
               </div>
             </div>
-
-            <div class="voucher-cut-line py-3 text-center text-slate-400 text-xs font-mono select-none" style="display:none;">
-              ✂ ---------------------------------------------------- 切り取り線 ----------------------------------------------------
-            </div>
           `;
           listArea.appendChild(ticketWrap);
         }
@@ -2297,10 +2176,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         monthlyData[m] = { trips: 0, passengers: 0, distance: 0, expense: 0, destinations: [] };
       });
 
-      let totalPassengersAnnual = 0;
-      let totalTripsAnnual = 0;
-      let totalDistanceAnnual = 0;
-      let totalExpenseAnnual = 0;
+      let totalPassengersAnnual = 0, totalTripsAnnual = 0, totalDistanceAnnual = 0, totalExpenseAnnual = 0;
 
       records.forEach(r => {
         if (!r.targetDate) return;
@@ -2321,10 +2197,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
           monthlyData[m].passengers += pCount;
           monthlyData[m].distance += dist;
           monthlyData[m].expense += exp;
-
-          if (r.questId && questDestMap[r.questId]) {
-            monthlyData[m].destinations.push(questDestMap[r.questId]);
-          }
+          if (r.questId && questDestMap[r.questId]) monthlyData[m].destinations.push(questDestMap[r.questId]);
         }
 
         totalPassengersAnnual += pCount;
@@ -2338,16 +2211,12 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       document.getElementById("repSummaryUsers").textContent = users.length;
 
       let capText = "300,000円（延べ100人まで枠）";
-      if (totalPassengersAnnual >= 301) {
-        capText = "500,000円（延べ301人以上枠）";
-      } else if (totalPassengersAnnual >= 101) {
-        capText = "400,000円（延べ101〜300人枠）";
-      }
+      if (totalPassengersAnnual >= 301) capText = "500,000円（延べ301人以上枠）";
+      else if (totalPassengersAnnual >= 101) capText = "400,000円（延べ101〜300人枠）";
       document.getElementById("repSummaryCap").textContent = capText;
 
       document.getElementById("repDriverCount").textContent = drivers.length;
-      const trainedDrivers = drivers.filter(d => d.certNo && d.certNo.trim() !== "").length;
-      document.getElementById("repTrainedDriverCount").textContent = trainedDrivers;
+      document.getElementById("repTrainedDriverCount").textContent = drivers.filter(d => d.certNo && d.certNo.trim() !== "").length;
 
       const tbody = document.getElementById("reportMonthlyTableBody");
       tbody.innerHTML = "";
@@ -2355,12 +2224,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       fyMonths.forEach(m => {
         const item = monthlyData[m];
         const dests = [...new Set(item.destinations)];
-        let destText = "―";
-        if (dests.length > 0) {
-          destText = dests.slice(0, 2).join('、') + (dests.length > 2 ? ' 等' : '');
-        } else if (item.trips > 0) {
-          destText = "通院・買物支援等";
-        }
+        let destText = dests.length > 0 ? (dests.slice(0, 2).join('、') + (dests.length > 2 ? ' 等' : '')) : (item.trips > 0 ? "通院・買物支援等" : "―");
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -2381,8 +2245,8 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalTripsAnnual} 回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalPassengersAnnual} 人回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
-        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
-        <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援・公共施設送迎等</td>
+        <td class="border border-slate-300 py-1 px-2 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
+        <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援等</td>
       `;
       tbody.appendChild(totalTr);
     }
@@ -2390,7 +2254,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
     function openAnnualReportPreview() {
       document.body.classList.add("print-report");
       document.body.classList.remove("print-voucher");
-
       updateAnnualReportView();
       document.getElementById("annualReportModal").classList.remove("hidden");
       refreshLucide();
@@ -2422,20 +2285,18 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       } else {
         text = `【至急のご相談】直前運行のお願い\n\nいつも大変お世話になっております。おでかけサポート事務局です。\n\n直前・緊急のご連絡となり大変恐縮です。\nお近くでの運行案件でまだドライバーが決まっておらず、大変困っております。\nもしお時間がございましたら、お力をお貸しいただけないでしょうか。\n\n━━━━━━━━━━━━━━━\n■ 案件番号：#${quest.id}\n■ 日時：${quest.targetDate} ${quest.targetTime} 集合\n■ 出発地：${quest.pickup}\n■ 行先：${quest.dropoff}\n■ 区分：${quest.tripPlan}\n■ 備考：${quest.note || "特になし"}\n━━━━━━━━━━━━━━━\n\nお引き受けいただける場合は、運行掲示板より【受託】をお願いいたします。\n\nよろしくお願い申し上げます。`;
       }
-
       navigator.clipboard.writeText(text);
-      showToast(type === "remind" ? "活動記録の催促LINE文をコピーしました" : "LINE打診用テキストをコピーしました");
+      showToast(type === "remind" ? "催促LINE文をコピーしました" : "LINE打診文をコピーしました");
     }
 
     function copyDriverWelcomeLine() {
       if (!lastRegisteredDriver || !lastRegisteredDriver.id) return;
       const phoneClean = (lastRegisteredDriver.phone || '').replace(/[^0-9]/g, '');
-      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : 'ご登録電話番号の下4桁';
-
-      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の運行案内やリマインド通知が届くようになります。\n\nご不明な点がございましたら事務局までお気軽にお声がけください。\nこれからどうぞよろしくお願いいたします！\n\nおでかけサポート事務局`;
+      const phoneLast4 = phoneClean.length >= 4 ? phoneClean.slice(-4) : '電話番号の下4桁';
+      const text = `【おでかけサポート】ドライバー登録完了のお知らせ\n\n${lastRegisteredDriver.name} 様\n\nおでかけサポートのボランティアドライバーへのご登録、誠にありがとうございます。\n登録手続きが完了いたしましたので、登録情報をお知らせいたします。\n\n━━━━━━━━━━━━━━━\n■ ドライバー登録番号：${lastRegisteredDriver.id}\n■ お名前：${lastRegisteredDriver.name} 様\n■ 暗証番号：ご登録電話番号の下4桁（${phoneLast4}）\n━━━━━━━━━━━━━━━\n\n【はじめの手順】\n1. 当LINE公式アカウントのリッチメニューから【運行掲示板】を開きます。\n2. 上記の「登録番号」と「暗証番号（下4桁）」を入力して認証してください。\n3. 初回ログインが完了すると、LINEとの連携が自動で完了し、受託時の案内通知が届くようになります。\n\nおでかけサポート事務局`;
 
       navigator.clipboard.writeText(text);
-      showToast("LINE送信用の登録案内文をコピーしました");
+      showToast("LINE案内文をコピーしました");
     }
 
     function openDetailModal(quest) {
@@ -2464,7 +2325,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       }
 
       document.getElementById("modalNote").textContent = quest.note || "特になし";
-
       const sysInfoArea = document.getElementById("modalSysInfoArea");
       if (quest.systemInfo) {
         document.getElementById("modalSysInfo").textContent = quest.systemInfo;
@@ -2475,7 +2335,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
 
       const copyBtn = document.getElementById("btnModalCopyLine");
       const copyBtnText = document.getElementById("modalCopyBtnText");
-
       if (quest.isUnreported) {
         copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95 whitespace-nowrap flex-shrink-0";
         copyBtnText.textContent = "催促LINE文をコピー";
@@ -2493,7 +2352,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
       document.getElementById("accordionIcon").classList.remove("rotate-180");
 
       loadNearbyDriversForQuest(quest);
-
       document.getElementById("detailModalOverlay").classList.remove("hidden");
       refreshLucide();
     }
@@ -2515,7 +2373,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
 
       document.getElementById("btnRefresh").onclick = () => fetchDashboardData(false);
 
-      // メインタブ切り替え
       document.querySelectorAll(".main-tab-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".main-tab-btn").forEach(b => {
@@ -2533,7 +2390,6 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         };
       });
 
-      // サブタブ切替
       document.getElementById("subTabOpsQuests").onclick = () => {
         document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
         document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
@@ -2607,7 +2463,7 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
         renderQuests();
-        showToast("「今月」の期間を設定しました");
+        showToast("「今月」を設定しました");
       };
 
       document.getElementById("btnQuickNextMonth").onclick = () => {
@@ -2618,14 +2474,14 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
         renderQuests();
-        showToast("「来月」の期間を設定しました");
+        showToast("「来月」を設定しました");
       };
 
       document.getElementById("btnClearDates").onclick = () => {
         startDateInput.value = "";
         endDateInput.value = "";
         renderQuests();
-        showToast("期間指定を解除しました（全期間表示）");
+        showToast("全期間を表示します");
       };
 
       document.querySelectorAll(".chip-btn").forEach(btn => {
@@ -2679,42 +2535,33 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
         settleStart.value = `${fyStart}-04-01`;
         settleEnd.value = `${fyStart + 1}-03-31`;
         updateSettlementView();
-        showToast("「今年度」の期間を設定しました");
+        showToast("「今年度」を設定しました");
       };
 
       document.getElementById("btnSettleAll").onclick = () => {
         settleStart.value = "";
         settleEnd.value = "";
         updateSettlementView();
-        showToast("全期間の精算データを表示します");
+        showToast("全期間を表示します");
       };
 
-      // 受領書印刷プレビューモーダルの制御
       document.getElementById("btnPrintPreview").onclick = openPrintPreview;
       document.getElementById("btnClosePrintPreview").onclick = () => {
         document.getElementById("printPreviewModal").classList.add("hidden");
         document.body.classList.remove("print-voucher");
       };
-      document.getElementById("btnTriggerPrint").onclick = () => {
-        window.print();
-      };
+      document.getElementById("btnTriggerPrint").onclick = () => window.print();
 
-      // 市提出用 実績報告書プレビューモーダルの制御
       document.getElementById("btnAnnualReportPreview").onclick = openAnnualReportPreview;
       document.getElementById("btnCloseAnnualReport").onclick = () => {
         document.getElementById("annualReportModal").classList.add("hidden");
         document.body.classList.remove("print-report");
       };
       document.getElementById("reportFiscalYearSelect").onchange = updateAnnualReportView;
-      document.getElementById("btnTriggerReportPrint").onclick = () => {
-        window.print();
-      };
+      document.getElementById("btnTriggerReportPrint").onclick = () => window.print();
 
-      // ルート地図モーダルの閉じる制御
       document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
       document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
-
-      // ドライバー自宅マップモーダルの閉じる制御
       document.getElementById("btnCloseDriverMap").onclick = closeDriverMapModal;
       document.getElementById("btnCloseDriverMapBtn").onclick = closeDriverMapModal;
 
@@ -2777,20 +2624,15 @@ ${driver.name} 様のお近く${distInfo}での運行案件でまだドライバ
             dModal.classList.add("hidden");
             document.getElementById("driverRegisterForm").reset();
 
-            lastRegisteredDriver = {
-              id: result.driverId,
-              name: result.name,
-              phone: payload.phone
-            };
-
+            lastRegisteredDriver = { id: result.driverId, name: result.name, phone: payload.phone };
             document.getElementById("issuedDriverId").textContent = result.driverId;
             document.getElementById("issuedDriverName").textContent = `${result.name} 様`;
             dSuccessModal.classList.remove("hidden");
             refreshLucide();
             fetchDashboardData();
-            showToast("ドライバーを登録しました！");
+            showToast("ドライバーを登録しました");
           } else {
-            alert("登録エラー: " + (result.message || "登録に失敗しました"));
+            alert("登録エラー: " + (result.message || "失敗しました"));
           }
         } catch (err) {
           alert("通信エラー: " + err.message);
