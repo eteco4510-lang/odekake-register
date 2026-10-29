@@ -8,6 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Leaflet CSS & JS (完全無料・APIキー不要のルート地図表示) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     body {
       font-feature-settings: "tnum";
@@ -354,7 +357,7 @@
       <!-- 活動記録ログビュー -->
       <div id="opsRecordsView" class="space-y-3 hidden">
         <div class="flex items-center justify-between">
-          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧</p>
+          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧（各行の「ルート地図」から2地点の結線マップが確認できます）</p>
           <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">0件</span>
         </div>
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -475,7 +478,7 @@
               <span>受領書A4印刷（3分割）</span>
             </button>
 
-            <!-- ★新設：市提出用 実績報告書A4印刷ボタン -->
+            <!-- 市提出用 実績報告書A4印刷ボタン -->
             <button
               type="button"
               id="btnAnnualReportPreview"
@@ -579,6 +582,90 @@
     </section>
 
   </main>
+
+  <!-- ======================================================== -->
+  <!-- ★新設：ルート地図モーダル（案2：画面内ポップアップ）        -->
+  <!-- ======================================================== -->
+  <div id="routeMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
+      <!-- ヘッダー -->
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="routeMapQuestId" class="font-mono text-xs font-bold text-slate-500">案件 #----</span>
+            <span id="routeMapTripType" class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">往復</span>
+          </div>
+          <h3 class="mt-1 text-base font-bold text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="map" class="h-4 w-4 text-blue-600"></i>
+            <span>運行ルートマップ（GPS記録）</span>
+          </h3>
+        </div>
+        <button type="button" id="btnCloseRouteMap" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- 概要サマリーバー -->
+      <div class="my-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+          <span class="text-[10px] text-slate-400 block">担当ドライバー</span>
+          <span id="routeMapDriverName" class="font-bold text-slate-800">----</span>
+        </div>
+        <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+          <span class="text-[10px] text-slate-400 block">同乗利用者</span>
+          <span id="routeMapPassengers" class="font-bold text-slate-800 truncate block">----</span>
+        </div>
+        <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
+          <span class="text-[10px] text-slate-400 block">所要時間 / 実走距離</span>
+          <span id="routeMapStats" class="font-bold text-slate-800">--分 / --km</span>
+        </div>
+        <div class="rounded-lg bg-emerald-50 p-2 border border-emerald-100">
+          <span class="text-[10px] text-emerald-600 block">実費弁償額</span>
+          <span id="routeMapFee" class="font-bold text-emerald-700">¥--</span>
+        </div>
+      </div>
+
+      <!-- 地図描画エリア (Leaflet Canvas) -->
+      <div id="routeMapCanvas" class="w-full h-80 rounded-xl border border-slate-200 overflow-hidden relative shadow-inner"></div>
+
+      <!-- 凡例 & 操作フッター -->
+      <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+        <div class="flex items-center gap-3 text-[11px] text-slate-600">
+          <span class="flex items-center gap-1 font-semibold">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+            <span>出発: <strong id="routeMapDepTime">--:--</strong></span>
+          </span>
+          <span class="flex items-center gap-1 font-semibold">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600"></span>
+            <span>到着: <strong id="routeMapArrTime">--:--</strong></span>
+          </span>
+          <span class="flex items-center gap-1 text-slate-400">
+            <span class="inline-block w-3 border-t-2 border-dashed border-blue-600"></span>
+            <span>結線（概算）</span>
+          </span>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <a
+            id="routeMapGoogleNavBtn"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition"
+          >
+            <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            <span>Googleマップで開く</span>
+          </a>
+          <button
+            type="button"
+            id="btnCloseRouteMapBtn"
+            class="rounded-lg bg-slate-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition"
+          >
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 案件詳細モーダル -->
   <div id="detailModalOverlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4 backdrop-blur-xs hidden">
@@ -862,12 +949,9 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- ★新設：市提出用 事業活動実績報告書モーダル (A4縦1枚)         -->
-  <!-- ======================================================== -->
+  <!-- 市提出用 事業活動実績報告書モーダル (A4縦1枚) -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <!-- 画面操作バー（印刷時は自動非表示） -->
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3 mb-4">
         <div>
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -877,7 +961,6 @@
           <p class="text-xs text-slate-500 mt-0.5">※相模原市地域包括ケア推進課 基準準拠（A4縦1枚完結）。下線部は画面上で直接クリックして編集可能です。</p>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto">
-          <!-- 年度切替セレクター -->
           <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none">
             <option value="2026">令和8年度 (2026年度)</option>
             <option value="2025">令和7年度 (2025年度)</option>
@@ -894,9 +977,7 @@
         </div>
       </div>
 
-      <!-- ★A4縦1枚 帳票コンテナ -->
       <div id="annualReportContainer" class="p-4 sm:p-6 bg-white text-slate-900 text-xs" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
-        <!-- 表題 -->
         <div class="text-center mb-4">
           <h1 class="text-base sm:text-lg font-bold tracking-wider text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
             <span id="repTitleYearText">令和8</span>年度 地域おでかけサポート推進事業 事業活動実績報告書
@@ -904,7 +985,6 @@
           <p class="text-[10px] text-slate-500 mt-0.5">（相模原市地域おでかけサポート推進事業費補助金 提出添付資料）</p>
         </div>
 
-        <!-- 宛先 & 申請団体情報 -->
         <div class="flex justify-between items-start text-xs leading-relaxed mb-4 border-b border-slate-200 pb-2">
           <div>
             <p>提出日：<span id="repSubmitDate" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">令和8年4月10日</span></p>
@@ -918,7 +998,6 @@
           </div>
         </div>
 
-        <!-- 1. 年間活動実績サマリー -->
         <div class="mb-4">
           <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
             1. 年間活動実績サマリー（補助金額の確定根拠）
@@ -947,7 +1026,6 @@
           <p class="text-[10px] text-slate-500 mt-1">※延べ人数基準: 往復送迎は2人回、片道送迎は1人回として集計（相模原市マニュアル基準準拠）</p>
         </div>
 
-        <!-- 2. 月別活動実績テーブル -->
         <div class="mb-4">
           <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
             2. 月別活動実績・運行先内訳（4月〜翌3月）
@@ -967,7 +1045,6 @@
           </table>
         </div>
 
-        <!-- 3. 運行体制 & 4. 法令遵守確認事項 -->
         <div class="grid grid-cols-2 gap-3 text-[11px]">
           <div class="border border-slate-300 rounded p-2.5">
             <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
@@ -1002,9 +1079,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // HTMLエスケープ関数
-    // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -1013,6 +1087,20 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    // 緯度経度のダブル抽出（数値列 or GoogleマップURLから安全取得）
+    function extractLatLng(lat, lng, mapUrl) {
+      if (lat && lng && Number(lat) !== 0 && Number(lng) !== 0) {
+        return [Number(lat), Number(lng)];
+      }
+      if (mapUrl) {
+        const match = String(mapUrl).match(/query=([0-9.-]+),([0-9.-]+)/) || String(mapUrl).match(/q=([0-9.-]+),([0-9.-]+)/);
+        if (match) {
+          return [parseFloat(match[1]), parseFloat(match[2])];
+        }
+      }
+      return null;
     }
 
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
@@ -1028,6 +1116,9 @@
     let isAccordionOpen = false;
     let preRegList = [];
     let lastRegisteredDriver = { id: '', name: '', phone: '' };
+
+    // Leafletマップ用インスタンス
+    let routeMapInstance = null;
 
     function refreshLucide() {
       if (window.lucide) {
@@ -1313,6 +1404,7 @@
       attachEventHandlers();
     }
 
+    // ★改修：活動記録ログの描画（各行に「ルート地図」ポップアップボタンを配置）
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1330,7 +1422,7 @@
       empty.classList.add("hidden");
       container.innerHTML = "";
 
-      records.forEach(r => {
+      records.forEach((r, idx) => {
         const item = document.createElement("div");
         item.className = "flex flex-col gap-2 p-3.5 transition hover:bg-slate-50 text-xs sm:flex-row sm:items-center sm:justify-between";
         item.innerHTML = `
@@ -1347,15 +1439,26 @@
               <span>実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
             </div>
           </div>
-          <div class="flex items-center gap-3 pt-1 sm:pt-0">
-            <div class="text-right">
+          <div class="flex items-center gap-2 pt-1 sm:pt-0">
+            <div class="text-right mr-1">
               <span class="text-[11px] text-slate-400 block">実費弁償額</span>
               <span class="text-sm font-black text-emerald-700">¥${Number(r.totalFee).toLocaleString()}</span>
               ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
             </div>
+
+            <!-- ★新設：案2 画面内ルート地図ポップアップボタン -->
+            <button
+              type="button"
+              class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95"
+              data-idx="${idx}"
+            >
+              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
+              <span>ルート地図</span>
+            </button>
+
             ${r.arrMapUrl ? `
-              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs" title="Googleマップで確認">
-                <i data-lucide="map-pin" class="h-4 w-4"></i>
+              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs" title="Googleマップ単体で開く">
+                <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
               </a>
             ` : ''}
           </div>
@@ -1363,7 +1466,135 @@
         container.appendChild(item);
       });
 
+      // ルート地図ボタンのイベント登録
+      container.querySelectorAll(".btn-open-route-map").forEach(btn => {
+        btn.onclick = () => {
+          const idx = parseInt(btn.getAttribute("data-idx"), 10);
+          if (records[idx]) openRouteMapModal(records[idx]);
+        };
+      });
+
       refreshLucide();
+    }
+
+    // ==========================================
+    // ★新設：案2 画面内ルート地図モーダル制御（Leaflet）
+    // ==========================================
+    function openRouteMapModal(r) {
+      const depLatLng = extractLatLng(r.depLat, r.depLng, r.depMapUrl);
+      const arrLatLng = extractLatLng(r.arrLat, r.arrLng, r.arrMapUrl);
+
+      if (!depLatLng && !arrLatLng) {
+        showToast("GPS位置情報が記録されていません");
+        return;
+      }
+
+      document.getElementById("routeMapQuestId").textContent = "案件 #" + (r.questId || "----");
+      document.getElementById("routeMapTripType").textContent = r.tripType || "往復";
+      document.getElementById("routeMapDriverName").textContent = (r.driverName || "ドライバー") + " 様";
+      document.getElementById("routeMapPassengers").textContent = r.passengers || "なし";
+      document.getElementById("routeMapStats").textContent = `${r.duration || 0}分 / ${r.oneWayDistance || 0}km`;
+      document.getElementById("routeMapFee").textContent = "¥" + Number(r.totalFee || 0).toLocaleString();
+      document.getElementById("routeMapDepTime").textContent = r.depTime ? (r.depTime + " 発") : "記録なし";
+      document.getElementById("routeMapArrTime").textContent = r.arrTime ? (r.arrTime + " 着") : "記録なし";
+
+      // 外部Googleマップアプリの道路ルート検索用URLも併設
+      const googleNavBtn = document.getElementById("routeMapGoogleNavBtn");
+      if (depLatLng && arrLatLng) {
+        googleNavBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${depLatLng[0]},${depLatLng[1]}&destination=${arrLatLng[0]},${arrLatLng[1]}&travelmode=driving`;
+        googleNavBtn.classList.remove("hidden");
+      } else if (arrLatLng) {
+        googleNavBtn.href = `https://www.google.com/maps/search/?api=1&query=${arrLatLng[0]},${arrLatLng[1]}`;
+        googleNavBtn.classList.remove("hidden");
+      } else {
+        googleNavBtn.classList.add("hidden");
+      }
+
+      // モーダルを表示
+      document.getElementById("routeMapModal").classList.remove("hidden");
+      refreshLucide();
+
+      // DOM展開後にマップをレンダリング（タイミング調整）
+      setTimeout(() => {
+        initOrUpdateLeaflet(depLatLng, arrLatLng, r);
+      }, 150);
+    }
+
+    function initOrUpdateLeaflet(depLatLng, arrLatLng, r) {
+      const mapCanvas = document.getElementById("routeMapCanvas");
+      if (!mapCanvas) return;
+
+      if (routeMapInstance) {
+        routeMapInstance.remove();
+        routeMapInstance = null;
+      }
+
+      const center = depLatLng || arrLatLng || [35.586, 139.256];
+      routeMapInstance = L.map('routeMapCanvas', {
+        center: center,
+        zoom: 13,
+        zoomControl: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(routeMapInstance);
+
+      const boundsPoints = [];
+
+      // 出発地マーカー（緑色アイコン：発）
+      if (depLatLng) {
+        const depIcon = L.divIcon({
+          className: 'custom-map-pin',
+          html: `<div style="background-color:#16a34a; width:26px; height:26px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">発</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
+        });
+        L.marker(depLatLng, { icon: depIcon })
+          .bindPopup(`<strong>出発地</strong><br>${r.depTime ? '出発時刻: ' + r.depTime : ''}<br>座標: ${depLatLng[0].toFixed(5)}, ${depLatLng[1].toFixed(5)}`)
+          .addTo(routeMapInstance);
+        boundsPoints.push(depLatLng);
+      }
+
+      // 到着地マーカー（赤色アイコン：着）
+      if (arrLatLng) {
+        const arrIcon = L.divIcon({
+          className: 'custom-map-pin',
+          html: `<div style="background-color:#dc2626; width:26px; height:26px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">着</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
+        });
+        L.marker(arrLatLng, { icon: arrIcon })
+          .bindPopup(`<strong>到着地</strong><br>${r.arrTime ? '到着時刻: ' + r.arrTime : ''}<br>座標: ${arrLatLng[0].toFixed(5)}, ${arrLatLng[1].toFixed(5)}`)
+          .addTo(routeMapInstance);
+        boundsPoints.push(arrLatLng);
+      }
+
+      // 出発と到着を結ぶポリライン（青色の破線）
+      if (depLatLng && arrLatLng) {
+        const polyline = L.polyline([depLatLng, arrLatLng], {
+          color: '#2563eb',
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '8, 8'
+        }).addTo(routeMapInstance);
+
+        // 2地点と線がちょうど収まるように画面を自動フィット
+        routeMapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      } else if (boundsPoints.length > 0) {
+        routeMapInstance.setView(boundsPoints[0], 14);
+      }
+
+      routeMapInstance.invalidateSize();
+    }
+
+    function closeRouteMapModal() {
+      document.getElementById("routeMapModal").classList.add("hidden");
+      if (routeMapInstance) {
+        routeMapInstance.remove();
+        routeMapInstance = null;
+      }
     }
 
     function renderDrivers() {
@@ -1644,7 +1875,6 @@
       });
     }
 
-    // 受領書A4 3分割プレビュー生成
     function openPrintPreview() {
       document.body.classList.add("print-voucher");
       document.body.classList.remove("print-report");
@@ -1748,33 +1978,26 @@
       refreshLucide();
     }
 
-    // ========================================================
-    // ★新設：市提出用 事業活動実績報告書プレビュー生成
-    // ========================================================
     function updateAnnualReportView() {
       const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect").value, 10) || 2026;
       const reiwaYear = selectedYear - 2018;
       document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
 
-      // 提出日の初期値（今日）
       const today = new Date();
       const todayReiwa = today.getFullYear() - 2018;
       document.getElementById("repSubmitDate").textContent = `令和${todayReiwa}年${today.getMonth() + 1}月${today.getDate()}日`;
 
-      // 団体情報の初期セット（ドライバー1人目等のデータから補完）
       if (drivers.length > 0) {
         if (drivers[0].address) document.getElementById("repOrgAddress").textContent = drivers[0].address;
         if (drivers[0].name) document.getElementById("repOrgRep").textContent = `代表 ${drivers[0].name}`;
         if (drivers[0].phone) document.getElementById("repOrgPhone").textContent = drivers[0].phone;
       }
 
-      // クエスト行先のマップを作成（目的地抽出用）
       const questDestMap = {};
       quests.forEach(q => {
         if (q.id && q.dropoff) questDestMap[q.id] = q.dropoff;
       });
 
-      // 対象年度（4月〜翌3月）のレコードを抽出
       const fyMonths = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
       const monthlyData = {};
       fyMonths.forEach(m => {
@@ -1793,7 +2016,6 @@
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10);
 
-        // レコードが属する年度
         const recordFY = (m >= 4) ? y : y - 1;
         if (recordFY !== selectedYear) return;
 
@@ -1818,12 +2040,10 @@
         totalExpenseAnnual += exp;
       });
 
-      // サマリー欄の更新
       document.getElementById("repSummaryPassengers").textContent = totalPassengersAnnual.toLocaleString();
       document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString();
       document.getElementById("repSummaryUsers").textContent = users.length;
 
-      // 補助金上限枠判定
       let capText = "300,000円（延べ100人まで枠）";
       if (totalPassengersAnnual >= 301) {
         capText = "500,000円（延べ301人以上枠）";
@@ -1832,12 +2052,10 @@
       }
       document.getElementById("repSummaryCap").textContent = capText;
 
-      // 運行体制の更新
       document.getElementById("repDriverCount").textContent = drivers.length;
       const trainedDrivers = drivers.filter(d => d.certNo && d.certNo.trim() !== "").length;
       document.getElementById("repTrainedDriverCount").textContent = trainedDrivers;
 
-      // 月別テーブルの描画
       const tbody = document.getElementById("reportMonthlyTableBody");
       tbody.innerHTML = "";
 
@@ -1863,7 +2081,6 @@
         tbody.appendChild(tr);
       });
 
-      // 合計行
       const totalTr = document.createElement("tr");
       totalTr.className = "bg-slate-100 font-bold border-t-2 border-slate-400 text-slate-900";
       totalTr.innerHTML = `
@@ -2187,7 +2404,7 @@
         window.print();
       };
 
-      // ★市提出用 実績報告書プレビューモーダルの制御
+      // 市提出用 実績報告書プレビューモーダルの制御
       document.getElementById("btnAnnualReportPreview").onclick = openAnnualReportPreview;
       document.getElementById("btnCloseAnnualReport").onclick = () => {
         document.getElementById("annualReportModal").classList.add("hidden");
@@ -2197,6 +2414,10 @@
       document.getElementById("btnTriggerReportPrint").onclick = () => {
         window.print();
       };
+
+      // ★ルート地図モーダルの閉じる制御
+      document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
+      document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
 
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
