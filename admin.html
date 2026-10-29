@@ -30,7 +30,7 @@
         visibility: hidden !important;
       }
 
-      /* 1. 受領書 印刷 */
+      /* 1. 受領書 印刷モード (A4 3分割) */
       body.print-voucher #printPreviewModal,
       body.print-voucher #printContainer,
       body.print-voucher #printContainer * {
@@ -357,7 +357,7 @@
       <!-- 活動記録ログビュー -->
       <div id="opsRecordsView" class="space-y-3 hidden">
         <div class="flex items-center justify-between">
-          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧（各行の「ルート地図」から2地点の結線マップが確認できます）</p>
+          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧（各行の「ルート地図」から走行マップが確認できます）</p>
           <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">0件</span>
         </div>
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -475,7 +475,7 @@
               class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
             >
               <i data-lucide="printer" class="h-3.5 w-3.5"></i>
-              <span>受領書印刷</span>
+              <span>受領書A4印刷（3分割）</span>
             </button>
 
             <!-- 市提出用 実績報告書A4印刷ボタン -->
@@ -485,7 +485,7 @@
               class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1 text-white font-bold shadow-xs hover:bg-blue-800 active:scale-95"
             >
               <i data-lucide="file-check" class="h-3.5 w-3.5"></i>
-              <span>実績報告書印刷</span>
+              <span>実績報告書（市提出用）A4印刷</span>
             </button>
           </div>
         </div>
@@ -584,7 +584,7 @@
   </main>
 
   <!-- ======================================================== -->
-  <!-- ★新設：ルート地図モーダル（案2：画面内ポップアップ）        -->
+  <!-- ルート地図モーダル（2地点ピン表示 ＆ 目安ルート確認）        -->
   <!-- ======================================================== -->
   <div id="routeMapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
@@ -639,21 +639,18 @@
             <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600"></span>
             <span>到着: <strong id="routeMapArrTime">--:--</strong></span>
           </span>
-          <span class="flex items-center gap-1 text-slate-400">
-            <span class="inline-block w-3 border-t-2 border-dashed border-blue-600"></span>
-            <span>結線（概算）</span>
-          </span>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto">
+          <!-- ★修正：「目安ルートを確認」ボタン -->
           <a
             id="routeMapGoogleNavBtn"
             href="#"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition"
+            class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95"
           >
-            <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
-            <span>Googleマップで開く</span>
+            <i data-lucide="navigation" class="h-3.5 w-3.5 text-blue-600"></i>
+            <span>目安ルートを確認</span>
           </a>
           <button
             type="button"
@@ -928,7 +925,7 @@
         <div>
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
             <i data-lucide="printer" class="h-4 w-4 text-slate-600"></i>
-            <span>ボランティア実費弁償 受領書</span>
+            <span>ボランティア実費弁償 受領書（A4 3分割印刷プレビュー）</span>
           </h3>
           <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。切り取り線で切ってご利用ください。</p>
         </div>
@@ -956,7 +953,7 @@
         <div>
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
             <i data-lucide="file-check" class="h-4 w-4 text-blue-700"></i>
-            <span>事業活動実績報告書プレビュー</span>
+            <span>事業活動実績報告書（市提出用・様式任意）プレビュー</span>
           </h3>
           <p class="text-xs text-slate-500 mt-0.5">※相模原市地域包括ケア推進課 基準準拠（A4縦1枚完結）。下線部は画面上で直接クリックして編集可能です。</p>
         </div>
@@ -1089,7 +1086,6 @@
         .replace(/'/g, '&#039;');
     }
 
-    // 緯度経度のダブル抽出（数値列 or GoogleマップURLから安全取得）
     function extractLatLng(lat, lng, mapUrl) {
       if (lat && lng && Number(lat) !== 0 && Number(lng) !== 0) {
         return [Number(lat), Number(lng)];
@@ -1117,7 +1113,6 @@
     let preRegList = [];
     let lastRegisteredDriver = { id: '', name: '', phone: '' };
 
-    // Leafletマップ用インスタンス
     let routeMapInstance = null;
 
     function refreshLucide() {
@@ -1404,7 +1399,6 @@
       attachEventHandlers();
     }
 
-    // ★改修：活動記録ログの描画（各行に「ルート地図」ポップアップボタンを配置）
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1446,7 +1440,7 @@
               ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
             </div>
 
-            <!-- ★新設：案2 画面内ルート地図ポップアップボタン -->
+            <!-- ルート地図ポップアップボタン -->
             <button
               type="button"
               class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95"
@@ -1466,7 +1460,6 @@
         container.appendChild(item);
       });
 
-      // ルート地図ボタンのイベント登録
       container.querySelectorAll(".btn-open-route-map").forEach(btn => {
         btn.onclick = () => {
           const idx = parseInt(btn.getAttribute("data-idx"), 10);
@@ -1478,7 +1471,7 @@
     }
 
     // ==========================================
-    // ★新設：案2 画面内ルート地図モーダル制御（Leaflet）
+    // ルート地図モーダル制御（2地点ピン表示 ＆ 目安ルート確認）
     // ==========================================
     function openRouteMapModal(r) {
       const depLatLng = extractLatLng(r.depLat, r.depLng, r.depMapUrl);
@@ -1498,7 +1491,7 @@
       document.getElementById("routeMapDepTime").textContent = r.depTime ? (r.depTime + " 発") : "記録なし";
       document.getElementById("routeMapArrTime").textContent = r.arrTime ? (r.arrTime + " 着") : "記録なし";
 
-      // 外部Googleマップアプリの道路ルート検索用URLも併設
+      // ★「目安ルートを確認」ボタンのリンク先設定
       const googleNavBtn = document.getElementById("routeMapGoogleNavBtn");
       if (depLatLng && arrLatLng) {
         googleNavBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${depLatLng[0]},${depLatLng[1]}&destination=${arrLatLng[0]},${arrLatLng[1]}&travelmode=driving`;
@@ -1510,16 +1503,15 @@
         googleNavBtn.classList.add("hidden");
       }
 
-      // モーダルを表示
       document.getElementById("routeMapModal").classList.remove("hidden");
       refreshLucide();
 
-      // DOM展開後にマップをレンダリング（タイミング調整）
       setTimeout(() => {
         initOrUpdateLeaflet(depLatLng, arrLatLng, r);
       }, 150);
     }
 
+    // ★修正：破線結線を完全に削除し、2地点のピンのみを美しくプロット
     function initOrUpdateLeaflet(depLatLng, arrLatLng, r) {
       const mapCanvas = document.getElementById("routeMapCanvas");
       if (!mapCanvas) return;
@@ -1547,9 +1539,9 @@
       if (depLatLng) {
         const depIcon = L.divIcon({
           className: 'custom-map-pin',
-          html: `<div style="background-color:#16a34a; width:26px; height:26px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">発</div>`,
-          iconSize: [26, 26],
-          iconAnchor: [13, 13]
+          html: `<div style="background-color:#16a34a; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">発</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
         });
         L.marker(depLatLng, { icon: depIcon })
           .bindPopup(`<strong>出発地</strong><br>${r.depTime ? '出発時刻: ' + r.depTime : ''}<br>座標: ${depLatLng[0].toFixed(5)}, ${depLatLng[1].toFixed(5)}`)
@@ -1561,9 +1553,9 @@
       if (arrLatLng) {
         const arrIcon = L.divIcon({
           className: 'custom-map-pin',
-          html: `<div style="background-color:#dc2626; width:26px; height:26px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">着</div>`,
-          iconSize: [26, 26],
-          iconAnchor: [13, 13]
+          html: `<div style="background-color:#dc2626; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold;">着</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
         });
         L.marker(arrLatLng, { icon: arrIcon })
           .bindPopup(`<strong>到着地</strong><br>${r.arrTime ? '到着時刻: ' + r.arrTime : ''}<br>座標: ${arrLatLng[0].toFixed(5)}, ${arrLatLng[1].toFixed(5)}`)
@@ -1571,18 +1563,11 @@
         boundsPoints.push(arrLatLng);
       }
 
-      // 出発と到着を結ぶポリライン（青色の破線）
-      if (depLatLng && arrLatLng) {
-        const polyline = L.polyline([depLatLng, arrLatLng], {
-          color: '#2563eb',
-          weight: 4,
-          opacity: 0.85,
-          dashArray: '8, 8'
-        }).addTo(routeMapInstance);
-
-        // 2地点と線がちょうど収まるように画面を自動フィット
-        routeMapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-      } else if (boundsPoints.length > 0) {
+      // ★破線自体を完全に削除し、2地点のピンが綺麗に収まるよう自動ズーム調整
+      if (boundsPoints.length >= 2) {
+        const bounds = L.latLngBounds(boundsPoints);
+        routeMapInstance.fitBounds(bounds, { padding: [50, 50] });
+      } else if (boundsPoints.length === 1) {
         routeMapInstance.setView(boundsPoints[0], 14);
       }
 
@@ -2415,7 +2400,7 @@
         window.print();
       };
 
-      // ★ルート地図モーダルの閉じる制御
+      // ルート地図モーダルの閉じる制御
       document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
       document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
 
