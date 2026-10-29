@@ -24,6 +24,11 @@
       font-family: inherit;
     }
 
+    /* ★画面内の全ボタン・セレクト・チップスで不自然な文字折り返しを全面禁止 */
+    button, select, .chip-btn, .d-chip, .u-chip {
+      white-space: nowrap !important;
+    }
+
     /* 印刷用スタイル（受領書 ＆ 市提出用実績報告書の完全分離） */
     @media print {
       body * {
@@ -97,36 +102,36 @@
   <!-- 1. スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-      <div>
+      <div class="min-w-0">
         <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-          <span class="flex items-center gap-1">
-            <i data-lucide="home" class="h-3 w-3"></i>
+          <span class="flex items-center gap-1 truncate">
+            <i data-lucide="home" class="h-3 w-3 flex-shrink-0"></i>
             おでかけサポート
           </span>
           <span>/</span>
-          <span class="text-slate-800 font-semibold">事務局コックピット</span>
+          <span class="text-slate-800 font-semibold truncate">事務局コックピット</span>
         </nav>
-        <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl">
+        <h1 class="text-base font-bold tracking-tight text-slate-900 sm:text-xl truncate">
           統合業務コックピット
         </h1>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-shrink-0">
         <button
           type="button"
           id="btnOpenDriverRegister"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition hover:bg-emerald-100 active:scale-95"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition hover:bg-emerald-100 active:scale-95 whitespace-nowrap flex-shrink-0"
         >
-          <i data-lucide="user-plus" class="h-3.5 w-3.5 text-emerald-600"></i>
+          <i data-lucide="user-plus" class="h-3.5 w-3.5 text-emerald-600 flex-shrink-0"></i>
           <span>ドライバー登録</span>
         </button>
 
         <button
           type="button"
           id="btnRefresh"
-          class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0"
         >
-          <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+          <i data-lucide="refresh-cw" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span class="hidden sm:inline">最新情報に更新</span>
         </button>
       </div>
@@ -134,29 +139,29 @@
 
     <!-- メイン業務タブバー -->
     <div class="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6">
-      <div class="mx-auto flex max-w-6xl items-center gap-2 py-2">
+      <div class="mx-auto flex max-w-6xl items-center gap-2 py-2 overflow-x-auto">
         <button
           type="button"
-          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0"
           data-tab="ops"
         >
-          <i data-lucide="calendar-check" class="h-3.5 w-3.5"></i>
+          <i data-lucide="calendar-check" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>運行・活動管理</span>
         </button>
         <button
           type="button"
-          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0"
           data-tab="roster"
         >
-          <i data-lucide="users" class="h-3.5 w-3.5"></i>
+          <i data-lucide="users" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>名簿マスタ</span>
         </button>
         <button
           type="button"
-          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+          class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0"
           data-tab="settlement"
         >
-          <i data-lucide="receipt" class="h-3.5 w-3.5"></i>
+          <i data-lucide="receipt" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>実費精算・受領書</span>
         </button>
       </div>
@@ -178,7 +183,7 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700">募集中</span>
-            <i data-lucide="users" class="h-4 w-4 text-slate-600"></i>
+            <i data-lucide="users" class="h-4 w-4 text-slate-600 flex-shrink-0"></i>
           </div>
           <div class="mt-2 flex items-baseline gap-1">
             <span id="metricOpenCount" class="text-2xl font-black text-slate-800">0</span>
@@ -195,7 +200,7 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-red-700">要対応</span>
-            <i data-lucide="alert-circle" class="h-4 w-4 text-red-600"></i>
+            <i data-lucide="alert-circle" class="h-4 w-4 text-red-600 flex-shrink-0"></i>
           </div>
           <div class="mt-2 flex items-baseline gap-1">
             <span id="metricActionRequiredCount" class="text-2xl font-black text-red-600">0</span>
@@ -212,7 +217,7 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-blue-700">本日の運行</span>
-            <i data-lucide="car" class="h-4 w-4 text-blue-600"></i>
+            <i data-lucide="car" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
           </div>
           <div class="mt-2 flex items-baseline gap-1">
             <span id="metricTodayCount" class="text-2xl font-black text-blue-600">0</span>
@@ -229,7 +234,7 @@
         >
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-rose-700">実績未報告</span>
-            <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600"></i>
+            <i data-lucide="clock-alert" class="h-4 w-4 text-rose-600 flex-shrink-0"></i>
           </div>
           <div class="mt-2 flex items-baseline gap-1">
             <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
@@ -244,16 +249,16 @@
           <button
             type="button"
             id="subTabOpsQuests"
-            class="rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold"
+            class="rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0"
           >
             運行予定・アラート
           </button>
           <button
             type="button"
             id="subTabOpsRecords"
-            class="rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900"
+            class="rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0"
           >
-            活動記録ログ（実績一覧）
+            活動記録ログ
           </button>
         </div>
       </div>
@@ -280,11 +285,11 @@
 
           <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
-              <span class="flex items-center gap-1 text-slate-500">
-                <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400"></i>
+              <span class="flex items-center gap-1 text-slate-500 whitespace-nowrap">
+                <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
                 <span>期間指定:</span>
               </span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 flex-shrink-0">
                 <input
                   type="date"
                   id="startDateInput"
@@ -299,25 +304,25 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold">
+            <div class="flex items-center gap-1.5 self-end sm:self-auto text-xs font-semibold flex-shrink-0">
               <button
                 type="button"
                 id="btnQuickThisMonth"
-                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0"
               >
                 今月
               </button>
               <button
                 type="button"
                 id="btnQuickNextMonth"
-                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0"
               >
                 来月
               </button>
               <button
                 type="button"
                 id="btnClearDates"
-                class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 transition active:scale-95"
+                class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0"
               >
                 全期間
               </button>
@@ -325,14 +330,14 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs" data-filter="recruiting">募集中</button>
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="accepted">受注済</button>
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-red-600 hover:bg-red-50" data-filter="action_required">要対応</button>
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="today">本日の運行</button>
-            <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50" data-filter="unreported">実績未報告</button>
-            <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50" data-filter="failed">マッチング不成立</button>
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="completed">完了・中止</button>
-            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100" data-filter="all">すべて</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs whitespace-nowrap flex-shrink-0" data-filter="recruiting">募集中</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-filter="accepted">受注済</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-red-600 hover:bg-red-50 whitespace-nowrap flex-shrink-0" data-filter="action_required">要対応</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-filter="today">本日の運行</button>
+            <button type="button" id="chipUnreported" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-rose-700 hover:bg-rose-50 whitespace-nowrap flex-shrink-0" data-filter="unreported">実績未報告</button>
+            <button type="button" id="chipFailed" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-purple-700 hover:bg-purple-50 whitespace-nowrap flex-shrink-0" data-filter="failed">マッチング不成立</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-filter="completed">完了・中止</button>
+            <button type="button" class="chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-filter="all">すべて</button>
           </div>
         </div>
 
@@ -358,7 +363,7 @@
       <div id="opsRecordsView" class="space-y-3 hidden">
         <div class="flex items-center justify-between">
           <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧（各行の「ルート地図」から走行マップが確認できます）</p>
-          <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">0件</span>
+          <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 whitespace-nowrap">0件</span>
         </div>
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
           <div id="recordEmptyState" class="py-12 text-center hidden">
@@ -379,14 +384,14 @@
           <button
             type="button"
             id="subTabRosterDrivers"
-            class="rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold"
+            class="rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0"
           >
             ドライバー名簿
           </button>
           <button
             type="button"
             id="subTabRosterUsers"
-            class="rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900"
+            class="rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0"
           >
             利用者名簿
           </button>
@@ -404,10 +409,10 @@
               class="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-blue-600"
             />
           </div>
-          <div class="flex items-center gap-1 text-xs font-semibold" id="driverFilterChips">
-            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white" data-filter="all">すべて</button>
-            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="linked">LINE連携済</button>
-            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="unlinked">未連携</button>
+          <div class="flex items-center gap-1 text-xs font-semibold flex-shrink-0" id="driverFilterChips">
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white whitespace-nowrap flex-shrink-0" data-filter="all">すべて</button>
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0" data-filter="linked">LINE連携済</button>
+            <button type="button" class="d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0" data-filter="unlinked">未連携</button>
           </div>
         </div>
 
@@ -425,10 +430,10 @@
               class="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-900 outline-none focus:border-blue-600"
             />
           </div>
-          <div class="flex items-center gap-1 text-xs font-semibold" id="userFilterChips">
-            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white" data-filter="all">すべて</button>
-            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="honin">本人申請 (20101〜)</button>
-            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600" data-filter="care">ケアマネ代理 (30101〜)</button>
+          <div class="flex items-center gap-1 text-xs font-semibold flex-shrink-0" id="userFilterChips">
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white whitespace-nowrap flex-shrink-0" data-filter="all">すべて</button>
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0" data-filter="honin">本人申請 (20101〜)</button>
+            <button type="button" class="u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0" data-filter="care">ケアマネ代理 (30101〜)</button>
           </div>
         </div>
 
@@ -442,11 +447,11 @@
     <section id="tabContentSettlement" class="space-y-5 hidden">
       <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
-          <span class="flex items-center gap-1 text-slate-500">
-            <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400"></i>
+          <span class="flex items-center gap-1 text-slate-500 whitespace-nowrap">
+            <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
             <span>集計対象期間:</span>
           </span>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <input
               type="date"
               id="settleStartDate"
@@ -462,19 +467,19 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-          <button type="button" id="btnSettleThisMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">今月</button>
-          <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100">先月</button>
-          <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100">今年度</button>
-          <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100">全期間</button>
+          <button type="button" id="btnSettleThisMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0">今月</button>
+          <button type="button" id="btnSettleLastMonth" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0">先月</button>
+          <button type="button" id="btnSettleFiscalYear" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 whitespace-nowrap flex-shrink-0">今年度</button>
+          <button type="button" id="btnSettleAll" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 whitespace-nowrap flex-shrink-0">全期間</button>
           
-          <div class="ml-auto flex items-center gap-2">
+          <div class="ml-auto flex items-center gap-2 flex-shrink-0">
             <!-- 受領書A4印刷ボタン -->
             <button
               type="button"
               id="btnPrintPreview"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1 text-white font-bold shadow-xs hover:bg-emerald-700 active:scale-95 whitespace-nowrap flex-shrink-0"
             >
-              <i data-lucide="printer" class="h-3.5 w-3.5"></i>
+              <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i>
               <span>受領書印刷</span>
             </button>
 
@@ -482,9 +487,9 @@
             <button
               type="button"
               id="btnAnnualReportPreview"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1 text-white font-bold shadow-xs hover:bg-blue-800 active:scale-95"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1 text-white font-bold shadow-xs hover:bg-blue-800 active:scale-95 whitespace-nowrap flex-shrink-0"
             >
-              <i data-lucide="file-check" class="h-3.5 w-3.5"></i>
+              <i data-lucide="file-check" class="h-3.5 w-3.5 flex-shrink-0"></i>
               <span>実績報告書 印刷</span>
             </button>
           </div>
@@ -525,7 +530,7 @@
       <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
           <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-            <i data-lucide="coins" class="h-4 w-4 text-emerald-600"></i>
+            <i data-lucide="coins" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
             <span>金種別 必要枚数（銀行両替・現金封入用メモ）</span>
           </div>
           <span class="text-[11px] text-slate-500">※各ドライバーの個別支給額を元に自動算出</span>
@@ -590,17 +595,17 @@
     <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
       <!-- ヘッダー -->
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
-        <div>
+        <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
-            <span id="routeMapQuestId" class="font-mono text-xs font-bold text-slate-500">案件 #----</span>
-            <span id="routeMapTripType" class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">往復</span>
+            <span id="routeMapQuestId" class="font-mono text-xs font-bold text-slate-500 whitespace-nowrap">案件 #----</span>
+            <span id="routeMapTripType" class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700 whitespace-nowrap">往復</span>
           </div>
-          <h3 class="mt-1 text-base font-bold text-slate-900 flex items-center gap-1.5">
-            <i data-lucide="map" class="h-4 w-4 text-blue-600"></i>
-            <span>運行ルートマップ（GPS記録）</span>
+          <h3 class="mt-1 text-base font-bold text-slate-900 flex items-center gap-1.5 truncate">
+            <i data-lucide="map" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
+            <span>運行ルートマップ</span>
           </h3>
         </div>
-        <button type="button" id="btnCloseRouteMap" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+        <button type="button" id="btnCloseRouteMap" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex-shrink-0">
           <i data-lucide="x" class="h-5 w-5"></i>
         </button>
       </div>
@@ -609,7 +614,7 @@
       <div class="my-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
           <span class="text-[10px] text-slate-400 block">担当ドライバー</span>
-          <span id="routeMapDriverName" class="font-bold text-slate-800">----</span>
+          <span id="routeMapDriverName" class="font-bold text-slate-800 truncate block">----</span>
         </div>
         <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
           <span class="text-[10px] text-slate-400 block">同乗利用者</span>
@@ -617,11 +622,11 @@
         </div>
         <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
           <span class="text-[10px] text-slate-400 block">所要時間 / 実走距離</span>
-          <span id="routeMapStats" class="font-bold text-slate-800">--分 / --km</span>
+          <span id="routeMapStats" class="font-bold text-slate-800 truncate block">--分 / --km</span>
         </div>
         <div class="rounded-lg bg-emerald-50 p-2 border border-emerald-100">
           <span class="text-[10px] text-emerald-600 block">実費弁償額</span>
-          <span id="routeMapFee" class="font-bold text-emerald-700">¥--</span>
+          <span id="routeMapFee" class="font-bold text-emerald-700 truncate block">¥--</span>
         </div>
       </div>
 
@@ -630,32 +635,31 @@
 
       <!-- 凡例 & 操作フッター -->
       <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-        <div class="flex items-center gap-3 text-[11px] text-slate-600">
-          <span class="flex items-center gap-1 font-semibold">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+        <div class="flex items-center gap-3 text-[11px] text-slate-600 flex-wrap">
+          <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600 flex-shrink-0"></span>
             <span>出発: <strong id="routeMapDepTime">--:--</strong></span>
           </span>
-          <span class="flex items-center gap-1 font-semibold">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600"></span>
+          <span class="flex items-center gap-1 font-semibold whitespace-nowrap">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 flex-shrink-0"></span>
             <span>到着: <strong id="routeMapArrTime">--:--</strong></span>
           </span>
         </div>
-        <div class="flex items-center gap-2 self-end sm:self-auto">
-          <!-- ★修正：「目安ルートを確認」ボタン -->
+        <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
           <a
             id="routeMapGoogleNavBtn"
             href="#"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95"
+            class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
           >
-            <i data-lucide="navigation" class="h-3.5 w-3.5 text-blue-600"></i>
+            <i data-lucide="navigation" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
             <span>目安ルートを確認</span>
           </a>
           <button
             type="button"
             id="btnCloseRouteMapBtn"
-            class="rounded-lg bg-slate-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition"
+            class="rounded-lg bg-slate-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition whitespace-nowrap flex-shrink-0"
           >
             閉じる
           </button>
@@ -670,12 +674,12 @@
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
         <div>
           <div class="flex items-center gap-2">
-            <span id="modalQuestId" class="font-mono text-xs font-bold text-slate-400">案件番号 #----</span>
-            <span id="modalQuestStatus" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">状態</span>
+            <span id="modalQuestId" class="font-mono text-xs font-bold text-slate-400 whitespace-nowrap">案件番号 #----</span>
+            <span id="modalQuestStatus" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 whitespace-nowrap">状態</span>
           </div>
           <h3 class="mt-1 text-base font-bold text-slate-900">運行詳細データ</h3>
         </div>
-        <button type="button" id="btnCloseModal" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+        <button type="button" id="btnCloseModal" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex-shrink-0">
           <i data-lucide="x" class="h-5 w-5"></i>
         </button>
       </div>
@@ -710,7 +714,7 @@
           <div>
             <span class="text-[11px] text-slate-400">緊急連絡先</span>
             <p id="modalUserPhone" class="flex items-center gap-1 font-mono font-semibold text-slate-800">
-              <i data-lucide="phone" class="h-3 w-3 text-slate-400"></i>
+              <i data-lucide="phone" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
               <span>----</span>
             </p>
           </div>
@@ -725,10 +729,10 @@
           <button
             type="button"
             id="btnAccordionToggle"
-            class="flex w-full items-center justify-between bg-slate-50 px-3.5 py-2 text-left font-bold text-slate-700"
+            class="flex w-full items-center justify-between bg-slate-50 px-3.5 py-2 text-left font-bold text-slate-700 whitespace-nowrap"
           >
             <span>特記事項・システムログ</span>
-            <i data-lucide="chevron-down" id="accordionIcon" class="h-4 w-4 text-slate-400 transition-transform"></i>
+            <i data-lucide="chevron-down" id="accordionIcon" class="h-4 w-4 text-slate-400 transition-transform flex-shrink-0"></i>
           </button>
           <div id="accordionContent" class="p-3.5 space-y-2 bg-white text-slate-700 border-t border-slate-100 hidden">
             <div>
@@ -747,15 +751,15 @@
         <button
           type="button"
           id="btnModalCopyLine"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden whitespace-nowrap flex-shrink-0"
         >
-          <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+          <i data-lucide="copy" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span id="modalCopyBtnText">LINE文面をコピー</span>
         </button>
         <button
           type="button"
           id="btnCloseModalBtn"
-          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 ml-auto"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 ml-auto whitespace-nowrap flex-shrink-0"
         >
           閉じる
         </button>
@@ -768,10 +772,10 @@
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between border-b border-slate-100 pb-3">
         <div>
-          <span class="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">対面登録</span>
+          <span class="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800 whitespace-nowrap">対面登録</span>
           <h3 class="mt-1 text-base font-bold text-slate-900">ドライバー新規登録</h3>
         </div>
-        <button type="button" id="btnCloseDriverModal" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+        <button type="button" id="btnCloseDriverModal" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 flex-shrink-0">
           <i data-lucide="x" class="h-5 w-5"></i>
         </button>
       </div>
@@ -780,15 +784,15 @@
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
           <div class="flex items-center justify-between mb-1">
             <label class="font-bold text-emerald-900 flex items-center gap-1">
-              <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-700"></i>
+              <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-emerald-700 flex-shrink-0"></i>
               <span>事前登録フォームの回答から自動入力</span>
             </label>
             <button
               type="button"
               id="btnReloadPreReg"
-              class="inline-flex items-center gap-1 rounded bg-white border border-emerald-300 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+              class="inline-flex items-center gap-1 rounded bg-white border border-emerald-300 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 whitespace-nowrap flex-shrink-0"
             >
-              <i data-lucide="refresh-cw" class="h-3 w-3"></i>
+              <i data-lucide="refresh-cw" class="h-3 w-3 flex-shrink-0"></i>
               <span>再取得</span>
             </button>
           </div>
@@ -845,14 +849,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
-              <i data-lucide="map-pin" class="h-3 w-3 text-slate-400"></i>
+              <i data-lucide="map-pin" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
               <span>住所（I列）</span>
             </label>
             <input type="text" id="dRegAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
-              <i data-lucide="phone-call" class="h-3 w-3 text-slate-400"></i>
+              <i data-lucide="phone-call" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
               <span>緊急連絡先（J列）</span>
             </label>
             <input type="text" id="dRegEmergency" placeholder="例: 090-9999-8888（配偶者）" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" />
@@ -865,9 +869,9 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-          <button type="button" id="btnCancelDriverModal" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">キャンセル</button>
-          <button type="submit" id="btnSubmitDriver" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50">
-            <i data-lucide="check" class="h-3.5 w-3.5"></i>
+          <button type="button" id="btnCancelDriverModal" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap flex-shrink-0">キャンセル</button>
+          <button type="submit" id="btnSubmitDriver" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0">
+            <i data-lucide="check" class="h-3.5 w-3.5 flex-shrink-0"></i>
             <span>この内容で登録する</span>
           </button>
         </div>
@@ -893,25 +897,25 @@
       <div class="rounded-xl bg-slate-50 p-3.5 text-left text-xs space-y-1.5 text-slate-700 border border-slate-100">
         <div class="font-bold text-slate-900 mb-1">【対面での次のステップ・操作レクチャー】</div>
         <div class="flex items-start gap-1.5">
-          <span class="font-bold text-emerald-600">1.</span>
+          <span class="font-bold text-emerald-600 flex-shrink-0">1.</span>
           <span>下のボタンから<strong>LINE案内文をコピー</strong>して、本人のLINEへ送信してください。</span>
         </div>
         <div class="flex items-start gap-1.5">
-          <span class="font-bold text-emerald-600">2.</span>
+          <span class="font-bold text-emerald-600 flex-shrink-0">2.</span>
           <span>ドライバーのスマホで公式LINEを開き、<strong>【運行掲示板】</strong>を開いてもらいます。</span>
         </div>
         <div class="flex items-start gap-1.5">
-          <span class="font-bold text-emerald-600">3.</span>
+          <span class="font-bold text-emerald-600 flex-shrink-0">3.</span>
           <span>登録番号と電話番号下4桁でログインすると、<strong>LINE通知の連携が100%自動完了</strong>します。</span>
         </div>
       </div>
 
       <div class="mt-4 flex flex-col gap-2">
-        <button type="button" id="btnCopyDriverLine" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95">
-          <i data-lucide="copy" class="h-4 w-4"></i>
+        <button type="button" id="btnCopyDriverLine" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95 whitespace-nowrap">
+          <i data-lucide="copy" class="h-4 w-4 flex-shrink-0"></i>
           <span>LINE案内文をコピー</span>
         </button>
-        <button type="button" id="btnCloseDriverSuccess" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition">
+        <button type="button" id="btnCloseDriverSuccess" class="w-full rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition whitespace-nowrap">
           閉じる
         </button>
       </div>
@@ -921,20 +925,20 @@
   <!-- A4 3分割 受領書印刷プレビューモーダル -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="printer" class="h-4 w-4 text-slate-600"></i>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3">
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 truncate">
+            <i data-lucide="printer" class="h-4 w-4 text-slate-600 flex-shrink-0"></i>
             <span>ボランティア実費弁償 受領書印刷プレビュー</span>
           </h3>
           <p class="text-xs text-slate-500 mt-0.5">※A4用紙1枚につき3名分の受領書が収まります。切り取り線で切ってご利用ください。</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95">
-            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
-            <span>この内容で印刷する</span>
+        <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <button type="button" id="btnTriggerPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95 whitespace-nowrap flex-shrink-0">
+            <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i>
+            <span>印刷する</span>
           </button>
-          <button type="button" id="btnClosePrintPreview" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+          <button type="button" id="btnClosePrintPreview" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap flex-shrink-0">
             閉じる
           </button>
         </div>
@@ -946,29 +950,31 @@
     </div>
   </div>
 
-  <!-- 市提出用 事業活動実績報告書モーダル (A4縦1枚) -->
+  <!-- ★市提出用 事業活動実績報告書モーダル（改行バグ完全修正） -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3 mb-4">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="file-check" class="h-4 w-4 text-blue-700"></i>
+      <!-- 操作バー：画面幅が狭くてもボタンが絶対に潰れない構造 -->
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-3 mb-4">
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 truncate">
+            <i data-lucide="file-check" class="h-4 w-4 text-blue-700 flex-shrink-0"></i>
             <span>事業活動実績報告書プレビュー</span>
           </h3>
           <p class="text-xs text-slate-500 mt-0.5">※相模原市地域包括ケア推進課 基準準拠（A4縦1枚完結）。下線部は画面上で直接クリックして編集可能です。</p>
         </div>
-        <div class="flex items-center gap-2 self-end sm:self-auto">
-          <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none">
+        <div class="flex flex-wrap items-center gap-2 self-end lg:self-auto flex-shrink-0">
+          <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none whitespace-nowrap flex-shrink-0">
             <option value="2026">令和8年度 (2026年度)</option>
             <option value="2025">令和7年度 (2025年度)</option>
             <option value="2027">令和9年度 (2027年度)</option>
           </select>
 
-          <button type="button" id="btnTriggerReportPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95">
-            <i data-lucide="printer" class="h-3.5 w-3.5"></i>
-            <span>A4帳票を印刷 / PDF保存</span>
+          <!-- ★ボタンテキスト短縮＆折り返し防止 -->
+          <button type="button" id="btnTriggerReportPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95 whitespace-nowrap flex-shrink-0">
+            <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i>
+            <span>印刷する</span>
           </button>
-          <button type="button" id="btnCloseAnnualReport" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+          <button type="button" id="btnCloseAnnualReport" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap flex-shrink-0">
             閉じる
           </button>
         </div>
@@ -1007,7 +1013,7 @@
             </div>
             <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
               <span class="block text-[10px] text-slate-500">補助金確定上限枠</span>
-              <span id="repSummaryCap" class="text-xs font-bold text-slate-900">300,000円（延べ100人まで枠）</span>
+              <span id="repSummaryCap" class="text-xs font-bold text-slate-900">300,000円</span>
             </div>
             <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
               <span class="block text-[10px] text-slate-500">年間総運行回数</span>
@@ -1352,43 +1358,43 @@
         card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
 
         card.innerHTML = `
-          <div class="space-y-1.5">
+          <div class="space-y-1.5 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono text-xs font-bold text-slate-500">#${quest.id}</span>
-              <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass}">${quest.status}</span>
-              ${isActionRequired ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="alert-circle" class="h-3 w-3"></i>要対応</span>` : ""}
-              ${isUnreported ? `<span class="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="clock-alert" class="h-3 w-3"></i>未報告</span>` : ""}
-              ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs"><i data-lucide="x-circle" class="h-3 w-3"></i>不成立</span>` : ""}
-              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetDate}</span>
-              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>${quest.targetTime}</span>
+              <span class="font-mono text-xs font-bold text-slate-500 whitespace-nowrap">#${quest.id}</span>
+              <span class="rounded px-2 py-0.5 text-[11px] font-bold ${statusClass} whitespace-nowrap">${quest.status}</span>
+              ${isActionRequired ? `<span class="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs whitespace-nowrap"><i data-lucide="alert-circle" class="h-3 w-3 flex-shrink-0"></i>要対応</span>` : ""}
+              ${isUnreported ? `<span class="inline-flex items-center gap-1 rounded bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs whitespace-nowrap"><i data-lucide="clock-alert" class="h-3 w-3 flex-shrink-0"></i>未報告</span>` : ""}
+              ${isFailed ? `<span class="inline-flex items-center gap-1 rounded bg-purple-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs whitespace-nowrap"><i data-lucide="x-circle" class="h-3 w-3 flex-shrink-0"></i>不成立</span>` : ""}
+              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700 whitespace-nowrap"><i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>${quest.targetDate}</span>
+              <span class="flex items-center gap-1 text-xs font-semibold text-slate-700 whitespace-nowrap"><i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>${quest.targetTime}</span>
             </div>
-            <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <span class="text-slate-700">${escapeHtml(quest.pickup)}</span>
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-900 truncate">
+              <span class="text-slate-700 truncate">${escapeHtml(quest.pickup)}</span>
               <i data-lucide="arrow-right" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
-              <span class="text-blue-700">${escapeHtml(quest.dropoff)}</span>
-              <span class="text-xs font-normal text-slate-500">(${escapeHtml(quest.tripPlan.split("（")[0])})</span>
+              <span class="text-blue-700 truncate">${escapeHtml(quest.dropoff)}</span>
+              <span class="text-xs font-normal text-slate-500 whitespace-nowrap">(${escapeHtml(quest.tripPlan.split("（")[0])})</span>
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-              <span class="flex items-center gap-1"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
-              <span class="flex items-center gap-1"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400"></i>担当: <strong class="${quest.driverName ? (isUnreported ? "text-rose-700 font-bold" : "text-slate-800") : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
+              <span class="flex items-center gap-1 whitespace-nowrap"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>${escapeHtml(quest.userName)} 様 (${escapeHtml(quest.passengers)})</span>
+              <span class="flex items-center gap-1 whitespace-nowrap"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>担当: <strong class="${quest.driverName ? (isUnreported ? "text-rose-700 font-bold" : "text-slate-800") : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
             </div>
           </div>
-          <div class="flex items-center gap-2 pt-2 sm:pt-0">
+          <div class="flex items-center gap-2 pt-2 sm:pt-0 flex-shrink-0">
             ${isActionRequired ? `
-              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95" data-qid="${quest.id}" data-type="urgent">
-                <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600"></i>
+              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95 whitespace-nowrap flex-shrink-0" data-qid="${quest.id}" data-type="urgent">
+                <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600 flex-shrink-0"></i>
                 <span>LINE打診文</span>
               </button>
             ` : ""}
             ${isUnreported ? `
-              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 shadow-xs transition hover:bg-rose-100 active:scale-95" data-qid="${quest.id}" data-type="remind">
-                <i data-lucide="bell" class="h-3.5 w-3.5 text-rose-600"></i>
+              <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 shadow-xs transition hover:bg-rose-100 active:scale-95 whitespace-nowrap flex-shrink-0" data-qid="${quest.id}" data-type="remind">
+                <i data-lucide="bell" class="h-3.5 w-3.5 text-rose-600 flex-shrink-0"></i>
                 <span>催促LINE文</span>
               </button>
             ` : ""}
-            <button type="button" class="btn-detail inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95" data-qid="${quest.id}">
+            <button type="button" class="btn-detail inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 whitespace-nowrap flex-shrink-0" data-qid="${quest.id}">
               <span>詳細</span>
-              <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-400"></i>
+              <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
             </button>
           </div>
         `;
@@ -1420,38 +1426,38 @@
         const item = document.createElement("div");
         item.className = "flex flex-col gap-2 p-3.5 transition hover:bg-slate-50 text-xs sm:flex-row sm:items-center sm:justify-between";
         item.innerHTML = `
-          <div class="space-y-1">
+          <div class="space-y-1 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-mono font-bold text-slate-600">#${escapeHtml(r.questId || '----')}</span>
-              <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700">${escapeHtml(r.tripType)}</span>
-              <span class="text-slate-500 flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i>${escapeHtml(r.recordDate)}</span>
-              <span class="text-slate-500">所要: <strong>${r.duration}分</strong></span>
+              <span class="font-mono font-bold text-slate-600 whitespace-nowrap">#${escapeHtml(r.questId || '----')}</span>
+              <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700 whitespace-nowrap">${escapeHtml(r.tripType)}</span>
+              <span class="text-slate-500 flex items-center gap-1 whitespace-nowrap"><i data-lucide="clock" class="h-3 w-3 flex-shrink-0"></i>${escapeHtml(r.recordDate)}</span>
+              <span class="text-slate-500 whitespace-nowrap">所要: <strong>${r.duration}分</strong></span>
             </div>
             <div class="flex flex-wrap items-center gap-3 text-slate-800">
-              <span>担当: <strong>${escapeHtml(r.driverName)}</strong> (ID:${escapeHtml(r.driverId)})</span>
-              <span>乗客: <strong>${escapeHtml(r.passengers || '同乗者なし')}</strong> (${r.totalPassengers}人回)</span>
-              <span>実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
+              <span class="whitespace-nowrap">担当: <strong>${escapeHtml(r.driverName)}</strong> (ID:${escapeHtml(r.driverId)})</span>
+              <span class="whitespace-nowrap">乗客: <strong>${escapeHtml(r.passengers || '同乗者なし')}</strong> (${r.totalPassengers}人回)</span>
+              <span class="whitespace-nowrap">実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
             </div>
           </div>
-          <div class="flex items-center gap-2 pt-1 sm:pt-0">
+          <div class="flex items-center gap-2 pt-1 sm:pt-0 flex-shrink-0">
             <div class="text-right mr-1">
-              <span class="text-[11px] text-slate-400 block">実費弁償額</span>
-              <span class="text-sm font-black text-emerald-700">¥${Number(r.totalFee).toLocaleString()}</span>
-              ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
+              <span class="text-[11px] text-slate-400 block whitespace-nowrap">実費弁償額</span>
+              <span class="text-sm font-black text-emerald-700 whitespace-nowrap">¥${Number(r.totalFee).toLocaleString()}</span>
+              ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block whitespace-nowrap">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
             </div>
 
-            <!-- ルート地図ポップアップボタン -->
+            <!-- ルート地図ボタン -->
             <button
               type="button"
-              class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95"
+              class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
               data-idx="${idx}"
             >
-              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
+              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
               <span>ルート地図</span>
             </button>
 
             ${r.arrMapUrl ? `
-              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs" title="Googleマップ単体で開く">
+              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs flex-shrink-0" title="Googleマップ単体で開く">
                 <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
               </a>
             ` : ''}
@@ -1470,9 +1476,6 @@
       refreshLucide();
     }
 
-    // ==========================================
-    // ルート地図モーダル制御（2地点ピン表示 ＆ 目安ルート確認）
-    // ==========================================
     function openRouteMapModal(r) {
       const depLatLng = extractLatLng(r.depLat, r.depLng, r.depMapUrl);
       const arrLatLng = extractLatLng(r.arrLat, r.arrLng, r.arrMapUrl);
@@ -1491,7 +1494,6 @@
       document.getElementById("routeMapDepTime").textContent = r.depTime ? (r.depTime + " 発") : "記録なし";
       document.getElementById("routeMapArrTime").textContent = r.arrTime ? (r.arrTime + " 着") : "記録なし";
 
-      // ★「目安ルートを確認」ボタンのリンク先設定
       const googleNavBtn = document.getElementById("routeMapGoogleNavBtn");
       if (depLatLng && arrLatLng) {
         googleNavBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${depLatLng[0]},${depLatLng[1]}&destination=${arrLatLng[0]},${arrLatLng[1]}&travelmode=driving`;
@@ -1511,7 +1513,6 @@
       }, 150);
     }
 
-    // ★修正：破線結線を完全に削除し、2地点のピンのみを美しくプロット
     function initOrUpdateLeaflet(depLatLng, arrLatLng, r) {
       const mapCanvas = document.getElementById("routeMapCanvas");
       if (!mapCanvas) return;
@@ -1563,7 +1564,6 @@
         boundsPoints.push(arrLatLng);
       }
 
-      // ★破線自体を完全に削除し、2地点のピンが綺麗に収まるよう自動ズーム調整
       if (boundsPoints.length >= 2) {
         const bounds = L.latLngBounds(boundsPoints);
         routeMapInstance.fitBounds(bounds, { padding: [50, 50] });
@@ -1615,22 +1615,22 @@
           <div class="flex items-start justify-between border-b border-slate-100 pb-2">
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(d.id)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${d.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                <span class="font-mono text-xs font-bold text-slate-500 whitespace-nowrap">#${escapeHtml(d.id)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${d.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'} whitespace-nowrap">
                   ${d.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
                 </span>
-                <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">${escapeHtml(d.licenseType)}</span>
+                <span class="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 whitespace-nowrap">${escapeHtml(d.licenseType)}</span>
               </div>
               <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(d.name)} 様</h4>
             </div>
-            <a href="tel:${escapeHtml(d.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
-              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
+            <a href="tel:${escapeHtml(d.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95 whitespace-nowrap flex-shrink-0">
+              <i data-lucide="phone" class="h-3 w-3 text-slate-500 flex-shrink-0"></i>
               <span>発信</span>
             </a>
           </div>
           <div class="space-y-1.5 text-slate-600">
             <div class="flex items-center gap-1.5">
-              <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i>
+              <i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
               <span>電話: <strong class="text-slate-800 font-mono">${escapeHtml(d.phone)}</strong></span>
             </div>
 
@@ -1644,15 +1644,15 @@
                   href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.address)}"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95"
+                  class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 flex-shrink-0 active:scale-95 whitespace-nowrap"
                 >
-                  <i data-lucide="map" class="h-3 w-3 text-blue-600"></i>
+                  <i data-lucide="map" class="h-3 w-3 text-blue-600 flex-shrink-0"></i>
                   <span>地図を表示</span>
                 </a>
               </div>
             ` : ''}
 
-            ${d.emergencyContact ? `<div class="flex items-center gap-1.5"><i data-lucide="phone-call" class="h-3.5 w-3.5 text-slate-400"></i><span>緊急連絡: ${escapeHtml(d.emergencyContact)}</span></div>` : ''}
+            ${d.emergencyContact ? `<div class="flex items-center gap-1.5"><i data-lucide="phone-call" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i><span>緊急連絡: ${escapeHtml(d.emergencyContact)}</span></div>` : ''}
             ${d.certNo ? `<div class="text-[11px] text-slate-500 pt-0.5">修了証No: ${escapeHtml(d.certNo)} / 研修受講: ${escapeHtml(d.trainingDate || '未記入')}</div>` : ''}
             ${d.note ? `<div class="mt-1 rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600 border border-slate-100">${escapeHtml(d.note)}</div>` : ''}
           </div>
@@ -1694,21 +1694,21 @@
           <div class="flex items-start justify-between border-b border-slate-100 pb-2">
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="font-mono text-xs font-bold text-slate-500">#${escapeHtml(u.id)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${isAgency ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${escapeHtml(u.userType)}</span>
-                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${u.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                <span class="font-mono text-xs font-bold text-slate-500 whitespace-nowrap">#${escapeHtml(u.id)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${isAgency ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'} whitespace-nowrap">${escapeHtml(u.userType)}</span>
+                <span class="rounded px-2 py-0.5 text-[10px] font-bold ${u.hasLine ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'} whitespace-nowrap">
                   ${u.hasLine ? '<i data-lucide="check" class="h-3 w-3 inline mr-0.5"></i>LINE連携済' : '未連携'}
                 </span>
               </div>
               <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(u.name)} 様</h4>
             </div>
-            <a href="tel:${escapeHtml(u.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95">
-              <i data-lucide="phone" class="h-3 w-3 text-slate-500"></i>
+            <a href="tel:${escapeHtml(u.phone)}" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 hover:bg-slate-100 font-bold active:scale-95 whitespace-nowrap flex-shrink-0">
+              <i data-lucide="phone" class="h-3 w-3 text-slate-500 flex-shrink-0"></i>
               <span>発信</span>
             </a>
           </div>
           <div class="space-y-1 text-slate-600">
-            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400"></i><span>連絡先: <strong class="text-slate-800 font-mono">${escapeHtml(u.phone)}</strong></span></div>
+            <div class="flex items-center gap-1.5"><i data-lucide="phone" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i><span>連絡先: <strong class="text-slate-800 font-mono">${escapeHtml(u.phone)}</strong></span></div>
           </div>
         `;
         container.appendChild(card);
@@ -1847,14 +1847,14 @@
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50/70";
         tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-slate-500">${escapeHtml(d.id)}</td>
-          <td class="p-3 font-bold text-slate-900">${escapeHtml(d.name)} 様</td>
-          <td class="p-3 text-right font-mono">${d.trips}</td>
-          <td class="p-3 text-right font-mono">${d.passengers}</td>
-          <td class="p-3 text-right font-mono">${(Math.round(d.distance * 10) / 10).toFixed(1)} km</td>
-          <td class="p-3 text-right font-mono text-slate-700">¥${d.fuelFee.toLocaleString()}</td>
-          <td class="p-3 text-right font-mono text-slate-500">¥${d.otherExpense.toLocaleString()}</td>
-          <td class="p-3 text-right font-mono font-bold text-emerald-700">¥${d.totalPayout.toLocaleString()}</td>
+          <td class="p-3 font-mono font-bold text-slate-500 whitespace-nowrap">${escapeHtml(d.id)}</td>
+          <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(d.name)} 様</td>
+          <td class="p-3 text-right font-mono whitespace-nowrap">${d.trips}</td>
+          <td class="p-3 text-right font-mono whitespace-nowrap">${d.passengers}</td>
+          <td class="p-3 text-right font-mono whitespace-nowrap">${(Math.round(d.distance * 10) / 10).toFixed(1)} km</td>
+          <td class="p-3 text-right font-mono text-slate-700 whitespace-nowrap">¥${d.fuelFee.toLocaleString()}</td>
+          <td class="p-3 text-right font-mono text-slate-500 whitespace-nowrap">¥${d.otherExpense.toLocaleString()}</td>
+          <td class="p-3 text-right font-mono font-bold text-emerald-700 whitespace-nowrap">¥${d.totalPayout.toLocaleString()}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2029,11 +2029,11 @@
       document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString();
       document.getElementById("repSummaryUsers").textContent = users.length;
 
-      let capText = "300,000円（延べ100人まで枠）";
+      let capText = "300,000円";
       if (totalPassengersAnnual >= 301) {
-        capText = "500,000円（延べ301人以上枠）";
+        capText = "500,000円";
       } else if (totalPassengersAnnual >= 101) {
-        capText = "400,000円（延べ101〜300人枠）";
+        capText = "400,000円";
       }
       document.getElementById("repSummaryCap").textContent = capText;
 
@@ -2169,11 +2169,11 @@
       const copyBtnText = document.getElementById("modalCopyBtnText");
 
       if (quest.isUnreported) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95";
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 active:scale-95 whitespace-nowrap flex-shrink-0";
         copyBtnText.textContent = "催促LINE文をコピー";
         copyBtn.classList.remove("hidden");
       } else if (isActionRequired) {
-        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95";
+        copyBtn.className = "inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 whitespace-nowrap flex-shrink-0";
         copyBtnText.textContent = "LINE打診文をコピー";
         copyBtn.classList.remove("hidden");
       } else {
@@ -2209,9 +2209,9 @@
       document.querySelectorAll(".main-tab-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".main-tab-btn").forEach(b => {
-            b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100";
+            b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0";
           });
-          btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white";
+          btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0";
 
           const target = btn.getAttribute("data-tab");
           document.getElementById("tabContentOps").classList.toggle("hidden", target !== "ops");
@@ -2225,27 +2225,27 @@
 
       // サブタブ切替
       document.getElementById("subTabOpsQuests").onclick = () => {
-        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
+        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
         document.getElementById("opsQuestsView").classList.remove("hidden");
         document.getElementById("opsRecordsView").classList.add("hidden");
       };
       document.getElementById("subTabOpsRecords").onclick = () => {
-        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
+        document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
         document.getElementById("opsRecordsView").classList.remove("hidden");
         document.getElementById("opsQuestsView").classList.add("hidden");
       };
 
       document.getElementById("subTabRosterDrivers").onclick = () => {
-        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
+        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
         document.getElementById("rosterDriversView").classList.remove("hidden");
         document.getElementById("rosterUsersView").classList.add("hidden");
       };
       document.getElementById("subTabRosterUsers").onclick = () => {
-        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold";
-        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900";
+        document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
+        document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
         document.getElementById("rosterUsersView").classList.remove("hidden");
         document.getElementById("rosterDriversView").classList.add("hidden");
       };
@@ -2256,9 +2256,9 @@
       document.querySelectorAll("#driverFilterChips .d-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll("#driverFilterChips .d-chip").forEach(c => {
-            c.className = "d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
+            c.className = "d-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0";
           });
-          chip.className = "d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
+          chip.className = "d-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
           renderDrivers();
         };
       });
@@ -2266,9 +2266,9 @@
       document.querySelectorAll("#userFilterChips .u-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll("#userFilterChips .u-chip").forEach(c => {
-            c.className = "u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600";
+            c.className = "u-chip rounded-full px-2.5 py-0.5 border border-slate-200 bg-white text-slate-600 whitespace-nowrap flex-shrink-0";
           });
-          chip.className = "u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold";
+          chip.className = "u-chip rounded-full px-2.5 py-0.5 bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
           renderUsers();
         };
       });
@@ -2321,9 +2321,9 @@
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".chip-btn").forEach(b => {
-            b.className = "chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100";
+            b.className = "chip-btn rounded-full px-3 py-1 transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 whitespace-nowrap flex-shrink-0";
           });
-          btn.className = "chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs";
+          btn.className = "chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs whitespace-nowrap flex-shrink-0";
           currentFilterTag = btn.getAttribute("data-filter");
           renderQuests();
         };
@@ -2435,7 +2435,7 @@
         e.preventDefault();
         const submitBtn = document.getElementById("btnSubmitDriver");
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i><span>登録中...</span>';
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin flex-shrink-0"></i><span>登録中...</span>';
         refreshLucide();
 
         const payload = {
@@ -2482,7 +2482,7 @@
           alert("通信エラー: " + err.message);
         } finally {
           submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5"></i><span>この内容で登録する</span>';
+          submitBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5 flex-shrink-0"></i><span>この内容で登録する</span>';
           refreshLucide();
         }
       };
