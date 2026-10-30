@@ -439,6 +439,14 @@
     refreshLucide();
   }
 
+  function setBtnRecorded(btnId, labelText) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.classList.add('recorded');
+    btn.innerHTML = `<i data-lucide="check"></i><span>${labelText}</span>`;
+    refreshLucide();
+  }
+
   function recordDeparture() {
     const now = new Date();
     runLog.depTime = formatTime(now);
@@ -503,6 +511,15 @@
     }
   }
 
+  function manualRecordArrival() {
+    const now = new Date();
+    runLog.arrTime = formatTime(now);
+    runLog.arrTimestamp = now.getTime();
+    setBtnRecorded('btnArr', `到着記録済 (${runLog.arrTime})`);
+    document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (手動入力)`;
+    document.getElementById('arrStatus').className = 'status-box recorded';
+    checkSubmitRequirement();
+  }
   function manualRecordArrival() {
     const now = new Date();
     runLog.arrTime = formatTime(now);
