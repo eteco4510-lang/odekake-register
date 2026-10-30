@@ -171,7 +171,7 @@
       gap: 6px;
     }
 
-    /* GPSトリガーボタンの動的状態スタイル */
+    /* GPSトリガーボタンの動的スタイル */
     .btn-gps-trigger {
       width: 100%;
       height: 48px;
@@ -379,6 +379,43 @@
       text-align: left;
     }
     
+    /* 全画面操作ロック用オーバーレイ */
+    .blocking-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      transition: opacity 0.2s ease;
+    }
+    .blocking-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(60, 60, 67, 0.12);
+      max-width: 280px;
+      width: 100%;
+    }
+    .blocking-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+    .blocking-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* iOS風 カスタム確認ダイアログ */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -437,6 +474,15 @@
   </style>
 </head>
 <body>
+
+<!-- 全画面操作ロック用ローディングオーバーレイ -->
+<div id="blockingOverlay" class="blocking-overlay" style="display:none;">
+  <div class="blocking-card">
+    <i data-lucide="loader-2" class="animate-spin" style="width:38px; height:38px; color:var(--primary-blue); margin: 0 auto;"></i>
+    <div class="blocking-title" id="blockingTitle">依頼情報を取得中</div>
+    <div class="blocking-desc" id="blockingDesc">最新データを読み込んでいます<br>少々お待ちください</div>
+  </div>
+</div>
 
 <header>
   <h1>
@@ -657,6 +703,24 @@
     }
   }
 
+  // ★全画面操作ロックの表示・非表示制御
+  function showBlockingLoading(title = '依頼情報を取得中', desc = '最新データを読み込んでいます<br>少々お待ちください') {
+    const overlay = document.getElementById('blockingOverlay');
+    if (overlay) {
+      document.getElementById('blockingTitle').textContent = title;
+      document.getElementById('blockingDesc').innerHTML = desc;
+      overlay.style.display = 'flex';
+      refreshLucide();
+    }
+  }
+
+  function hideBlockingLoading() {
+    const overlay = document.getElementById('blockingOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }
+
   let customDialogResolve = null;
   function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
     return new Promise((resolve) => {
@@ -733,7 +797,14 @@
     questId = val;
     if (fetchTimer) clearTimeout(fetchTimer);
     if (val.length >= 4) {
-      fetchTimer = setTimeout(() => { fetchQuestInfo(val); }, 400);
+      fetchTimer = setTimeout(async () => {
+        showBlockingLoading('案件情報を照合中', '入力された番号の情報を取得しています');
+        try {
+          await fetchQuestInfo(val);
+        } finally {
+          hideBlockingLoading();
+        }
+      }, 400);
     }
     checkSubmitRequirement();
   }
@@ -750,11 +821,14 @@
         if (qObj.driverName) cachedDriverName = qObj.driverName;
         if (qObj.tripPlan) {
           const isOneWay = qObj.tripPlan.includes('片道');
-          document.querySelector(`input[name="tripType"][value="${isOneWay ? '片道' : '往復'}"]`).checked = true;
+          const targetRadio = document.querySelector(`input[name="tripType"][value="${isOneWay ? '片道' : '往復'}"]`);
+          if (targetRadio) targetRadio.checked = true;
           handleTripTypeChange();
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('案件情報取得スキップ:', e);
+    }
     checkSubmitRequirement();
   }
 
@@ -778,7 +852,6 @@
     return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
   }
 
-  // ★出発ボタンの処理（緑色反転・完了表示対応）
   function recordDeparture() {
     const now = new Date();
     runLog.depTime = formatTime(now);
@@ -835,7 +908,6 @@
     checkSubmitRequirement();
   }
 
-  // ★到着ボタンの処理（緑色反転・完了表示対応）
   function recordArrival() {
     const now = new Date();
     runLog.arrTime = formatTime(now);
@@ -956,7 +1028,6 @@
 
     const tripTypeVal = document.querySelector('input[name="tripType"]:checked').value;
 
-    // ★tripType と tripPlan の両方を格納してGAS側エラーを完全防止
     const payload = {
       action: 'submitRecord',
       questId: document.getElementById('questIdInput').value.trim(),
@@ -1090,14 +1161,29 @@
     }
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
+  // ★初期化：情報取得完了まで全画面操作ロック
+  window.addEventListener('DOMContentLoaded', async () => {
     refreshLucide();
     questId = extractQuestIdFromUrl();
-    if (questId) {
-      document.getElementById('questIdInput').value = questId;
-      fetchQuestInfo(questId);
-    }
     const saved = localStorage.getItem('odekake_driver');
+
+    if (questId) {
+      showBlockingLoading('依頼情報を取得中', '最新データを読み込んでいます<br>少々お待ちください');
+      document.getElementById('questIdInput').value = questId;
+
+      // 5秒のフェイルセーフタイマー
+      const safetyTimer = setTimeout(() => {
+        hideBlockingLoading();
+      }, 5000);
+
+      try {
+        await fetchQuestInfo(questId);
+      } finally {
+        clearTimeout(safetyTimer);
+        hideBlockingLoading();
+      }
+    }
+
     if (saved) {
       try {
         const d = JSON.parse(saved);
@@ -1107,6 +1193,7 @@
         }
       } catch (e) {}
     }
+
     checkSubmitRequirement();
   });
 </script>
