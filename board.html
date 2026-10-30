@@ -39,6 +39,10 @@
       vertical-align: -0.18em;
       stroke-width: 2.2;
       display: inline-block;
+      flex-shrink: 0;
+    }
+    button {
+      white-space: nowrap !important;
     }
     header {
       background: #FFFFFF;
@@ -99,7 +103,9 @@
       margin-bottom: 14px;
     }
     .form-group label {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 0.85rem;
       font-weight: 700;
       margin-bottom: 6px;
@@ -113,6 +119,7 @@
       font-size: 1.05rem;
       background: #FAFAFA;
       outline: none;
+      transition: border-color 0.2s;
     }
     input:focus {
       border-color: var(--primary-blue);
@@ -132,6 +139,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
     }
     .btn-refresh {
       background: #FFFFFF;
@@ -146,6 +154,10 @@
       align-items: center;
       gap: 6px;
       margin-bottom: 12px;
+      transition: background 0.15s ease;
+    }
+    .btn-refresh:active {
+      background: #F2F2F7;
     }
     .status-bar {
       font-size: 0.75rem;
@@ -197,9 +209,14 @@
       font-size: 0.8rem;
       padding: 3px 8px;
       border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .trip-plan-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       font-size: 0.78rem;
       font-weight: 700;
       padding: 2px 8px;
@@ -238,6 +255,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      box-shadow: 0 3px 10px rgba(40, 205, 65, 0.25);
     }
     .empty-box {
       text-align: center;
@@ -319,7 +337,7 @@
 
   <div class="container">
     <div id="initialLoadingBox" class="empty-box" style="margin-top:20px;">
-      <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue);"></i>
+      <i data-lucide="loader-2" class="animate-spin" style="width:32px; height:32px; color:var(--primary-blue); margin: 0 auto;"></i>
       <p style="margin-top:8px;">掲示板を読み込み中...</p>
     </div>
 
@@ -327,14 +345,20 @@
     <div id="authSection" class="card" style="display:none;">
       <h2 style="font-size:1.15rem; font-weight:800; margin-bottom:12px; text-align:center;">ドライバー認証</h2>
       <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:14px; text-align:center;">
-        初回のみ認証が必要です。一度認証すると次回から自動ログインします。
+        初回のみ認証が必要です。次回から自動ログインします。
       </p>
       <div class="form-group">
-        <label>ドライバー登録番号（半角5桁）</label>
+        <label>
+          <i data-lucide="user"></i>
+          <span>ドライバー登録番号</span>
+        </label>
         <input type="tel" id="authDriverId" placeholder="例: 10101" inputmode="numeric">
       </div>
       <div class="form-group">
-        <label>暗証番号（電話番号下4桁）</label>
+        <label>
+          <i data-lucide="key-round"></i>
+          <span>暗証番号（下4桁）</span>
+        </label>
         <input type="tel" id="authPhone4" placeholder="例: 1234" maxlength="4" inputmode="numeric">
       </div>
       <button type="button" class="btn-action" id="btnAuth" onclick="executeAuth()">
@@ -347,7 +371,7 @@
     <div id="boardSection" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <button type="button" class="btn-refresh" id="btnRefresh" onclick="fetchBoardQuests(true)">
-          <i data-lucide="refresh-cw" id="refreshIcon"></i>
+          <i data-lucide="refresh-cw"></i>
           <span>最新の案件に更新</span>
         </button>
         <div id="syncStatusBar" class="status-bar"></div>
@@ -383,7 +407,7 @@
     function createTripBadgeHtml(tripPlan) {
       const text = String(tripPlan || '往復').trim();
       if (text.includes('片道')) {
-        return `<div class="trip-plan-badge"><i data-lucide="arrow-right"></i><span>片道（送り届けのみ）</span></div>`;
+        return `<div class="trip-plan-badge"><i data-lucide="arrow-right"></i><span>片道</span></div>`;
       }
       return `<div class="trip-plan-badge"><i data-lucide="repeat"></i><span>${escapeHtml(text)}</span></div>`;
     }
@@ -500,7 +524,7 @@
       const phone4 = targetPhone4 || document.getElementById('authPhone4').value.trim();
 
       if (!driverId || !phone4) {
-        await showCustomAlert('登録番号と暗証番号（電話番号下4桁）を入力してください。', '入力確認', 'alert-circle', 'var(--warn-amber)');
+        await showCustomAlert('登録番号と暗証番号を入力してください。', '入力確認', 'alert-circle', 'var(--warn-amber)');
         return false;
       }
 
@@ -521,7 +545,7 @@
           localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
           showBoardView();
           if (targetId) {
-            await showCustomAlert(`ようこそ、${res.driver.name} 様！\n掲示板への自動ログインと公式LINEの連携が完了しました。`, 'LINE連携完了', 'check-circle-2', 'var(--system-green)');
+            await showCustomAlert(`ようこそ、${res.driver.name} 様！\n掲示板への自動ログインが完了しました。`, '認証完了', 'check-circle-2', 'var(--system-green)');
           }
           return true;
         } else {
@@ -542,22 +566,26 @@
       }
     }
 
+    // ★修正：LucideのSVG再生成後も確実に回転を止める処理
     async function fetchBoardQuests(isManualRefresh = false) {
       const listArea = document.getElementById('questListArea');
       const statusBar = document.getElementById('syncStatusBar');
       const btn = document.getElementById('btnRefresh');
-      const icon = document.getElementById('refreshIcon');
+
+      // その瞬間にボタン内に実在するアイコン要素（svgまたはi）を取得する関数
+      const getIcon = () => btn ? btn.querySelector('svg, i') : null;
+      const icon = getIcon();
 
       if (icon) icon.classList.add('animate-spin');
       if (btn) btn.disabled = true;
 
       if (listArea.children.length === 0) {
-        listArea.innerHTML = `<div class="empty-box"><i data-lucide="loader-2" class="animate-spin" style="width:28px; height:28px; color:var(--primary-blue);"></i><p style="margin-top:6px;">案件を取得中...</p></div>`;
+        listArea.innerHTML = `<div class="empty-box"><i data-lucide="loader-2" class="animate-spin" style="width:28px; height:28px; color:var(--primary-blue); margin: 0 auto;"></i><p style="margin-top:6px;">案件を取得中...</p></div>`;
         refreshLucide();
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       try {
         const cacheBuster = `&_t=${Date.now()}`;
@@ -575,11 +603,14 @@
         }
       } catch (e) {
         clearTimeout(timeoutId);
+        console.warn('掲示板更新エラー:', e);
         if (statusBar) {
-          statusBar.textContent = (e.name === 'AbortError') ? 'タイムアウト' : '更新エラー';
+          statusBar.textContent = (e.name === 'AbortError') ? '通信タイムアウト' : '更新エラー';
         }
       } finally {
-        if (icon) icon.classList.remove('animate-spin');
+        // 通信完了時に実在する最新のアイコン要素から回転を確実に解除
+        const currentIcon = getIcon();
+        if (currentIcon) currentIcon.classList.remove('animate-spin');
         if (btn) btn.disabled = false;
         hideInitialLoading();
         refreshLucide();
@@ -589,7 +620,7 @@
     function renderQuests(quests) {
       const listArea = document.getElementById('questListArea');
       if (!quests || quests.length === 0) {
-        listArea.innerHTML = `<div class="empty-box"><i data-lucide="check-circle" style="width:32px; height:32px; color:var(--system-green);"></i><p style="margin-top:8px;">現在募集中の送迎案件はありません</p></div>`;
+        listArea.innerHTML = `<div class="empty-box"><i data-lucide="check-circle" style="width:32px; height:32px; color:var(--system-green); margin: 0 auto;"></i><p style="margin-top:8px;">現在募集中の送迎案件はありません</p></div>`;
         refreshLucide();
         return;
       }
@@ -601,7 +632,7 @@
         card.className = isUrgent ? 'quest-card urgent' : 'quest-card';
 
         card.innerHTML = `
-          ${isUrgent ? `<div class="urgent-banner"><i data-lucide="alert-circle"></i><span>【至急】運行日が迫っています</span></div>` : ''}
+          ${isUrgent ? `<div class="urgent-banner"><i data-lucide="alert-circle"></i><span>運行日が迫っています</span></div>` : ''}
           <div class="quest-header">
             <span class="quest-id">案件 #${escapeHtml(q.id)}</span>
             <span class="quest-time-badge"><i data-lucide="clock"></i> 集合: ${escapeHtml(q.dateText)}</span>
@@ -613,8 +644,8 @@
             <span style="color:var(--primary-blue);">${escapeHtml(q.dropoff)}</span>
           </div>
           <div class="quest-details">
-            <div><strong>乗車人数:</strong> ${escapeHtml(q.passengers || '1名')}（${escapeHtml(q.userNameMasked || '登録利用者 様')}）</div>
-            ${q.note ? `<div style="margin-top:2px;"><strong>介助・備考:</strong> ${escapeHtml(q.note)}</div>` : ''}
+            <div><strong>乗車人数:</strong> ${escapeHtml(q.passengers || '1名')} / ${escapeHtml(q.userNameMasked || '登録利用者 様')}</div>
+            ${q.note ? `<div style="margin-top:2px;"><strong>備考:</strong> ${escapeHtml(q.note)}</div>` : ''}
           </div>
           <button type="button" class="btn-accept" onclick="confirmAcceptQuest('${escapeHtml(q.id)}')">
             <i data-lucide="check"></i>
@@ -637,7 +668,7 @@
       const qText = quest ? `【案件 #${qid}】\n日時: ${quest.dateText}\n行先: ${quest.dropoff}\n利用者: ${quest.userNameMasked}` : `案件 #${qid}`;
 
       const ok = await showCustomConfirm(
-        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ運行詳細と活動記録URLが届きます。`,
+        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ案内が届きます。`,
         '受託の確認',
         'car',
         'var(--system-green)'
@@ -651,7 +682,7 @@
         const res = await (await fetch(url)).json();
 
         if (res.success) {
-          await showCustomAlert(`案件 [#${qid}] の受託が完了しました！\n公式LINEへ案内メッセージをお送りしましたのでご確認ください。安全運転でお願いいたします。`, '受託完了', 'check-circle-2', 'var(--system-green)');
+          await showCustomAlert(`案件 [#${qid}] の受託が完了しました！\n公式LINEへ案内メッセージをお送りしました。安全運転でお願いいたします。`, '受託完了', 'check-circle-2', 'var(--system-green)');
           fetchBoardQuests(true);
         } else {
           await showCustomAlert(res.message || '受託できませんでした。既に他のドライバーが受託した可能性があります。', '受託不可', 'alert-circle', 'var(--danger-red)');
