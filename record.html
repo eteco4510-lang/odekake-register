@@ -48,6 +48,12 @@
       width: 100%; height: 48px; border-radius: 10px; font-size: 1rem; font-weight: 700; border: 1.5px solid var(--primary-blue); background: #FFFFFF; color: var(--primary-blue); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
     .btn-gps-trigger:active { background: #EFF6FF; }
+    .btn-gps-trigger.recorded {
+      background: var(--success-green) !important;
+      color: #FFFFFF !important;
+      border-color: var(--success-green) !important;
+    }
+    .btn-gps-trigger:active { background: #EFF6FF; }
     .btn-gps-fallback { width: 100%; margin-top: 6px; background: none; border: none; color: var(--text-muted); font-size: 0.78rem; text-decoration: underline; cursor: pointer; padding: 4px 0; }
     .lock-notice-box { margin-top: 8px; font-size: 0.78rem; color: #B45309; background: #FEF3C7; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; }
     .status-box { margin-top: 8px; font-size: 0.82rem; color: var(--text-muted); }
