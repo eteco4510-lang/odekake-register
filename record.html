@@ -431,10 +431,19 @@
     return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
   }
 
+  function setBtnRecorded(btnId, labelText) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.classList.add('recorded');
+    btn.innerHTML = `<i data-lucide="check"></i><span>${labelText}</span>`;
+    refreshLucide();
+  }
+
   function recordDeparture() {
     const now = new Date();
     runLog.depTime = formatTime(now);
     runLog.depTimestamp = now.getTime();
+    setBtnRecorded('btnDep', `出発記録済 (${runLog.depTime})`);
     document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (GPS取得中...)`;
     document.getElementById('depStatus').className = 'status-box recorded';
 
@@ -457,6 +466,52 @@
     }
   }
 
+  function manualRecordDeparture() {
+    const now = new Date();
+    runLog.depTime = formatTime(now);
+    runLog.depTimestamp = now.getTime();
+    setBtnRecorded('btnDep', `出発記録済 (${runLog.depTime})`);
+    document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (手動入力)`;
+    document.getElementById('depStatus').className = 'status-box recorded';
+    checkSubmitRequirement();
+  }
+
+  function recordArrival() {
+    const now = new Date();
+    runLog.arrTime = formatTime(now);
+    runLog.arrTimestamp = now.getTime();
+    setBtnRecorded('btnArr', `到着記録済 (${runLog.arrTime})`);
+    document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (GPS取得中...)`;
+    document.getElementById('arrStatus').className = 'status-box recorded';
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          runLog.arrLat = pos.coords.latitude;
+          runLog.arrLng = pos.coords.longitude;
+          document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (GPS測位完了)`;
+          checkSubmitRequirement();
+        },
+        () => {
+          document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (時刻のみ)`;
+          checkSubmitRequirement();
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      checkSubmitRequirement();
+    }
+  }
+
+  function manualRecordArrival() {
+    const now = new Date();
+    runLog.arrTime = formatTime(now);
+    runLog.arrTimestamp = now.getTime();
+    setBtnRecorded('btnArr', `到着記録済 (${runLog.arrTime})`);
+    document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (手動入力)`;
+    document.getElementById('arrStatus').className = 'status-box recorded';
+    checkSubmitRequirement();
+  }
   function manualRecordDeparture() {
     const now = new Date();
     runLog.depTime = formatTime(now);
