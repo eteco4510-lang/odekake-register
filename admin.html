@@ -94,6 +94,16 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
+  <!-- ★追加：全画面操作ロック用ローディングオーバーレイ -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs" style="display: flex;">
+    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150">
+      <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
+      <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">統合データを取得中</div>
+      <div class="mt-1 text-xs text-slate-500" id="blockingDesc">最新の運行・名簿情報を読み込んでいます<br>少々お待ちください</div>
+    </div>
+  </div>
+
+  <!-- 1. スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
       <div class="min-w-0">
@@ -1180,6 +1190,24 @@
       }, 3000);
     }
 
+    // ★追加：全画面操作ロックの表示・非表示制御
+    function showBlockingLoading(title = '統合データを取得中', desc = '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください') {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        document.getElementById('blockingTitle').textContent = title;
+        document.getElementById('blockingDesc').innerHTML = desc;
+        overlay.style.display = 'flex';
+        refreshLucide();
+      }
+    }
+
+    function hideBlockingLoading() {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+    }
+
     function setRefreshing(isLoading) {
       const btn = document.getElementById("btnRefresh");
       if (!btn) return;
@@ -1195,6 +1223,12 @@
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
+
+      // ★操作ロックを表示（再試行時はメッセージ切替）
+      showBlockingLoading(
+        isRetry ? 'データを再取得中' : '統合データを取得中',
+        isRetry ? '接続を再試行しています<br>少々お待ちください' : '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください'
+      );
 
       setRefreshing(true);
       if (quests.length === 0 && !isRetry) {
@@ -1245,6 +1279,8 @@
         if (!isRetry) return await fetchDashboardData(true);
         showToast(err.name === "AbortError" ? "通信タイムアウト" : "通信エラー: " + err.message);
       } finally {
+        // ★通信終了時に操作ロックを解除
+        hideBlockingLoading();
         setRefreshing(false);
         skeleton.classList.add("hidden");
       }
