@@ -94,7 +94,7 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
-  <!-- ★追加：全画面操作ロック用ローディングオーバーレイ -->
+  <!-- 全画面操作ロック用ローディングオーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs" style="display: flex;">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150">
       <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <!-- 1. スティッキーヘッダー -->
+  <!-- スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
       <div class="min-w-0">
@@ -141,6 +141,7 @@
       </div>
     </div>
 
+    <!-- メイン業務タブバー -->
     <div class="border-t border-slate-100 bg-slate-50/70 px-4 sm:px-6">
       <div class="mx-auto flex max-w-6xl items-center gap-2 py-2 overflow-x-auto">
         <button
@@ -173,7 +174,7 @@
 
   <main class="mx-auto max-w-6xl px-4 pt-5 sm:px-6">
 
-    <!-- タブ1：運行・活動管理 (ops) -->
+    <!-- タブ1：運行・活動管理セクション (ops) -->
     <section id="tabContentOps" class="space-y-5">
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <button
@@ -363,7 +364,7 @@
       <!-- 活動記録ログビュー -->
       <div id="opsRecordsView" class="space-y-3 hidden">
         <div class="flex items-center justify-between">
-          <p class="text-xs text-slate-500">ドライバーから送信されたGPS活動記録ログ一覧</p>
+          <p class="text-xs text-slate-500">ドライバーから送信された活動実績一覧（各行からルート確認や実績修正が可能です）</p>
           <span id="recordCountBadge" class="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 whitespace-nowrap">0件</span>
         </div>
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -376,7 +377,7 @@
       </div>
     </section>
 
-    <!-- タブ2：名簿マスタ (roster) -->
+    <!-- タブ2：名簿マスタセクション (roster) -->
     <section id="tabContentRoster" class="space-y-5 hidden">
       <div class="flex items-center justify-between">
         <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-2xs">
@@ -440,7 +441,7 @@
       </div>
     </section>
 
-    <!-- タブ3：実費精算・受領書 (settlement) -->
+    <!-- タブ3：実費精算・受領書セクション (settlement) -->
     <section id="tabContentSettlement" class="space-y-5 hidden">
       <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
@@ -819,6 +820,149 @@
     </div>
   </div>
 
+  <!-- 活動記録の修正・再計算モーダル（shadcn/ui風） -->
+  <div id="editRecordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="editRecQuestId" class="font-mono text-xs font-bold text-slate-500">案件 #----</span>
+            <span class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">活動記録の修正</span>
+          </div>
+          <h3 class="mt-1 text-base font-bold text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="pencil" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
+            <span>活動記録の修正・再計算</span>
+          </h3>
+        </div>
+        <button type="button" id="btnCloseEditRecord" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="my-3 space-y-3 text-xs">
+        <!-- 参照情報表示 -->
+        <div class="rounded-xl bg-slate-50 p-3 space-y-1.5 border border-slate-100">
+          <div class="flex justify-between text-slate-600">
+            <span>担当ドライバー:</span>
+            <strong id="editRecDriver" class="text-slate-800">----</strong>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>記録日時 / 所要時間:</span>
+            <span id="editRecTimeStats" class="font-mono text-slate-700">----</span>
+          </div>
+        </div>
+
+        <!-- 運行区分 -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">運行区分</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label id="editLabelRound" class="flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-50/70 p-2 font-bold text-blue-700 cursor-pointer">
+              <input type="radio" name="editTripType" value="往復" checked class="hidden" onchange="handleEditTripTypeChange()">
+              <i data-lucide="repeat" class="h-3.5 w-3.5"></i>
+              <span>往復</span>
+            </label>
+            <label id="editLabelOneWay" class="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-600 cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="editTripType" value="片道" class="hidden" onchange="handleEditTripTypeChange()">
+              <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+              <span>片道</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 片道実走距離 -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-slate-700">片道実走距離 (km)</label>
+            <span class="text-[11px] text-slate-500">※往復は自動で2倍計算されます</span>
+          </div>
+          <input
+            type="number"
+            id="editOneWayDist"
+            step="0.1"
+            min="0"
+            placeholder="例: 12.4"
+            class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-mono text-sm text-slate-900 outline-none focus:border-blue-600"
+            oninput="recalculateEditPreview()"
+          />
+        </div>
+
+        <!-- その他実費 -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-slate-700">その他実費 (円)</label>
+            <span class="text-[11px] text-slate-500">有料道路代・駐車場代の合計</span>
+          </div>
+          <input
+            type="number"
+            id="editOtherExpense"
+            step="10"
+            min="0"
+            placeholder="0"
+            class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 font-mono text-sm text-slate-900 outline-none focus:border-blue-600"
+            oninput="recalculateEditPreview()"
+          />
+        </div>
+
+        <!-- 同乗者名 -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">同乗利用者名（複数人は読点またはカンマ区切り）</label>
+          <input
+            type="text"
+            id="editPassengers"
+            placeholder="例: 相模 太郎, 相模 花子"
+            class="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"
+            oninput="recalculateEditPreview()"
+          />
+        </div>
+
+        <!-- リアルタイム再計算プレビュー -->
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-1.5">
+          <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-900 border-b border-emerald-200/70 pb-1">
+            <i data-lucide="calculator" class="h-3.5 w-3.5 text-emerald-700"></i>
+            <span>再計算プレビュー（保存後の確定値）</span>
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs pt-0.5">
+            <div class="flex justify-between">
+              <span class="text-slate-600">計算対象距離:</span>
+              <strong id="prevDistance" class="font-mono text-slate-800">0.0 km</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">燃料費相当 (20円/km):</span>
+              <strong id="prevFuelFee" class="font-mono text-slate-800">¥0</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">延べ乗車人数:</span>
+              <strong id="prevPassengers" class="font-mono text-blue-700">0 人回</strong>
+            </div>
+            <div class="flex justify-between border-t border-emerald-200/80 pt-1 col-span-2">
+              <span class="font-bold text-emerald-900">支給合計額:</span>
+              <strong id="prevTotalPayout" class="font-mono text-base font-black text-emerald-700">¥0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3 text-xs">
+        <button
+          type="button"
+          id="btnCancelEditRecord"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition whitespace-nowrap flex-shrink-0"
+        >
+          キャンセル
+        </button>
+        <button
+          type="button"
+          id="btnSaveEditRecord"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2 font-bold text-white hover:bg-slate-800 transition active:scale-95 whitespace-nowrap flex-shrink-0 shadow-xs"
+          onclick="submitRecordEdit()"
+        >
+          <i data-lucide="check" class="h-3.5 w-3.5"></i>
+          <span>修正内容を保存する</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ドライバー新規登録モーダル -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
@@ -1100,6 +1244,15 @@
 
         <div class="grid grid-cols-2 gap-3 text-[11px]">
           <div class="border border-slate-300 rounded p-2.5">
+            <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
+            <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
+              <li>登録ボランティアドライバー：実登録 <strong id="repDriverCount">0</strong> 名</li>
+              <li>相模原市担い手養成講座修了者：<strong id="repTrainedDriverCount">0</strong> 名</li>
+              <li>ボランティア活動保険：全員加入済（全社協）</li>
+              <li>運行中の重大事故・物損事故等の発生：なし（0件）</li>
+            </ul>
+          </div>
+          <div class="border border-slate-300 rounded p-2.5">
             <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">4. 実費弁償・法令遵守に関する確認事項</h3>
             <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
               <li>道路運送法における「無償運送（実費弁償のみ）」を遵守。</li>
@@ -1113,7 +1266,7 @@
     </div>
   </div>
 
-  <!-- ★追加：サイト名非表示カスタムダイアログ（iOS風） -->
+  <!-- サイト名非表示カスタムダイアログ（iOS風） -->
   <div id="customDialogOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-xs hidden" onclick="handleDialogOverlayClick(event)">
     <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-2xl animate-in zoom-in-95 duration-150">
       <div id="customDialogIconArea" class="mb-2.5 flex justify-center"></div>
@@ -1166,6 +1319,7 @@
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
     let currentFilterTag = "recruiting";
     let selectedQuest = null;
+    let currentEditRecord = null;
     let toastTimer = null;
     let isAccordionOpen = false;
     let preRegList = [];
@@ -1194,7 +1348,25 @@
       }, 3000);
     }
 
-    // ★追加：カスタムダイアログ制御（サイト名強制表示の排除）
+    // 全画面操作ロックの表示・非表示制御
+    function showBlockingLoading(title = '統合データを取得中', desc = '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください') {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        document.getElementById('blockingTitle').textContent = title;
+        document.getElementById('blockingDesc').innerHTML = desc;
+        overlay.style.display = 'flex';
+        refreshLucide();
+      }
+    }
+
+    function hideBlockingLoading() {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+    }
+
+    // カスタムダイアログ制御（サイト名強制表示の排除）
     let customDialogResolve = null;
     function showCustomAlert(message, title = 'お知らせ', iconName = 'alert-circle', iconColorClass = 'text-red-600') {
       return new Promise((resolve) => {
@@ -1237,24 +1409,6 @@
       if (e.target.id === 'customDialogOverlay') closeCustomDialog(false);
     }
 
-    // 全画面操作ロックの表示・非表示制御
-    function showBlockingLoading(title = '統合データを取得中', desc = '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください') {
-      const overlay = document.getElementById('blockingOverlay');
-      if (overlay) {
-        document.getElementById('blockingTitle').textContent = title;
-        document.getElementById('blockingDesc').innerHTML = desc;
-        overlay.style.display = 'flex';
-        refreshLucide();
-      }
-    }
-
-    function hideBlockingLoading() {
-      const overlay = document.getElementById('blockingOverlay');
-      if (overlay) {
-        overlay.style.display = 'none';
-      }
-    }
-
     function setRefreshing(isLoading) {
       const btn = document.getElementById("btnRefresh");
       if (!btn) return;
@@ -1271,7 +1425,6 @@
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
 
-      // ★操作ロックを表示（再試行時はメッセージ切替）
       showBlockingLoading(
         isRetry ? 'データを再取得中' : '統合データを取得中',
         isRetry ? '接続を再試行しています<br>少々お待ちください' : '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください'
@@ -1326,7 +1479,6 @@
         if (!isRetry) return await fetchDashboardData(true);
         showToast(err.name === "AbortError" ? "通信タイムアウト" : "通信エラー: " + err.message);
       } finally {
-        // ★通信終了時に操作ロックを解除
         hideBlockingLoading();
         setRefreshing(false);
         skeleton.classList.add("hidden");
@@ -1504,6 +1656,7 @@
       attachEventHandlers();
     }
 
+    // 活動記録ログ一覧描画（「修正」ボタン追加）
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1544,6 +1697,17 @@
               ${r.otherExpense > 0 ? `<span class="text-[10px] text-slate-500 block whitespace-nowrap">(内立替:¥${Number(r.otherExpense).toLocaleString()})</span>` : ''}
             </div>
 
+            <!-- 修正ボタン -->
+            <button
+              type="button"
+              class="btn-edit-record inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
+              data-idx="${idx}"
+            >
+              <i data-lucide="pencil" class="h-3.5 w-3.5 text-slate-500 flex-shrink-0"></i>
+              <span>修正</span>
+            </button>
+
+            <!-- ルート地図ボタン -->
             <button
               type="button"
               class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
@@ -1570,7 +1734,148 @@
         };
       });
 
+      container.querySelectorAll(".btn-edit-record").forEach(btn => {
+        btn.onclick = () => {
+          const idx = parseInt(btn.getAttribute("data-idx"), 10);
+          if (records[idx]) openEditRecordModal(records[idx]);
+        };
+      });
+
       refreshLucide();
+    }
+
+    // 活動記録の修正モーダル展開
+    function openEditRecordModal(r) {
+      currentEditRecord = r;
+      document.getElementById("editRecQuestId").textContent = "案件 #" + (r.questId || "----");
+      document.getElementById("editRecDriver").textContent = `${r.driverName || 'ドライバー'} 様 (ID: ${r.driverId || '----'})`;
+      document.getElementById("editRecTimeStats").textContent = `${r.recordDate || '----'} / 所要: ${r.duration || 0}分`;
+
+      const isOneWay = String(r.tripType || '').includes('片道');
+      const radioRound = document.querySelector('input[name="editTripType"][value="往復"]');
+      const radioOneWay = document.querySelector('input[name="editTripType"][value="片道"]');
+      if (isOneWay) {
+        radioOneWay.checked = true;
+      } else {
+        radioRound.checked = true;
+      }
+      handleEditTripTypeChange();
+
+      document.getElementById("editOneWayDist").value = r.oneWayDistance !== undefined ? r.oneWayDistance : 0;
+      document.getElementById("editOtherExpense").value = r.otherExpense !== undefined ? r.otherExpense : 0;
+      document.getElementById("editPassengers").value = r.passengers || "";
+
+      recalculateEditPreview();
+
+      document.getElementById("editRecordModal").classList.remove("hidden");
+      refreshLucide();
+    }
+
+    function closeEditRecordModal() {
+      document.getElementById("editRecordModal").classList.add("hidden");
+      currentEditRecord = null;
+    }
+
+    function handleEditTripTypeChange() {
+      const isOneWay = document.querySelector('input[name="editTripType"]:checked').value === '片道';
+      const labelRound = document.getElementById("editLabelRound");
+      const labelOneWay = document.getElementById("editLabelOneWay");
+
+      if (isOneWay) {
+        labelOneWay.className = "flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-50/70 p-2 font-bold text-blue-700 cursor-pointer";
+        labelRound.className = "flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-600 cursor-pointer hover:bg-slate-50";
+      } else {
+        labelRound.className = "flex items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-50/70 p-2 font-bold text-blue-700 cursor-pointer";
+        labelOneWay.className = "flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white p-2 font-semibold text-slate-600 cursor-pointer hover:bg-slate-50";
+      }
+      recalculateEditPreview();
+    }
+
+    // 修正モーダル内のリアルタイム自動再計算
+    function recalculateEditPreview() {
+      const isOneWay = document.querySelector('input[name="editTripType"]:checked').value === '片道';
+      const oneWayKm = parseFloat(document.getElementById("editOneWayDist").value) || 0;
+      const otherExp = parseInt(document.getElementById("editOtherExpense").value, 10) || 0;
+      const passRaw = document.getElementById("editPassengers").value.trim();
+
+      const passList = passRaw ? passRaw.split(/[,、]/).map(s => s.trim()).filter(Boolean) : [];
+      const passCount = Math.max(1, passList.length);
+
+      const roundTripKm = Math.round(oneWayKm * 2 * 10) / 10;
+      const targetDist = isOneWay ? oneWayKm : roundTripKm;
+      const fuelFee = Math.round(targetDist * 20);
+      const totalPayout = fuelFee + otherExp;
+      const totalPassUnits = isOneWay ? passCount : (passCount * 2);
+
+      document.getElementById("prevDistance").textContent = `${targetDist.toFixed(1)} km`;
+      document.getElementById("prevFuelFee").textContent = `¥${fuelFee.toLocaleString()}`;
+      document.getElementById("prevPassengers").textContent = `${totalPassUnits} 人回`;
+      document.getElementById("prevTotalPayout").textContent = `¥${totalPayout.toLocaleString()}`;
+    }
+
+    // 修正内容の送信（上書き保存）
+    async function submitRecordEdit() {
+      if (!currentEditRecord) return;
+
+      const isOneWay = document.querySelector('input[name="editTripType"]:checked').value === '片道';
+      const oneWayKm = parseFloat(document.getElementById("editOneWayDist").value) || 0;
+      const otherExp = parseInt(document.getElementById("editOtherExpense").value, 10) || 0;
+      const passRaw = document.getElementById("editPassengers").value.trim();
+      const passList = passRaw ? passRaw.split(/[,、]/).map(s => s.trim()).filter(Boolean) : [];
+
+      const saveBtn = document.getElementById("btnSaveEditRecord");
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin"></i><span>保存中...</span>';
+      refreshLucide();
+
+      const tripType = isOneWay ? '片道' : '往復';
+      const roundTripKm = Math.round(oneWayKm * 2 * 10) / 10;
+
+      const payload = {
+        action: 'submitRecord',
+        questId: currentEditRecord.questId,
+        driverId: currentEditRecord.driverId,
+        driverName: currentEditRecord.driverName,
+        tripType: tripType,
+        tripPlan: tripType,
+        oneWayDistance: oneWayKm,
+        roundTripDistance: roundTripKm,
+        otherExpense: otherExp,
+        passengers: passList,
+        depTime: currentEditRecord.depTime,
+        arrTime: currentEditRecord.arrTime,
+        duration: currentEditRecord.duration,
+        isManualOverride: true, // 手動編集フラグ（GPS距離自動再計算の打ち消し防止）
+        depLat: currentEditRecord.depLat,
+        depLng: currentEditRecord.depLng,
+        arrLat: currentEditRecord.arrLat,
+        arrLng: currentEditRecord.arrLng,
+        arrMapUrl: currentEditRecord.arrMapUrl,
+        depMapUrl: currentEditRecord.depMapUrl
+      };
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=submitRecord`, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          closeEditRecordModal();
+          showToast(`案件 #${payload.questId} の活動記録を修正・再計算しました`);
+          fetchDashboardData();
+        } else {
+          await showCustomAlert(result.message || "修正の保存に失敗しました", "エラー");
+        }
+      } catch (e) {
+        await showCustomAlert("通信エラーが発生しました: " + e.message, "通信エラー");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5"></i><span>修正内容を保存する</span>';
+        refreshLucide();
+      }
     }
 
     function openRouteMapModal(r) {
@@ -1713,7 +2018,21 @@
 
       if ((!lat || !lng) && d.address) {
         try {
-          const query = d.address.includes('相模原') ? d.address : ('相模原市' + d.address);
+          const resGas = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(d.address)}&_t=${Date.now()}`);
+          const dataGas = await resGas.json();
+          if (dataGas && dataGas.pickupCoords && dataGas.pickupCoords.lat) {
+            lat = dataGas.pickupCoords.lat;
+            lng = dataGas.pickupCoords.lng;
+            d.lat = lat;
+            d.lng = lng;
+          }
+        } catch (e) {}
+      }
+
+      if ((!lat || !lng) && d.address) {
+        try {
+          let townAddr = d.address.replace(/[0-9０-９一二三四五六七八九十丁目番地号\-‐ー ]+/g, '').trim();
+          const query = townAddr.includes('相模原') ? townAddr : ('相模原市' + townAddr);
           const res = await fetch(`https://msearch.gsi.go.jp/address-search/queryString?q=${encodeURIComponent(query)}`);
           const data = await res.json();
           if (data && data.length > 0 && data[0].geometry && data[0].geometry.coordinates) {
@@ -1728,7 +2047,7 @@
       const center = (lat && lng) ? [lat, lng] : [35.586, 139.256];
       driverMapInstance = L.map('driverMapCanvas', {
         center: center,
-        zoom: (lat && lng) ? 15 : 14,
+        zoom: 15,
         zoomControl: true
       });
 
@@ -1737,18 +2056,18 @@
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(driverMapInstance);
 
-      if (lat && lng) {
-        const homeIcon = L.divIcon({
-          className: 'bg-transparent border-0',
-          html: `<div style="background-color:#16a34a; width:32px; height:32px; border-radius:50%; border:3px solid white; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:bold;">家</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-        L.marker([lat, lng], { icon: homeIcon })
-          .bindPopup(`<strong>${escapeHtml(d.name)} 様 自宅</strong><br>${escapeHtml(d.address)}`)
-          .addTo(driverMapInstance)
-          .openPopup();
-      }
+      const pinCoords = (lat && lng) ? [lat, lng] : center;
+      const homeIcon = L.divIcon({
+        className: 'bg-transparent border-0',
+        html: `<div style="background-color:#16a34a; width:34px; height:34px; border-radius:50%; border:3px solid white; box-shadow:0 3px 8px rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:bold;">家</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17]
+      });
+
+      L.marker(pinCoords, { icon: homeIcon })
+        .bindPopup(`<strong>${escapeHtml(d.name)} 様 自宅</strong><br>${escapeHtml(d.address || '相模原市')}`)
+        .addTo(driverMapInstance)
+        .openPopup();
 
       driverMapInstance.invalidateSize();
     }
@@ -2648,6 +2967,10 @@
       document.getElementById("btnCloseDriverMap").onclick = closeDriverMapModal;
       document.getElementById("btnCloseDriverMapBtn").onclick = closeDriverMapModal;
 
+      // 活動記録修正モーダルの閉じる制御
+      document.getElementById("btnCloseEditRecord").onclick = closeEditRecordModal;
+      document.getElementById("btnCancelEditRecord").onclick = closeEditRecordModal;
+
       const dModal = document.getElementById("driverRegisterModal");
       const dSuccessModal = document.getElementById("driverSuccessModal");
       const preRegSelect = document.getElementById("preRegSelect");
@@ -2713,13 +3036,11 @@
             dSuccessModal.classList.remove("hidden");
             refreshLucide();
             fetchDashboardData();
-            showToast("ドライバーを登録しました！");
+            showToast("ドライバーを登録しました");
           } else {
-            // ★標準alert()を排除しカスタムダイアログで表示
             await showCustomAlert(result.message || "登録に失敗しました", "登録エラー", "alert-circle", "text-red-600");
           }
         } catch (err) {
-          // ★標準alert()を排除しカスタムダイアログで表示
           await showCustomAlert("通信エラーが発生しました: " + err.message, "通信エラー", "alert-triangle", "text-red-600");
         } finally {
           submitBtn.disabled = false;
