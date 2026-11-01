@@ -62,6 +62,13 @@
         page-break-after: always !important;
         break-after: page !important;
       }
+      /* ★追加：受領書チケットの終了後に必ず改ページし、A4用紙1枚に集計表を出力 */
+      body.print-voucher .denom-summary-sheet {
+        page-break-before: always !important;
+        break-before: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
 
       /* 2. 市提出用実績報告書 印刷モード */
       body.print-report #annualReportModal,
@@ -523,46 +530,7 @@
         </div>
       </div>
 
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-            <i data-lucide="coins" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
-            <span>金種別 必要枚数</span>
-          </div>
-          <span class="text-[11px] text-slate-500">※各ドライバーの個別支給額から自動算出</span>
-        </div>
-        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 pt-1 text-center font-mono">
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">1万円札</span>
-            <span id="denom10000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">5千円札</span>
-            <span id="denom5000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">千円札</span>
-            <span id="denom1000" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">500円玉</span>
-            <span id="denom500" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">100円玉</span>
-            <span id="denom100" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">50円玉</span>
-            <span id="denom50" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-          <div class="rounded-lg bg-slate-50 p-2 border border-slate-100">
-            <span class="text-[11px] text-slate-500 block">10円玉</span>
-            <span id="denom10" class="text-base font-bold text-slate-900">0</span><span class="text-[10px] text-slate-500 ml-0.5">枚</span>
-          </div>
-        </div>
-      </div>
-
+      <!-- ★金種別カードを削除し、直接テーブルを表示 -->
       <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
@@ -2453,23 +2421,7 @@
       document.getElementById("settleTotalDistance").textContent = (Math.round(totalDist * 10) / 10).toFixed(1);
       document.getElementById("settleTotalPayout").textContent = totalPayout.toLocaleString();
 
-      const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
       const driverSummaryList = Object.values(driverMap).filter(d => d.trips > 0 || (d.id && d.id.startsWith("101")));
-
-      driverSummaryList.forEach(d => {
-        if (d.totalPayout > 0) {
-          const env = getEnvelopeBreakdown(d.totalPayout);
-          for (const k in bankTotals) bankTotals[k] += env[k];
-        }
-      });
-
-      document.getElementById("denom10000").textContent = bankTotals[10000];
-      document.getElementById("denom5000").textContent = bankTotals[5000];
-      document.getElementById("denom1000").textContent = bankTotals[1000];
-      document.getElementById("denom500").textContent = bankTotals[500];
-      document.getElementById("denom100").textContent = bankTotals[100];
-      document.getElementById("denom50").textContent = bankTotals[50];
-      document.getElementById("denom10").textContent = bankTotals[10];
 
       const tbody = document.getElementById("settleTableBody");
       tbody.innerHTML = "";
@@ -2580,6 +2532,118 @@
           listArea.appendChild(ticketWrap);
         }
       });
+
+      // ★受領書チケットの末尾に「銀行両替・準備用 金種別集計表」シートを添付
+      if (voucherCount > 0) {
+        const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
+        const detailRows = [];
+        let grandTotalPayout = 0;
+
+        sBodyRows.forEach(r => {
+          const cols = r.querySelectorAll("td");
+          if (cols.length < 8) return;
+          const id = cols[0].textContent.trim();
+          const name = cols[1].textContent.trim().replace(/ 様$/, '');
+          const trips = parseInt(cols[2].textContent.trim(), 10) || 0;
+          const totalStr = cols[7].textContent.trim();
+          const amtNum = parseInt(totalStr.replace(/[^0-9]/g, ""), 10) || 0;
+
+          if (amtNum > 0 || trips > 0) {
+            const env = getEnvelopeBreakdown(amtNum);
+            for (const k in bankTotals) bankTotals[k] += env[k];
+            grandTotalPayout += amtNum;
+            detailRows.push({ id, name, trips, amtNum, env, memo: formatDenomMemo(env) });
+          }
+        });
+
+        const denomSheet = document.createElement("div");
+        denomSheet.className = "denom-summary-sheet border border-slate-300 rounded-lg p-6 bg-white mt-6";
+        denomSheet.style.fontFamily = "'Hiragino Mincho ProN', 'Yu Mincho', serif";
+
+        denomSheet.innerHTML = `
+          <div class="border-b-2 border-slate-900 pb-3 mb-4">
+            <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
+              <span>おでかけサポート送迎支援事業</span>
+              <span>対象期間: ${periodText}</span>
+            </div>
+            <h2 class="text-center text-lg font-bold tracking-widest mt-1 text-slate-900" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+              実費弁償 金種別集計表（銀行両替・封筒準備用控え）
+            </h2>
+          </div>
+
+          <div class="flex justify-between items-baseline mb-4 text-xs">
+            <div>対象ドライバー数: <strong class="font-mono text-sm">${voucherCount}</strong> 名</div>
+            <div>支給総額合計: <strong class="font-mono text-xl font-black text-slate-900 ml-2">¥ ${grandTotalPayout.toLocaleString()} -</strong></div>
+          </div>
+
+          <!-- 金種別 必要枚数表 -->
+          <div class="mb-5">
+            <h3 class="text-xs font-bold text-slate-800 mb-2" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+              ■ 銀行両替・準備 必要枚数
+            </h3>
+            <table class="w-full text-center text-xs border-collapse border border-slate-300">
+              <thead class="bg-slate-100 font-bold">
+                <tr>
+                  <th class="border border-slate-300 py-1.5">金種</th>
+                  <th class="border border-slate-300 py-1.5">1万円札</th>
+                  <th class="border border-slate-300 py-1.5">5千円札</th>
+                  <th class="border border-slate-300 py-1.5">千円札</th>
+                  <th class="border border-slate-300 py-1.5">500円玉</th>
+                  <th class="border border-slate-300 py-1.5">100円玉</th>
+                  <th class="border border-slate-300 py-1.5">50円玉</th>
+                  <th class="border border-slate-300 py-1.5">10円玉</th>
+                </tr>
+              </thead>
+              <tbody class="font-mono font-bold text-sm">
+                <tr>
+                  <td class="border border-slate-300 py-2 bg-slate-50 font-sans text-xs">必要枚数</td>
+                  <td class="border border-slate-300 py-2">${bankTotals[10000]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[5000]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[1000]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[500]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[100]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[50]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                  <td class="border border-slate-300 py-2">${bankTotals[10]} <span class="text-[10px] font-normal text-slate-500">枚</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ドライバー別 金種内訳明細一覧 -->
+          <div>
+            <h3 class="text-xs font-bold text-slate-800 mb-2" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+              ■ 各自封筒 封入内訳明細
+            </h3>
+            <table class="w-full text-left text-[11px] border-collapse border border-slate-300">
+              <thead class="bg-slate-100 text-slate-700">
+                <tr>
+                  <th class="border border-slate-300 py-1 px-2 w-16">番号</th>
+                  <th class="border border-slate-300 py-1 px-2 w-28">氏名</th>
+                  <th class="border border-slate-300 py-1 px-2 text-right w-16">回数</th>
+                  <th class="border border-slate-300 py-1 px-2 text-right w-24">支給金額</th>
+                  <th class="border border-slate-300 py-1 px-2">金種内訳メモ（封入用）</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${detailRows.map(d => `
+                  <tr>
+                    <td class="border border-slate-300 py-1 px-2 font-mono">${escapeHtml(d.id)}</td>
+                    <td class="border border-slate-300 py-1 px-2 font-bold">${escapeHtml(d.name)} 様</td>
+                    <td class="border border-slate-300 py-1 px-2 text-right font-mono">${d.trips} 回</td>
+                    <td class="border border-slate-300 py-1 px-2 text-right font-mono font-bold">¥${d.amtNum.toLocaleString()}</td>
+                    <td class="border border-slate-300 py-1 px-2 font-mono text-slate-600">${escapeHtml(d.memo)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 text-[10px] text-slate-500 text-right">
+            作成日時: ${new Date().toLocaleString('ja-JP')} / おでかけサポート事務局
+          </div>
+        `;
+        listArea.appendChild(denomSheet);
+      }
 
       if (voucherCount === 0) {
         listArea.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">対象期間内の受領書発行対象データはありません</div>`;
