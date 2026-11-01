@@ -1656,7 +1656,7 @@
       attachEventHandlers();
     }
 
-    // 活動記録ログ一覧描画（「修正」ボタン追加）
+    // 活動記録ログ一覧描画（集合場所・目的地の名称表示 & 目安ルートボタン追加）
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1674,22 +1674,51 @@
       container.innerHTML = "";
 
       records.forEach((r, idx) => {
+        // ★案件マスタから集合場所（出発地）と目的地（行先）を取得
+        const q = quests.find(item => String(item.id) === String(r.questId));
+        const pickup = q ? q.pickup : '未指定';
+        const dropoff = q ? q.dropoff : '未指定';
+
+        // ★Googleマップで検索する「目安ルート」リンクURLの生成
+        const depLatLng = extractLatLng(r.depLat, r.depLng, r.depMapUrl);
+        const arrLatLng = extractLatLng(r.arrLat, r.arrLng, r.arrMapUrl);
+
+        let navUrl = '';
+        if (pickup !== '未指定' && dropoff !== '未指定') {
+          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
+        } else if (depLatLng && arrLatLng) {
+          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${depLatLng[0]},${depLatLng[1]}&destination=${arrLatLng[0]},${arrLatLng[1]}&travelmode=driving`;
+        } else if (dropoff !== '未指定') {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dropoff)}`;
+        } else if (arrLatLng) {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${arrLatLng[0]},${arrLatLng[1]}`;
+        }
+
         const item = document.createElement("div");
         item.className = "flex flex-col gap-2 p-3.5 transition hover:bg-slate-50 text-xs sm:flex-row sm:items-center sm:justify-between";
         item.innerHTML = `
-          <div class="space-y-1 min-w-0 flex-1">
+          <div class="space-y-1.5 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-mono font-bold text-slate-600 whitespace-nowrap">#${escapeHtml(r.questId || '----')}</span>
               <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-700 whitespace-nowrap">${escapeHtml(r.tripType)}</span>
               <span class="text-slate-500 flex items-center gap-1 whitespace-nowrap"><i data-lucide="clock" class="h-3 w-3 flex-shrink-0"></i>${escapeHtml(r.recordDate)}</span>
               <span class="text-slate-500 whitespace-nowrap">所要: <strong>${r.duration}分</strong></span>
             </div>
-            <div class="flex flex-wrap items-center gap-3 text-slate-800">
+
+            <!-- ★集合場所（出発地）と目的地（行先）の名称表示 -->
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-900 truncate">
+              <span class="text-slate-700 truncate">${escapeHtml(pickup)}</span>
+              <i data-lucide="arrow-right" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
+              <span class="text-blue-700 truncate">${escapeHtml(dropoff)}</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
               <span class="whitespace-nowrap">担当: <strong>${escapeHtml(r.driverName)}</strong> (ID:${escapeHtml(r.driverId)})</span>
               <span class="whitespace-nowrap">乗客: <strong>${escapeHtml(r.passengers || '同乗者なし')}</strong> (${r.totalPassengers}人回)</span>
               <span class="whitespace-nowrap">実走距離: <strong>${r.oneWayDistance}km</strong> (往復換算:${r.roundTripDistance}km)</span>
             </div>
           </div>
+
           <div class="flex items-center gap-2 pt-1 sm:pt-0 flex-shrink-0">
             <div class="text-right mr-1">
               <span class="text-[11px] text-slate-400 block whitespace-nowrap">実費弁償額</span>
@@ -1707,19 +1736,27 @@
               <span>修正</span>
             </button>
 
-            <!-- ルート地図ボタン -->
+            <!-- ルート地図（実際に記録された2地点のLeafletマップ）ボタン -->
             <button
               type="button"
               class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
               data-idx="${idx}"
             >
-              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
+              <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
               <span>ルート地図</span>
             </button>
 
-            ${r.arrMapUrl ? `
-              <a href="${escapeHtml(r.arrMapUrl)}" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:text-blue-600 hover:border-blue-300 shadow-2xs flex-shrink-0" title="Googleマップ単体で開く">
-                <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            <!-- ★目安ルート（Googleマップで検索した推奨ルート）ボタン -->
+            ${navUrl ? `
+              <a
+                href="${escapeHtml(navUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
+                title="Googleマップで推奨・目安ルートを開く"
+              >
+                <i data-lucide="navigation" class="h-3.5 w-3.5 text-slate-600 flex-shrink-0"></i>
+                <span>目安ルート</span>
               </a>
             ` : ''}
           </div>
