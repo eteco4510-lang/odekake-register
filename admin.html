@@ -331,12 +331,11 @@
               <button
                 type="button"
                 id="btnClearDates"
-                class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-500 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0"
+                class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 font-bold transition active:scale-95 whitespace-nowrap flex-shrink-0"
               >
                 全期間
               </button>
             </div>
-          </div>
 
           <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
             <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs whitespace-nowrap flex-shrink-0" data-filter="recruiting">募集中</button>
@@ -2954,10 +2953,30 @@
         renderQuests();
       };
 
+      // 期間ボタンスタイル定義（非アクティブ / アクティブ青）
+      const PERIOD_INACTIVE_CLS = "rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0";
+      const PERIOD_ACTIVE_CLS = "rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 font-bold transition active:scale-95 whitespace-nowrap flex-shrink-0";
+
+      // 運行管理側のアクティブ切り替え関数
+      function setActiveOpsPeriodBtn(activeId) {
+        ["btnQuickThisMonth", "btnQuickNextMonth", "btnClearDates"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
+        });
+      }
+
+      // 実費精算側のアクティブ切り替え関数
+      function setActiveSettlePeriodBtn(activeId) {
+        ["btnSettleThisMonth", "btnSettleLastMonth", "btnSettleFiscalYear", "btnSettleAll"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
+        });
+      }
+
       const startDateInput = document.getElementById("startDateInput");
       const endDateInput = document.getElementById("endDateInput");
-      startDateInput.onchange = renderQuests;
-      endDateInput.onchange = renderQuests;
+      startDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
+      endDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
 
       document.getElementById("btnQuickThisMonth").onclick = () => {
         const now = new Date();
@@ -2965,6 +2984,7 @@
         const m = now.getMonth();
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveOpsPeriodBtn("btnQuickThisMonth");
         renderQuests();
         showToast("「今月」を設定しました");
       };
@@ -2976,6 +2996,7 @@
         const m = nextMonthDate.getMonth();
         startDateInput.value = formatLocalYMD(y, m, 1);
         endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveOpsPeriodBtn("btnQuickNextMonth");
         renderQuests();
         showToast("「来月」を設定しました");
       };
@@ -2983,7 +3004,56 @@
       document.getElementById("btnClearDates").onclick = () => {
         startDateInput.value = "";
         endDateInput.value = "";
+        setActiveOpsPeriodBtn("btnClearDates");
         renderQuests();
+        showToast("全期間を表示します");
+      };
+
+      const settleStart = document.getElementById("settleStartDate");
+      const settleEnd = document.getElementById("settleEndDate");
+      settleStart.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
+      settleEnd.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
+
+      document.getElementById("btnSettleThisMonth").onclick = () => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        settleStart.value = formatLocalYMD(y, m, 1);
+        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveSettlePeriodBtn("btnSettleThisMonth");
+        updateSettlementView();
+        showToast("「今月」を設定しました");
+      };
+
+      document.getElementById("btnSettleLastMonth").onclick = () => {
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const y = prev.getFullYear();
+        const m = prev.getMonth();
+        settleStart.value = formatLocalYMD(y, m, 1);
+        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveSettlePeriodBtn("btnSettleLastMonth");
+        updateSettlementView();
+        showToast("「先月」を設定しました");
+      };
+
+      document.getElementById("btnSettleFiscalYear").onclick = () => {
+        const now = new Date();
+        const curY = now.getFullYear();
+        const curM = now.getMonth();
+        const fyStart = (curM >= 3) ? curY : curY - 1;
+        settleStart.value = `${fyStart}-04-01`;
+        settleEnd.value = `${fyStart + 1}-03-31`;
+        setActiveSettlePeriodBtn("btnSettleFiscalYear");
+        updateSettlementView();
+        showToast("「今年度」を設定しました");
+      };
+
+      document.getElementById("btnSettleAll").onclick = () => {
+        settleStart.value = "";
+        settleEnd.value = "";
+        setActiveSettlePeriodBtn("btnSettleAll");
+        updateSettlementView();
         showToast("全期間を表示します");
       };
 
@@ -3006,10 +3076,66 @@
         };
       });
 
+      // 期間ボタンスタイル定義（非アクティブ / アクティブ青）
+      const PERIOD_INACTIVE_CLS = "rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0";
+      const PERIOD_ACTIVE_CLS = "rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 font-bold transition active:scale-95 whitespace-nowrap flex-shrink-0";
+
+      // 運行管理側のアクティブ切り替え関数
+      function setActiveOpsPeriodBtn(activeId) {
+        ["btnQuickThisMonth", "btnQuickNextMonth", "btnClearDates"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
+        });
+      }
+
+      // 実費精算側のアクティブ切り替え関数
+      function setActiveSettlePeriodBtn(activeId) {
+        ["btnSettleThisMonth", "btnSettleLastMonth", "btnSettleFiscalYear", "btnSettleAll"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
+        });
+      }
+
+      const startDateInput = document.getElementById("startDateInput");
+      const endDateInput = document.getElementById("endDateInput");
+      startDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
+      endDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
+
+      document.getElementById("btnQuickThisMonth").onclick = () => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        startDateInput.value = formatLocalYMD(y, m, 1);
+        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveOpsPeriodBtn("btnQuickThisMonth");
+        renderQuests();
+        showToast("「今月」を設定しました");
+      };
+
+      document.getElementById("btnQuickNextMonth").onclick = () => {
+        const now = new Date();
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const y = nextMonthDate.getFullYear();
+        const m = nextMonthDate.getMonth();
+        startDateInput.value = formatLocalYMD(y, m, 1);
+        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveOpsPeriodBtn("btnQuickNextMonth");
+        renderQuests();
+        showToast("「来月」を設定しました");
+      };
+
+      document.getElementById("btnClearDates").onclick = () => {
+        startDateInput.value = "";
+        endDateInput.value = "";
+        setActiveOpsPeriodBtn("btnClearDates");
+        renderQuests();
+        showToast("全期間を表示します");
+      };
+
       const settleStart = document.getElementById("settleStartDate");
       const settleEnd = document.getElementById("settleEndDate");
-      settleStart.onchange = updateSettlementView;
-      settleEnd.onchange = updateSettlementView;
+      settleStart.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
+      settleEnd.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
 
       document.getElementById("btnSettleThisMonth").onclick = () => {
         const now = new Date();
@@ -3017,7 +3143,9 @@
         const m = now.getMonth();
         settleStart.value = formatLocalYMD(y, m, 1);
         settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveSettlePeriodBtn("btnSettleThisMonth");
         updateSettlementView();
+        showToast("「今月」を設定しました");
       };
 
       document.getElementById("btnSettleLastMonth").onclick = () => {
@@ -3027,7 +3155,9 @@
         const m = prev.getMonth();
         settleStart.value = formatLocalYMD(y, m, 1);
         settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
+        setActiveSettlePeriodBtn("btnSettleLastMonth");
         updateSettlementView();
+        showToast("「先月」を設定しました");
       };
 
       document.getElementById("btnSettleFiscalYear").onclick = () => {
@@ -3037,6 +3167,7 @@
         const fyStart = (curM >= 3) ? curY : curY - 1;
         settleStart.value = `${fyStart}-04-01`;
         settleEnd.value = `${fyStart + 1}-03-31`;
+        setActiveSettlePeriodBtn("btnSettleFiscalYear");
         updateSettlementView();
         showToast("「今年度」を設定しました");
       };
@@ -3044,6 +3175,7 @@
       document.getElementById("btnSettleAll").onclick = () => {
         settleStart.value = "";
         settleEnd.value = "";
+        setActiveSettlePeriodBtn("btnSettleAll");
         updateSettlementView();
         showToast("全期間を表示します");
       };
