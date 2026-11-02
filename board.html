@@ -41,13 +41,13 @@
       display: inline-block;
       flex-shrink: 0;
     }
-    button {
+    button, a {
       white-space: nowrap !important;
     }
     header {
       background: #FFFFFF;
       border-bottom: 1px solid #E5E5EA;
-      padding: 12px 16px;
+      padding: 14px 16px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -59,48 +59,49 @@
       justify-content: space-between;
       align-items: center;
     }
-    .brand-title {
-      font-size: 1.15rem;
-      font-weight: 700;
+    .header-title {
+      font-size: 1.05rem;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 6px;
     }
     .driver-badge {
-      font-size: 0.8rem;
-      background: #EFF6FF;
-      color: var(--primary-blue);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #E8F2FF;
+      color: var(--primary-blue);
+      padding: 4px 10px;
+      border-radius: 20px;
     }
     .btn-logout {
       background: none;
       border: none;
       color: var(--text-muted);
-      cursor: pointer;
       font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 4px;
       text-decoration: underline;
-      padding-left: 4px;
     }
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 14px;
+      padding: 16px;
     }
     .card {
       background: var(--card-bg);
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      margin-bottom: 14px;
+      border-radius: 16px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       border: 0.5px solid var(--border-color);
+      margin-bottom: 16px;
     }
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .form-group label {
       display: flex;
@@ -109,30 +110,32 @@
       font-size: 0.85rem;
       font-weight: 700;
       margin-bottom: 6px;
+      color: var(--text-main);
     }
     input[type="tel"] {
       width: 100%;
-      height: 48px;
+      height: 46px;
       border: 1.5px solid #E5E5EA;
-      border-radius: 12px;
-      padding: 0 14px;
+      border-radius: 10px;
+      padding: 0 12px;
       font-size: 1.05rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text-main);
       background: #FAFAFA;
       outline: none;
-      transition: border-color 0.2s;
     }
     input:focus {
       border-color: var(--primary-blue);
-      background: #FFF;
+      background: #FFFFFF;
     }
     .btn-action {
       width: 100%;
       height: 48px;
+      background: var(--primary-blue);
+      border: none;
       border-radius: 12px;
       font-size: 1rem;
-      font-weight: 700;
-      border: none;
-      background: var(--primary-blue);
+      font-weight: 800;
       color: #FFF;
       cursor: pointer;
       display: flex;
@@ -154,120 +157,162 @@
       align-items: center;
       gap: 6px;
       margin-bottom: 12px;
-      transition: background 0.15s ease;
     }
     .btn-refresh:active {
-      background: #F2F2F7;
+      background: var(--surface-secondary);
     }
     .status-bar {
       font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      text-align: right;
+      margin-bottom: 8px;
     }
+
+    /* 案件カード */
     .quest-card {
-      background: #FFF;
+      background: var(--card-bg);
       border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      border: 1px solid #E5E5EA;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 0.5px solid var(--border-color);
       margin-bottom: 12px;
+      position: relative;
     }
     .quest-card.urgent {
-      border-color: #F87171;
-      background: #FFF5F5;
+      border: 2px solid var(--danger-red);
+      background: #FFFBFB;
     }
-    .urgent-banner {
-      background: #EF4444;
-      color: #FFF;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 6px;
+    .urgent-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      background: var(--danger-red);
+      color: #FFF;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
       margin-bottom: 8px;
     }
     .quest-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      align-items: baseline;
+      margin-bottom: 6px;
     }
     .quest-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
       font-weight: 800;
-      font-size: 0.9rem;
       color: var(--text-muted);
     }
-    .quest-time-badge {
-      background: #EFF6FF;
-      color: var(--primary-blue);
-      font-weight: 700;
-      font-size: 0.8rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+    .quest-datetime {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text-main);
     }
     .trip-plan-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
+      color: var(--primary-blue);
+      background: #EFF6FF;
       padding: 2px 8px;
       border-radius: 6px;
       margin-bottom: 8px;
-      background: #F1F5F9;
-      color: #334155;
     }
     .quest-route {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 1rem;
-      font-weight: 800;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
       margin-bottom: 8px;
+      padding: 8px 10px;
+      background: var(--surface-secondary);
+      border-radius: 8px;
     }
     .quest-details {
       font-size: 0.82rem;
       color: var(--text-muted);
-      border-top: 1px dashed #E5E5EA;
-      padding-top: 8px;
+      line-height: 1.4;
       margin-bottom: 12px;
-      line-height: 1.5;
     }
-    .btn-accept {
-      width: 100%;
-      height: 44px;
-      border-radius: 10px;
-      background: var(--system-green);
-      color: #FFF;
-      font-weight: 800;
-      font-size: 0.95rem;
-      border: none;
-      cursor: pointer;
+
+    /* アクションボタングループ（目安ルート ＆ 受託） */
+    .quest-actions {
       display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .btn-route-preview {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      box-shadow: 0 3px 10px rgba(40, 205, 65, 0.25);
+      height: 48px;
+      padding: 0 14px;
+      background: #FFFFFF;
+      color: var(--text-main);
+      border: 1.5px solid #E5E5EA;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
     }
+    .btn-route-preview:active {
+      background: var(--surface-secondary);
+      border-color: #D1D1D6;
+    }
+    .btn-accept {
+      flex: 1;
+      width: 100%;
+      height: 48px;
+      background: var(--primary-blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 0;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+      white-space: nowrap;
+    }
+    .btn-accept:active {
+      background: var(--primary-hover);
+    }
+    .btn-accept:disabled {
+      background: #C7C7CC;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* 空表示 */
     .empty-box {
       text-align: center;
-      padding: 40px 10px;
+      padding: 40px 16px;
       color: var(--text-muted);
       font-size: 0.9rem;
       font-weight: 600;
     }
+
+    /* iOS風 カスタム確認ダイアログ */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 0, 0, 0.45);
       z-index: 200;
       display: flex;
       align-items: center;
@@ -276,39 +321,55 @@
       backdrop-filter: blur(6px);
     }
     .modal-card {
-      background: #FFF;
+      background: #FFFFFF;
       border-radius: 20px;
       width: 100%;
-      max-width: 380px;
+      max-width: 340px;
       padding: 22px 18px;
       text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border: 0.5px solid var(--border-color);
     }
     .modal-title {
       font-size: 1.15rem;
       font-weight: 800;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .modal-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
+    .modal-message {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      text-align: left;
+      background: var(--surface-secondary);
+      padding: 12px;
+      border-radius: 12px;
+      margin: 12px 0 16px 0;
+    }
+    .modal-btn-row {
+      display: flex;
+      gap: 8px;
     }
     .btn-modal-cancel {
+      flex: 1;
       height: 44px;
-      background: var(--surface-secondary);
+      background: #E5E5EA;
       border: none;
       border-radius: 10px;
       font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
       cursor: pointer;
     }
     .btn-modal-confirm {
+      flex: 1;
       height: 44px;
       background: var(--primary-blue);
       border: none;
       border-radius: 10px;
       font-weight: 700;
-      color: #FFF;
+      font-size: 0.95rem;
+      color: #FFFFFF;
       cursor: pointer;
     }
     @keyframes spin {
@@ -324,12 +385,15 @@
 
   <header>
     <div class="header-content">
-      <div class="brand-title">
+      <div class="header-title">
         <i data-lucide="car"></i>
         <span>運行掲示板</span>
       </div>
-      <div id="driverBadgeArea" style="display:none;" class="driver-badge">
-        <span id="dispDriverName">ドライバー</span>
+      <div id="driverBadgeArea" style="display:none; align-items:center; gap:8px;">
+        <div class="driver-badge">
+          <i data-lucide="user-check"></i>
+          <span id="dispDriverName">ドライバー</span>
+        </div>
         <button type="button" class="btn-logout" onclick="logoutDriver()">解除</button>
       </div>
     </div>
@@ -385,8 +449,8 @@
     <div class="modal-card">
       <div id="customDialogIconArea" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
       <h3 id="customDialogTitle" class="modal-title">通知</h3>
-      <div id="customDialogMessage" style="font-size:0.9rem; color:var(--text-main); line-height:1.5; white-space:pre-wrap; text-align:left; background:var(--surface-secondary); padding:12px; border-radius:12px;"></div>
-      <div class="modal-buttons" id="customDialogButtons">
+      <div id="customDialogMessage" class="modal-message"></div>
+      <div class="modal-btn-row">
         <button type="button" class="btn-modal-cancel" id="btnDialogCancel" onclick="closeCustomDialog(false)">キャンセル</button>
         <button type="button" class="btn-modal-confirm" id="btnDialogOk" onclick="closeCustomDialog(true)">OK</button>
       </div>
@@ -429,13 +493,11 @@
     let customDialogResolve = null;
     function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
       return new Promise((resolve) => {
-        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:44px; height:44px; color:${iconColor};"></i>`;
+        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:42px; height:42px; color:${iconColor};"></i>`;
         document.getElementById('customDialogTitle').textContent = title;
         document.getElementById('customDialogMessage').textContent = message;
         document.getElementById('btnDialogCancel').style.display = 'none';
-        const okBtn = document.getElementById('btnDialogOk');
-        okBtn.style.gridColumn = '1 / -1';
-        okBtn.textContent = '閉じる';
+        document.getElementById('btnDialogOk').textContent = '閉じる';
         customDialogResolve = resolve;
         document.getElementById('customDialogOverlay').style.display = 'flex';
         refreshLucide();
@@ -444,13 +506,12 @@
 
     function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--primary-blue)') {
       return new Promise((resolve) => {
-        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:44px; height:44px; color:${iconColor};"></i>`;
+        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:42px; height:42px; color:${iconColor};"></i>`;
         document.getElementById('customDialogTitle').textContent = title;
         document.getElementById('customDialogMessage').textContent = message;
         document.getElementById('btnDialogCancel').style.display = 'block';
-        const okBtn = document.getElementById('btnDialogOk');
-        okBtn.style.gridColumn = '';
-        okBtn.textContent = 'はい';
+        document.getElementById('btnDialogCancel').textContent = 'やめる';
+        document.getElementById('btnDialogOk').textContent = '受託する';
         customDialogResolve = resolve;
         document.getElementById('customDialogOverlay').style.display = 'flex';
         refreshLucide();
@@ -500,6 +561,7 @@
           }
         } catch (e) {}
       }
+
       fetchBoardQuests(false);
       refreshLucide();
     }
@@ -520,11 +582,11 @@
     }
 
     async function executeAuth(targetId = null, targetPhone4 = null) {
-      const driverId = targetId || document.getElementById('authDriverId').value.trim();
-      const phone4 = targetPhone4 || document.getElementById('authPhone4').value.trim();
+      const dId = targetId || document.getElementById('authDriverId').value.trim();
+      const p4 = targetPhone4 || document.getElementById('authPhone4').value.trim();
 
-      if (!driverId || !phone4) {
-        await showCustomAlert('登録番号と暗証番号を入力してください。', '入力確認', 'alert-circle', 'var(--warn-amber)');
+      if (!dId || !p4) {
+        await showCustomAlert('ドライバー登録番号と電話番号の下4桁を入力してください。', '入力確認', 'alert-circle', 'var(--warn-amber)');
         return false;
       }
 
@@ -536,13 +598,22 @@
       }
 
       try {
-        const cacheBuster = `&_t=${Date.now()}`;
-        const url = `${GAS_API_URL}?action=authDriver&driverId=${encodeURIComponent(driverId)}&phone4=${encodeURIComponent(phone4)}&lineUserId=${encodeURIComponent(lineUserId)}${cacheBuster}`;
-        const res = await (await fetch(url)).json();
+        const payload = {
+          action: 'authDriver',
+          driverId: dId,
+          phone4: p4,
+          lineUserId: lineUserId
+        };
+
+        const res = await (await fetch(`${GAS_API_URL}?action=authDriver`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload)
+        })).json();
 
         if (res.success && res.driver) {
           currentDriver = res.driver;
-          localStorage.setItem('odekake_driver', JSON.stringify(currentDriver));
+          localStorage.setItem('odekake_driver', JSON.stringify(res.driver));
           showBoardView();
           if (targetId) {
             await showCustomAlert(`ようこそ、${res.driver.name} 様！\n掲示板への自動ログインが完了しました。`, '認証完了', 'check-circle-2', 'var(--system-green)');
@@ -566,34 +637,33 @@
       }
     }
 
-    // ★修正：LucideのSVG再生成後も確実に回転を止める処理
     async function fetchBoardQuests(isManualRefresh = false) {
       const listArea = document.getElementById('questListArea');
       const statusBar = document.getElementById('syncStatusBar');
       const btn = document.getElementById('btnRefresh');
 
-      // その瞬間にボタン内に実在するアイコン要素（svgまたはi）を取得する関数
       const getIcon = () => btn ? btn.querySelector('svg, i') : null;
-      const icon = getIcon();
 
-      if (icon) icon.classList.add('animate-spin');
-      if (btn) btn.disabled = true;
-
-      if (listArea.children.length === 0) {
-        listArea.innerHTML = `<div class="empty-box"><i data-lucide="loader-2" class="animate-spin" style="width:28px; height:28px; color:var(--primary-blue); margin: 0 auto;"></i><p style="margin-top:6px;">案件を取得中...</p></div>`;
-        refreshLucide();
+      if (isManualRefresh && btn) {
+        btn.disabled = true;
+        const icon = getIcon();
+        if (icon) icon.classList.add('animate-spin');
+        if (statusBar) statusBar.textContent = '最新情報を取得中...';
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       try {
         const cacheBuster = `&_t=${Date.now()}`;
-        const url = `${GAS_API_URL}?action=getOpenQuests${cacheBuster}`;
-        const res = await (await fetch(url, { signal: controller.signal })).json();
+        const res = await fetch(`${GAS_API_URL}?action=getBoardQuests${cacheBuster}`, {
+          signal: controller.signal
+        });
         clearTimeout(timeoutId);
 
-        const quests = res.quests || res.data || [];
+        const data = await res.json();
+        const quests = (data && data.success) ? (data.quests || []) : [];
+
         currentQuests = quests;
         localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(quests));
         renderQuests(quests);
@@ -608,7 +678,6 @@
           statusBar.textContent = (e.name === 'AbortError') ? '通信タイムアウト' : '更新エラー';
         }
       } finally {
-        // 通信完了時に実在する最新のアイコン要素から回転を確実に解除
         const currentIcon = getIcon();
         if (currentIcon) currentIcon.classList.remove('animate-spin');
         if (btn) btn.disabled = false;
@@ -627,30 +696,56 @@
 
       listArea.innerHTML = '';
       quests.forEach(q => {
-        const isUrgent = !!q.isUrgent;
-        const card = document.createElement('div');
-        card.className = isUrgent ? 'quest-card urgent' : 'quest-card';
+        const urgentClass = q.isUrgent ? 'urgent' : '';
 
+        // ★Googleマップで検索する「目安ルート」リンクURLの生成
+        let navUrl = '';
+        if (q.pickup && q.dropoff) {
+          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(q.pickup)}&destination=${encodeURIComponent(q.dropoff)}&travelmode=driving`;
+        } else if (q.dropoff) {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q.dropoff)}`;
+        } else if (q.pickup) {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q.pickup)}`;
+        }
+
+        const card = document.createElement('div');
+        card.className = `quest-card ${urgentClass}`;
         card.innerHTML = `
-          ${isUrgent ? `<div class="urgent-banner"><i data-lucide="alert-circle"></i><span>運行日が迫っています</span></div>` : ''}
+          ${q.isUrgent ? `<div class="urgent-badge"><i data-lucide="alert-triangle"></i><span>【至急】直前募集中</span></div>` : ''}
           <div class="quest-header">
-            <span class="quest-id">案件 #${escapeHtml(q.id)}</span>
-            <span class="quest-time-badge"><i data-lucide="clock"></i> 集合: ${escapeHtml(q.dateText)}</span>
+            <span class="quest-id">#${escapeHtml(q.id)}</span>
+            <span class="quest-datetime">${escapeHtml(q.targetDate || '')} ${escapeHtml(q.targetTime || '')} 集合</span>
           </div>
           ${createTripBadgeHtml(q.tripPlan)}
           <div class="quest-route">
-            <span>${escapeHtml(q.pickup)}</span>
-            <i data-lucide="arrow-right" style="color:var(--text-muted);"></i>
-            <span style="color:var(--primary-blue);">${escapeHtml(q.dropoff)}</span>
+            <span style="flex:1; word-break:break-all;">${escapeHtml(q.pickup)}</span>
+            <i data-lucide="arrow-right" style="color:var(--text-muted); flex-shrink:0;"></i>
+            <span style="flex:1; word-break:break-all; color:var(--primary-blue);">${escapeHtml(q.dropoff)}</span>
           </div>
           <div class="quest-details">
             <div><strong>乗車人数:</strong> ${escapeHtml(q.passengers || '1名')} / ${escapeHtml(q.userNameMasked || '登録利用者 様')}</div>
             ${q.note ? `<div style="margin-top:2px;"><strong>備考:</strong> ${escapeHtml(q.note)}</div>` : ''}
           </div>
-          <button type="button" class="btn-accept" onclick="confirmAcceptQuest('${escapeHtml(q.id)}')">
-            <i data-lucide="check"></i>
-            <span>この案件を受託する</span>
-          </button>
+
+          <!-- アクションボタン群（目安ルート ＆ 受託ボタン） -->
+          <div class="quest-actions">
+            ${navUrl ? `
+              <a
+                href="${escapeHtml(navUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-route-preview"
+                title="Googleマップで推奨・目安ルートを開く"
+              >
+                <i data-lucide="navigation"></i>
+                <span>目安ルート</span>
+              </a>
+            ` : ''}
+            <button type="button" class="btn-accept" onclick="confirmAcceptQuest('${escapeHtml(q.id)}')">
+              <i data-lucide="check"></i>
+              <span>受託する</span>
+            </button>
+          </div>
         `;
         listArea.appendChild(card);
       });
@@ -665,10 +760,10 @@
       }
 
       const quest = currentQuests.find(q => String(q.id) === String(qid));
-      const qText = quest ? `【案件 #${qid}】\n日時: ${quest.dateText}\n行先: ${quest.dropoff}\n利用者: ${quest.userNameMasked}` : `案件 #${qid}`;
+      const qText = quest ? `【案件 #${qid}】\n日時: ${quest.targetDate} ${quest.targetTime} 集合\n行先: ${quest.dropoff}\n利用者: ${quest.userNameMasked}` : `案件 #${qid}`;
 
       const ok = await showCustomConfirm(
-        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ案内が届きます。`,
+        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ運行案内が届きます。`,
         '受託の確認',
         'car',
         'var(--system-green)'
@@ -676,16 +771,17 @@
       if (!ok) return;
 
       isProcessingAccept = true;
+
       try {
         const cacheBuster = `&_t=${Date.now()}`;
         const url = `${GAS_API_URL}?action=acceptQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(currentDriver.id)}${cacheBuster}`;
         const res = await (await fetch(url)).json();
 
         if (res.success) {
-          await showCustomAlert(`案件 [#${qid}] の受託が完了しました！\n公式LINEへ案内メッセージをお送りしました。安全運転でお願いいたします。`, '受託完了', 'check-circle-2', 'var(--system-green)');
+          await showCustomAlert(`案件 [#${qid}] の受託が完了しました！\n\n公式LINEへ集合時間や活動記録のリンクをお送りしましたのでご確認ください。安全運転でお願いいたします。`, '受託完了', 'badge-check', 'var(--system-green)');
           fetchBoardQuests(true);
         } else {
-          await showCustomAlert(res.message || '受託できませんでした。既に他のドライバーが受託した可能性があります。', '受託不可', 'alert-circle', 'var(--danger-red)');
+          await showCustomAlert(res.message || '受託できませんでした。すでに受託されたか、募集が締め切られています。', '受託不可', 'alert-circle', 'var(--danger-red)');
           fetchBoardQuests(true);
         }
       } catch (e) {
@@ -698,12 +794,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       refreshLucide();
 
-      const params = new URLSearchParams(window.location.search);
-      const urlDriverId = params.get('authDriverId');
-      const urlPhone4 = params.get('phone4');
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlDriverId = searchParams.get('authDriverId');
+      const urlPhone4 = searchParams.get('phone4');
 
       if (urlDriverId && urlPhone4) {
-        hideInitialLoading();
         executeAuth(urlDriverId.trim(), urlPhone4.trim());
         return;
       }
