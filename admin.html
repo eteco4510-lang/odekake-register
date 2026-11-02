@@ -62,7 +62,7 @@
         page-break-after: always !important;
         break-after: page !important;
       }
-      /* ★追加：受領書チケットの終了後に必ず改ページし、A4用紙1枚に集計表を出力 */
+      /* 受領書チケットの終了後に必ず改ページし、A4用紙1枚に集計表を出力 */
       body.print-voucher .denom-summary-sheet {
         page-break-before: always !important;
         break-before: page !important;
@@ -249,7 +249,7 @@
             <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
             <span class="text-xs font-medium text-slate-500">件</span>
           </div>
-          <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
+          <p class="mt-1 text-[11px] text-slate-500">運行翌日以降の未報告</p>
         </button>
       </div>
 
@@ -336,6 +336,7 @@
                 全期間
               </button>
             </div>
+          </div>
 
           <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold pt-1" id="chipContainer">
             <button type="button" class="chip-btn rounded-full px-3 py-1 transition bg-slate-900 text-white shadow-xs whitespace-nowrap flex-shrink-0" data-filter="recruiting">募集中</button>
@@ -529,7 +530,7 @@
         </div>
       </div>
 
-      <!-- ★金種別カードを削除し、直接テーブルを表示 -->
+      <!-- テーブル直接表示（金種カードは受領書印刷末尾へ移行） -->
       <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
@@ -562,7 +563,7 @@
           </div>
           <h3 class="mt-1 text-base font-bold text-slate-900 flex items-center gap-1.5 truncate">
             <i data-lucide="map" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
-            <span>運行ルートマップ</span>
+            <span>実測地図（記録地点）</span>
           </h3>
         </div>
         <button type="button" id="btnCloseRouteMap" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex-shrink-0">
@@ -807,7 +808,6 @@
       </div>
 
       <div class="my-3 space-y-3 text-xs">
-        <!-- 参照情報表示 -->
         <div class="rounded-xl bg-slate-50 p-3 space-y-1.5 border border-slate-100">
           <div class="flex justify-between text-slate-600">
             <span>担当ドライバー:</span>
@@ -819,7 +819,6 @@
           </div>
         </div>
 
-        <!-- 運行区分 -->
         <div>
           <label class="block font-bold text-slate-700 mb-1">運行区分</label>
           <div class="grid grid-cols-2 gap-2">
@@ -836,7 +835,6 @@
           </div>
         </div>
 
-        <!-- 片道実走距離 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-bold text-slate-700">片道実走距離 (km)</label>
@@ -853,7 +851,6 @@
           />
         </div>
 
-        <!-- その他実費 -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="font-bold text-slate-700">その他実費 (円)</label>
@@ -870,7 +867,6 @@
           />
         </div>
 
-        <!-- 同乗者名 -->
         <div>
           <label class="block font-bold text-slate-700 mb-1">同乗利用者名（複数人は読点またはカンマ区切り）</label>
           <input
@@ -882,7 +878,6 @@
           />
         </div>
 
-        <!-- リアルタイム再計算プレビュー -->
         <div class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-1.5">
           <div class="flex items-center gap-1 text-[11px] font-bold text-emerald-900 border-b border-emerald-200/70 pb-1">
             <i data-lucide="calculator" class="h-3.5 w-3.5 text-emerald-700"></i>
@@ -1157,7 +1152,7 @@
           <div class="text-right text-[11px] space-y-0.5">
             <p>所在地：<span id="repOrgAddress" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">相模原市緑区</span></p>
             <p>団体名：<span id="repOrgName" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none font-bold">おでかけサポート事務局</span></p>
-            <p>代表者：<span id="repOrgRep" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none font-bold">代表 相模 太郎</span>  ㊞</p>
+            <p>代表者：<span id="repOrgRep" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none font-bold">代表 相模 太郎</span> ㊞</p>
             <p class="text-slate-500">連絡先：<span id="repOrgPhone" contenteditable="true" class="border-b border-dashed border-slate-300 hover:border-slate-600 focus:outline-none print:border-none">090-0000-0000</span></p>
           </div>
         </div>
@@ -1200,7 +1195,7 @@
                 <th class="border border-slate-300 py-1 px-1.5 text-center w-12">月度</th>
                 <th class="border border-slate-300 py-1 px-1.5 text-right w-16">運行回数</th>
                 <th class="border border-slate-300 py-1 px-1.5 text-right w-20">延べ乗車人数</th>
-                <th class="border border-slate-300 py-1 px-1.5 text-right w-20">実走距離</th>
+                <th class="border border-slate-300 py-1 px-2 text-right w-20">実走距離</th>
                 <th class="border border-slate-300 py-1 px-2 text-right w-24">実費弁償額</th>
                 <th class="border border-slate-300 py-1 px-2">主な目的地・活動内容</th>
               </tr>
@@ -1316,7 +1311,7 @@
     }
 
     // 全画面操作ロックの表示・非表示制御
-    function showBlockingLoading(title = 'データを取得中', desc = '最新の情報を読み込んでいます<br>少々お待ちください') {
+    function showBlockingLoading(title = 'データを取得中', desc = '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください') {
       const overlay = document.getElementById('blockingOverlay');
       if (overlay) {
         document.getElementById('blockingTitle').textContent = title;
@@ -1623,7 +1618,7 @@
       attachEventHandlers();
     }
 
-    // 活動記録ログ一覧描画（集合場所・目的地の名称表示 & 目安ルートボタン追加）
+    // 活動記録ログ一覧描画（集合場所・目的地の名称表示 & 目安ルートボタン）
     function renderRecords() {
       const container = document.getElementById("recordListContainer");
       const empty = document.getElementById("recordEmptyState");
@@ -1641,12 +1636,10 @@
       container.innerHTML = "";
 
       records.forEach((r, idx) => {
-        // ★案件マスタから集合場所（出発地）と目的地（行先）を取得
         const q = quests.find(item => String(item.id) === String(r.questId));
         const pickup = q ? q.pickup : '未指定';
         const dropoff = q ? q.dropoff : '未指定';
 
-        // ★Googleマップで検索する「目安ルート」リンクURLの生成
         const depLatLng = extractLatLng(r.depLat, r.depLng, r.depMapUrl);
         const arrLatLng = extractLatLng(r.arrLat, r.arrLng, r.arrMapUrl);
 
@@ -1672,7 +1665,6 @@
               <span class="text-slate-500 whitespace-nowrap">所要: <strong>${r.duration}分</strong></span>
             </div>
 
-            <!-- ★集合場所（出発地）と目的地（行先）の名称表示 -->
             <div class="flex items-center gap-2 text-sm font-semibold text-slate-900 truncate">
               <span class="text-slate-700 truncate">${escapeHtml(pickup)}</span>
               <i data-lucide="arrow-right" class="h-3.5 w-3.5 flex-shrink-0 text-slate-400"></i>
@@ -1703,7 +1695,7 @@
               <span>修正</span>
             </button>
 
-            <!-- 実測地図（実際に記録された2地点のLeafletマップ）ボタン -->
+            <!-- 実測地図ボタン -->
             <button
               type="button"
               class="btn-open-route-map inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
@@ -1713,7 +1705,7 @@
               <span>実測地図</span>
             </button>
 
-            <!-- ★目安ルート（Googleマップで検索した推奨ルート）ボタン -->
+            <!-- 目安ルートボタン -->
             ${navUrl ? `
               <a
                 href="${escapeHtml(navUrl)}"
@@ -1795,7 +1787,6 @@
       recalculateEditPreview();
     }
 
-    // 修正モーダル内のリアルタイム自動再計算
     function recalculateEditPreview() {
       const isOneWay = document.querySelector('input[name="editTripType"]:checked').value === '片道';
       const oneWayKm = parseFloat(document.getElementById("editOneWayDist").value) || 0;
@@ -1817,7 +1808,6 @@
       document.getElementById("prevTotalPayout").textContent = `¥${totalPayout.toLocaleString()}`;
     }
 
-    // 修正内容の送信（上書き保存）
     async function submitRecordEdit() {
       if (!currentEditRecord) return;
 
@@ -1849,7 +1839,7 @@
         depTime: currentEditRecord.depTime,
         arrTime: currentEditRecord.arrTime,
         duration: currentEditRecord.duration,
-        isManualOverride: true, // 手動編集フラグ（GPS距離自動再計算の打ち消し防止）
+        isManualOverride: true,
         depLat: currentEditRecord.depLat,
         depLng: currentEditRecord.depLng,
         arrLat: currentEditRecord.arrLat,
@@ -2513,7 +2503,7 @@
 
               <div class="grid grid-cols-2 gap-4 text-xs pt-1 border-t border-slate-200">
                 <div class="space-y-1">
-                  <div>受領日 令和  年  月  日</div>
+                  <div>受領日 令和 年 月 日</div>
                   <div>支払元 <strong>おでかけサポート事務局</strong></div>
                   <div class="text-[10px] text-slate-500 font-mono pt-0.5">
                     【金種メモ】 ${denomMemoStr}
@@ -2532,7 +2522,7 @@
         }
       });
 
-      // ★受領書チケットの末尾に「銀行両替・準備用 金種別集計表」シートを添付
+      // 受領書チケットの末尾に「銀行両替・準備用 金種別集計表」シートを添付
       if (voucherCount > 0) {
         const bankTotals = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
         const detailRows = [];
@@ -2575,7 +2565,6 @@
             <div>支給総額合計: <strong class="font-mono text-xl font-black text-slate-900 ml-2">¥ ${grandTotalPayout.toLocaleString()} -</strong></div>
           </div>
 
-          <!-- 金種別 必要枚数表 -->
           <div class="mb-5">
             <h3 class="text-xs font-bold text-slate-800 mb-2" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
               ■ 銀行両替・準備 必要枚数
@@ -2608,7 +2597,6 @@
             </table>
           </div>
 
-          <!-- ドライバー別 金種内訳明細一覧 -->
           <div>
             <h3 class="text-xs font-bold text-slate-800 mb-2" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
               ■ 各自封筒 封入内訳明細
@@ -2733,7 +2721,7 @@
           <td class="border border-slate-300 py-1 px-1.5 text-center font-bold">${m}月</td>
           <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.trips} 回</td>
           <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.passengers} 人回</td>
-          <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${item.distance.toFixed(1)} km</td>
+          <td class="border border-slate-300 py-1 px-2 text-right font-mono">${item.distance.toFixed(1)} km</td>
           <td class="border border-slate-300 py-1 px-2 text-right font-mono">${item.expense.toLocaleString()} 円</td>
           <td class="border border-slate-300 py-1 px-2 text-slate-700 truncate max-w-[200px]">${escapeHtml(destText)}</td>
         `;
@@ -2746,7 +2734,7 @@
         <td class="border border-slate-300 py-1 px-1.5 text-center">合計</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalTripsAnnual} 回</td>
         <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalPassengersAnnual} 人回</td>
-        <td class="border border-slate-300 py-1 px-1.5 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
+        <td class="border border-slate-300 py-1 px-2 text-right font-mono">${totalDistanceAnnual.toFixed(1)} km</td>
         <td class="border border-slate-300 py-1 px-2 text-right font-mono">${totalExpenseAnnual.toLocaleString()} 円</td>
         <td class="border border-slate-300 py-1 px-2 text-slate-800">※通院送迎・買物支援等</td>
       `;
@@ -2853,7 +2841,15 @@
       document.getElementById("accordionContent").classList.add("hidden");
       document.getElementById("accordionIcon").classList.remove("rotate-180");
 
-      loadNearbyDriversForQuest(quest);
+      // ステータスが「募集中」の場合のみ最寄りドライバー検索を実行・表示
+      const nearbyWrapper = document.getElementById("modalNearbyDriversWrapper");
+      if (quest.status === "募集中") {
+        if (nearbyWrapper) nearbyWrapper.classList.remove("hidden");
+        loadNearbyDriversForQuest(quest);
+      } else {
+        if (nearbyWrapper) nearbyWrapper.classList.add("hidden");
+      }
+
       document.getElementById("detailModalOverlay").classList.remove("hidden");
       refreshLucide();
     }
@@ -2869,12 +2865,20 @@
       return `${year}-${m}-${d}`;
     }
 
+    // ★初期化処理（整理・一本化済み）
     window.addEventListener("DOMContentLoaded", () => {
       refreshLucide();
+
+      // 安全タイマー（万一通信が途絶えても6秒後に必ずローディング画面を解除）
+      setTimeout(() => {
+        hideBlockingLoading();
+      }, 6000);
+
       fetchDashboardData();
 
       document.getElementById("btnRefresh").onclick = () => fetchDashboardData(false);
 
+      // メイン業務タブ切り替え
       document.querySelectorAll(".main-tab-btn").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".main-tab-btn").forEach(b => {
@@ -2892,6 +2896,7 @@
         };
       });
 
+      // 運行・活動管理 サブタブ切り替え
       document.getElementById("subTabOpsQuests").onclick = () => {
         document.getElementById("subTabOpsQuests").className = "rounded-md px-3 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
         document.getElementById("subTabOpsRecords").className = "rounded-md px-3 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
@@ -2905,6 +2910,7 @@
         document.getElementById("opsQuestsView").classList.add("hidden");
       };
 
+      // 名簿マスタ サブタブ切り替え
       document.getElementById("subTabRosterDrivers").onclick = () => {
         document.getElementById("subTabRosterDrivers").className = "rounded-md px-3.5 py-1 transition bg-slate-900 text-white font-bold whitespace-nowrap flex-shrink-0";
         document.getElementById("subTabRosterUsers").className = "rounded-md px-3.5 py-1 transition text-slate-600 hover:text-slate-900 whitespace-nowrap flex-shrink-0";
@@ -3076,110 +3082,6 @@
         };
       });
 
-      // 期間ボタンスタイル定義（非アクティブ / アクティブ青）
-      const PERIOD_INACTIVE_CLS = "rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition active:scale-95 whitespace-nowrap flex-shrink-0";
-      const PERIOD_ACTIVE_CLS = "rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 font-bold transition active:scale-95 whitespace-nowrap flex-shrink-0";
-
-      // 運行管理側のアクティブ切り替え関数
-      function setActiveOpsPeriodBtn(activeId) {
-        ["btnQuickThisMonth", "btnQuickNextMonth", "btnClearDates"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
-        });
-      }
-
-      // 実費精算側のアクティブ切り替え関数
-      function setActiveSettlePeriodBtn(activeId) {
-        ["btnSettleThisMonth", "btnSettleLastMonth", "btnSettleFiscalYear", "btnSettleAll"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.className = (id === activeId) ? PERIOD_ACTIVE_CLS : PERIOD_INACTIVE_CLS;
-        });
-      }
-
-      const startDateInput = document.getElementById("startDateInput");
-      const endDateInput = document.getElementById("endDateInput");
-      startDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
-      endDateInput.onchange = () => { setActiveOpsPeriodBtn(null); renderQuests(); };
-
-      document.getElementById("btnQuickThisMonth").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        setActiveOpsPeriodBtn("btnQuickThisMonth");
-        renderQuests();
-        showToast("「今月」を設定しました");
-      };
-
-      document.getElementById("btnQuickNextMonth").onclick = () => {
-        const now = new Date();
-        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        const y = nextMonthDate.getFullYear();
-        const m = nextMonthDate.getMonth();
-        startDateInput.value = formatLocalYMD(y, m, 1);
-        endDateInput.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        setActiveOpsPeriodBtn("btnQuickNextMonth");
-        renderQuests();
-        showToast("「来月」を設定しました");
-      };
-
-      document.getElementById("btnClearDates").onclick = () => {
-        startDateInput.value = "";
-        endDateInput.value = "";
-        setActiveOpsPeriodBtn("btnClearDates");
-        renderQuests();
-        showToast("全期間を表示します");
-      };
-
-      const settleStart = document.getElementById("settleStartDate");
-      const settleEnd = document.getElementById("settleEndDate");
-      settleStart.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
-      settleEnd.onchange = () => { setActiveSettlePeriodBtn(null); updateSettlementView(); };
-
-      document.getElementById("btnSettleThisMonth").onclick = () => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        settleStart.value = formatLocalYMD(y, m, 1);
-        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        setActiveSettlePeriodBtn("btnSettleThisMonth");
-        updateSettlementView();
-        showToast("「今月」を設定しました");
-      };
-
-      document.getElementById("btnSettleLastMonth").onclick = () => {
-        const now = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const y = prev.getFullYear();
-        const m = prev.getMonth();
-        settleStart.value = formatLocalYMD(y, m, 1);
-        settleEnd.value = formatLocalYMD(y, m, new Date(y, m + 1, 0).getDate());
-        setActiveSettlePeriodBtn("btnSettleLastMonth");
-        updateSettlementView();
-        showToast("「先月」を設定しました");
-      };
-
-      document.getElementById("btnSettleFiscalYear").onclick = () => {
-        const now = new Date();
-        const curY = now.getFullYear();
-        const curM = now.getMonth();
-        const fyStart = (curM >= 3) ? curY : curY - 1;
-        settleStart.value = `${fyStart}-04-01`;
-        settleEnd.value = `${fyStart + 1}-03-31`;
-        setActiveSettlePeriodBtn("btnSettleFiscalYear");
-        updateSettlementView();
-        showToast("「今年度」を設定しました");
-      };
-
-      document.getElementById("btnSettleAll").onclick = () => {
-        settleStart.value = "";
-        settleEnd.value = "";
-        setActiveSettlePeriodBtn("btnSettleAll");
-        updateSettlementView();
-        showToast("全期間を表示します");
-      };
-
       document.getElementById("btnPrintPreview").onclick = openPrintPreview;
       document.getElementById("btnClosePrintPreview").onclick = () => {
         document.getElementById("printPreviewModal").classList.add("hidden");
@@ -3200,7 +3102,6 @@
       document.getElementById("btnCloseDriverMap").onclick = closeDriverMapModal;
       document.getElementById("btnCloseDriverMapBtn").onclick = closeDriverMapModal;
 
-      // 活動記録修正モーダルの閉じる制御
       document.getElementById("btnCloseEditRecord").onclick = closeEditRecordModal;
       document.getElementById("btnCancelEditRecord").onclick = closeEditRecordModal;
 
