@@ -198,18 +198,21 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      gap: 8px;
       margin-bottom: 6px;
     }
     .quest-id {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 800;
       color: var(--text-muted);
+      flex-shrink: 0;
     }
     .quest-datetime {
       font-size: 0.95rem;
       font-weight: 800;
       color: var(--text-main);
+      text-align: right;
     }
     .trip-plan-badge {
       display: inline-flex;
@@ -476,6 +479,41 @@
       return `<div class="trip-plan-badge"><i data-lucide="repeat"></i><span>${escapeHtml(text)}</span></div>`;
     }
 
+    // ★日付・時刻の安全整形（1899年問題・生Date文字列の完全排除）
+    function formatDisplayDateTime(q) {
+      // 1. GAS側で整形済みの dateText（例:「11月2日(月) 09:45」）があれば最優先で使用
+      if (q.dateText && !q.dateText.includes('1899') && !q.dateText.includes('GMT')) {
+        return q.dateText.endsWith('集合') ? q.dateText : `${q.dateText} 集合`;
+      }
+
+      // 2. targetDate や targetTime からのフォールバック整形
+      let datePart = '';
+      if (q.targetDate) {
+        const dMatch = String(q.targetDate).match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+        if (dMatch) {
+          const dObj = new Date(parseInt(dMatch[1], 10), parseInt(dMatch[2], 10) - 1, parseInt(dMatch[3], 10));
+          const days = ['日', '月', '火', '水', '木', '金', '土'];
+          datePart = `${parseInt(dMatch[2], 10)}月${parseInt(dMatch[3], 10)}日(${days[dObj.getDay()]})`;
+        } else {
+          datePart = String(q.targetDate).trim();
+        }
+      }
+
+      // 3. targetTimeから純粋な「HH:mm」だけを抽出（1899年文字列を排除）
+      let timePart = '';
+      if (q.targetTime) {
+        const tMatch = String(q.targetTime).match(/(\d{1,2}:\d{2})/);
+        if (tMatch) {
+          timePart = tMatch[1];
+        }
+      }
+
+      if (datePart && timePart) return `${datePart} ${timePart} 集合`;
+      if (datePart) return `${datePart} 集合`;
+      if (timePart) return `${timePart} 集合`;
+      return '日時指定なし';
+    }
+
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
     const LOCAL_CACHE_KEY = 'odekake_board_quests_cache_v3';
 
@@ -656,13 +694,13 @@
 
       try {
         const cacheBuster = `&_t=${Date.now()}`;
-        const res = await fetch(`${GAS_API_URL}?action=getBoardQuests${cacheBuster}`, {
+        const res = await fetch(`${GAS_API_URL}?action=getOpenQuests${cacheBuster}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
 
         const data = await res.json();
-        const quests = (data && data.success) ? (data.quests || []) : [];
+        const quests = (data && data.success) ? (data.quests || []) : (Array.isArray(data) ? data : []);
 
         currentQuests = quests;
         localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(quests));
@@ -700,13 +738,16 @@
 
         // ★Googleマップで検索する「目安ルート」リンクURLの生成
         let navUrl = '';
-        if (q.pickup && q.dropoff) {
+        if (q.pickup && q.dropoff && q.pickup !== '未指定' && q.dropoff !== '未指定') {
           navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(q.pickup)}&destination=${encodeURIComponent(q.dropoff)}&travelmode=driving`;
-        } else if (q.dropoff) {
+        } else if (q.dropoff && q.dropoff !== '未指定') {
           navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q.dropoff)}`;
-        } else if (q.pickup) {
+        } else if (q.pickup && q.pickup !== '未指定') {
           navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q.pickup)}`;
         }
+
+        // 日付・時刻の整形済み文字列を取得
+        const displayDateTime = formatDisplayDateTime(q);
 
         const card = document.createElement('div');
         card.className = `quest-card ${urgentClass}`;
@@ -714,7 +755,7 @@
           ${q.isUrgent ? `<div class="urgent-badge"><i data-lucide="alert-triangle"></i><span>【至急】直前募集中</span></div>` : ''}
           <div class="quest-header">
             <span class="quest-id">#${escapeHtml(q.id)}</span>
-            <span class="quest-datetime">${escapeHtml(q.targetDate || '')} ${escapeHtml(q.targetTime || '')} 集合</span>
+            <span class="quest-datetime">${escapeHtml(displayDateTime)}</span>
           </div>
           ${createTripBadgeHtml(q.tripPlan)}
           <div class="quest-route">
@@ -760,10 +801,11 @@
       }
 
       const quest = currentQuests.find(q => String(q.id) === String(qid));
-      const qText = quest ? `【案件 #${qid}】\n日時: ${quest.targetDate} ${quest.targetTime} 集合\n行先: ${quest.dropoff}\n利用者: ${quest.userNameMasked}` : `案件 #${qid}`;
+      const dateTimeText = quest ? formatDisplayDateTime(quest) : '';
+      const qText = quest ? `【案件 #${qid}】\n日時: ${dateTimeText}\n行先: ${quest.dropoff}\n利用者: ${quest.userNameMasked}` : `案件 #${qid}`;
 
       const ok = await showCustomConfirm(
-        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ運行案内が届きます。`,
+        `${qText}\n\nこの案件を受託しますか？\n受託すると公式LINEへ案内が届きます。`,
         '受託の確認',
         'car',
         'var(--system-green)'
