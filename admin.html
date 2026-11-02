@@ -249,7 +249,7 @@
             <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
             <span class="text-xs font-medium text-slate-500">件</span>
           </div>
-          <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
+          <p class="mt-1 text-[11px] text-slate-500">運行翌日以降の未報告</p>
         </button>
       </div>
 
@@ -769,21 +769,35 @@
       </div>
 
       <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-        <button
-          type="button"
-          id="btnModalCopyLine"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden whitespace-nowrap flex-shrink-0"
+        <!-- 運行詳細モーダル内の目安ルートボタン -->
+        <a
+          id="btnModalNavRoute"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 whitespace-nowrap flex-shrink-0"
         >
-          <i data-lucide="copy" class="h-3.5 w-3.5 flex-shrink-0"></i>
-          <span id="modalCopyBtnText">LINE打診文をコピー</span>
-        </button>
-        <button
-          type="button"
-          id="btnCloseModalBtn"
-          class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 ml-auto whitespace-nowrap flex-shrink-0"
-        >
-          閉じる
-        </button>
+          <i data-lucide="navigation" class="h-3.5 w-3.5 text-slate-600 flex-shrink-0"></i>
+          <span>目安ルート</span>
+        </a>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <button
+            type="button"
+            id="btnModalCopyLine"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-red-700 active:scale-95 hidden whitespace-nowrap flex-shrink-0"
+          >
+            <i data-lucide="copy" class="h-3.5 w-3.5 flex-shrink-0"></i>
+            <span id="modalCopyBtnText">LINE打診文をコピー</span>
+          </button>
+          <button
+            type="button"
+            id="btnCloseModalBtn"
+            class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap flex-shrink-0"
+          >
+            閉じる
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1242,7 +1256,7 @@
           </table>
         </div>
 
-        <!-- 3. 運行体制・安全管理実績（法令遵守確認欄を削除し、横幅いっぱいにすっきり配置） -->
+        <!-- 3. 運行体制・安全管理実績 -->
         <div class="border border-slate-300 rounded p-3 text-[11px] bg-slate-50/30">
           <h3 class="font-bold text-slate-900 mb-1.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
           <ul class="space-y-1 text-slate-700 text-[10.5px] list-disc list-inside">
@@ -1532,6 +1546,7 @@
       if (chipFailed) chipFailed.textContent = `マッチング不成立 (${failedCount})`;
     }
 
+    // 運行案件一覧描画（「目安ルート」ボタン追加）
     function renderQuests() {
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
@@ -1597,6 +1612,16 @@
 
         let bgClass = isUnreported ? "bg-rose-50/45" : (isActionRequired ? "bg-red-50/40" : (isFailed ? "bg-purple-50/25" : ""));
 
+        // ★Googleマップで検索する「目安ルート」リンクURLの生成
+        let navUrl = '';
+        if (quest.pickup && quest.dropoff && quest.pickup !== '未指定' && quest.dropoff !== '未指定') {
+          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(quest.pickup)}&destination=${encodeURIComponent(quest.dropoff)}&travelmode=driving`;
+        } else if (quest.dropoff && quest.dropoff !== '未指定') {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quest.dropoff)}`;
+        } else if (quest.pickup && quest.pickup !== '未指定') {
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quest.pickup)}`;
+        }
+
         const card = document.createElement("div");
         card.className = `flex flex-col gap-3 p-4 transition hover:bg-slate-50/80 sm:flex-row sm:items-center sm:justify-between ${bgClass}`;
         card.innerHTML = `
@@ -1621,7 +1646,22 @@
               <span class="flex items-center gap-1 whitespace-nowrap"><i data-lucide="car" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>担当: <strong class="${quest.driverName ? (isUnreported ? "text-rose-700 font-bold" : "text-slate-800") : isFailed ? "text-slate-400" : "text-amber-600 font-semibold"}">${quest.driverName ? escapeHtml(quest.driverName) + ' 様' : isFailed ? '担当なし' : '未定（募集中）'}</strong></span>
             </div>
           </div>
+
           <div class="flex items-center gap-2 pt-2 sm:pt-0 flex-shrink-0">
+            <!-- ★目安ルートボタン（Googleマップで経路検索） -->
+            ${navUrl ? `
+              <a
+                href="${escapeHtml(navUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs transition active:scale-95 whitespace-nowrap flex-shrink-0"
+                title="Googleマップで推奨・目安ルートを開く"
+              >
+                <i data-lucide="navigation" class="h-3.5 w-3.5 text-slate-600 flex-shrink-0"></i>
+                <span>目安ルート</span>
+              </a>
+            ` : ""}
+
             ${isActionRequired ? `
               <button type="button" class="btn-copy-line inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-xs transition hover:bg-red-100 active:scale-95 whitespace-nowrap flex-shrink-0" data-qid="${quest.id}" data-type="urgent">
                 <i data-lucide="copy" class="h-3.5 w-3.5 text-red-600 flex-shrink-0"></i>
@@ -2906,6 +2946,26 @@
         sysInfoArea.classList.remove("hidden");
       } else {
         sysInfoArea.classList.add("hidden");
+      }
+
+      // ★詳細モーダル内の目安ルートボタン
+      const navBtn = document.getElementById("btnModalNavRoute");
+      let navUrl = '';
+      if (quest.pickup && quest.dropoff && quest.pickup !== '未指定' && quest.dropoff !== '未指定') {
+        navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(quest.pickup)}&destination=${encodeURIComponent(quest.dropoff)}&travelmode=driving`;
+      } else if (quest.dropoff && quest.dropoff !== '未指定') {
+        navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quest.dropoff)}`;
+      } else if (quest.pickup && quest.pickup !== '未指定') {
+        navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quest.pickup)}`;
+      }
+
+      if (navBtn) {
+        if (navUrl) {
+          navBtn.href = navUrl;
+          navBtn.classList.remove("hidden");
+        } else {
+          navBtn.classList.add("hidden");
+        }
       }
 
       const copyBtn = document.getElementById("btnModalCopyLine");
