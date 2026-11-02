@@ -249,7 +249,7 @@
             <span id="metricUnreportedCount" class="text-2xl font-black text-rose-600">0</span>
             <span class="text-xs font-medium text-slate-500">件</span>
           </div>
-          <p class="mt-1 text-[11px] text-slate-500">運行翌日以降の未報告</p>
+          <p class="mt-1 text-[11px] text-slate-500">運行後の記録未送信</p>
         </button>
       </div>
 
@@ -1111,13 +1111,13 @@
   <!-- 市提出用 実績報告書モーダル -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-3 mb-4">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-3 mb-3">
         <div class="min-w-0 flex-1">
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 truncate">
             <i data-lucide="file-check" class="h-4 w-4 text-blue-700 flex-shrink-0"></i>
             <span>事業活動実績報告書プレビュー</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-0.5">※相模原市基準準拠。下線部は画面上で直接クリックして編集可能です。</p>
+          <p class="text-xs text-slate-500 mt-0.5">※相模原市基準準拠。提出団体情報は下の設定パネルで編集・保存できます。</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 self-end lg:self-auto flex-shrink-0">
           <select id="reportFiscalYearSelect" class="h-8 rounded-lg border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-800 outline-none whitespace-nowrap flex-shrink-0">
@@ -1126,6 +1126,13 @@
             <option value="2027">令和9年度 (2027年度)</option>
           </select>
 
+          <!-- 提出者情報入力の開閉ボタン -->
+          <button type="button" id="btnToggleOrgForm" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">
+            <i data-lucide="building" class="h-3.5 w-3.5 text-slate-600 flex-shrink-0"></i>
+            <span>提出者情報の設定</span>
+            <i data-lucide="chevron-down" id="iconOrgFormArrow" class="h-3 w-3 text-slate-400 transition-transform flex-shrink-0"></i>
+          </button>
+
           <button type="button" id="btnTriggerReportPrint" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-800 active:scale-95 whitespace-nowrap flex-shrink-0">
             <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i>
             <span>印刷する</span>
@@ -1133,6 +1140,35 @@
           <button type="button" id="btnCloseAnnualReport" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap flex-shrink-0">
             閉じる
           </button>
+        </div>
+      </div>
+
+      <!-- 提出団体情報入力パネル（ブラウザ自動保存／印刷時は非表示） -->
+      <div id="orgProfileFormArea" class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs space-y-2.5 hidden print:hidden">
+        <div class="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
+          <span class="font-bold text-slate-800 flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="h-3.5 w-3.5 text-blue-600"></i>
+            <span>提出者情報（入力内容は自動保存され、次回も反映されます）</span>
+          </span>
+          <span class="text-[10px] text-slate-500">※帳票の下線部でも直接入力できます</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">所在地</label>
+            <input type="text" id="inputOrgAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">団体名</label>
+            <input type="text" id="inputOrgName" placeholder="例: おでかけサポート事務局" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">代表者名</label>
+            <input type="text" id="inputOrgRep" placeholder="例: 代表 相模 太郎" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">連絡先電話番号</label>
+            <input type="tel" id="inputOrgPhone" placeholder="例: 090-0000-0000" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+          </div>
         </div>
       </div>
 
@@ -1157,9 +1193,10 @@
           </div>
         </div>
 
+        <!-- 1. 年間活動実績 -->
         <div class="mb-4">
           <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
-            1. 年間活動実績サマリー（補助金額の確定根拠）
+            1. 年間活動実績
           </h2>
           <div class="grid grid-cols-4 gap-2 text-center">
             <div class="border border-slate-300 rounded p-1.5 bg-slate-50/50">
@@ -1185,6 +1222,7 @@
           <p class="text-[10px] text-slate-500 mt-1">※延べ人数基準: 往復送迎は2人回、片道送迎は1人回として集計</p>
         </div>
 
+        <!-- 2. 月別活動実績・運行先内訳 -->
         <div class="mb-4">
           <h2 class="text-xs font-bold text-slate-800 tracking-wider mb-1.5 border-b border-slate-300 pb-0.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
             2. 月別活動実績・運行先内訳（4月〜翌3月）
@@ -1204,25 +1242,15 @@
           </table>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 text-[11px]">
-          <div class="border border-slate-300 rounded p-2.5">
-            <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
-            <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
-              <li>登録ボランティアドライバー：実登録 <strong id="repDriverCount">0</strong> 名</li>
-              <li>相模原市担い手養成講座修了者：<strong id="repTrainedDriverCount">0</strong> 名</li>
-              <li>ボランティア活動保険：全員加入済（全社協）</li>
-              <li>運行中の重大事故・物損事故等の発生：なし（0件）</li>
-            </ul>
-          </div>
-          <div class="border border-slate-300 rounded p-2.5">
-            <h3 class="font-bold text-slate-900 mb-1" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">4. 実費弁償・法令遵守に関する確認事項</h3>
-            <ul class="space-y-0.5 text-slate-700 text-[10px] list-disc list-inside">
-              <li>道路運送法における「無償運送（実費弁償のみ）」を遵守。</li>
-              <li>利用者からの利用料金（運賃）の徴収は一切行っておりません（車内収受0円）。</li>
-              <li>燃料費相当額（20円/km）および有料道路・駐車場代実費のみを団体から支給。</li>
-              <li>支給明細兼受領書原本および実費レシート原本は団体にて5年間厳重保管。</li>
-            </ul>
-          </div>
+        <!-- 3. 運行体制・安全管理実績（法令遵守確認欄を削除し、横幅いっぱいにすっきり配置） -->
+        <div class="border border-slate-300 rounded p-3 text-[11px] bg-slate-50/30">
+          <h3 class="font-bold text-slate-900 mb-1.5" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">3. 運行体制・安全管理実績</h3>
+          <ul class="space-y-1 text-slate-700 text-[10.5px] list-disc list-inside">
+            <li>登録ボランティアドライバー：実登録 <strong id="repDriverCount">0</strong> 名</li>
+            <li>相模原市担い手養成講座修了者：<strong id="repTrainedDriverCount">0</strong> 名</li>
+            <li>ボランティア活動保険：全員加入済（全社協）</li>
+            <li>運行中の重大事故・物損事故等の発生：なし（0件）</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -1284,6 +1312,7 @@
     let currentEditRecord = null;
     let toastTimer = null;
     let isAccordionOpen = false;
+    let isOrgFormOpen = false;
     let preRegList = [];
     let lastRegisteredDriver = { id: '', name: '', phone: '' };
 
@@ -2640,6 +2669,59 @@
       refreshLucide();
     }
 
+    // 提出団体情報の保存・読み込み
+    function loadOrgProfile() {
+      try {
+        const saved = localStorage.getItem("odekake_org_profile");
+        if (saved) {
+          const profile = JSON.parse(saved);
+          if (profile.address) document.getElementById("inputOrgAddress").value = profile.address;
+          if (profile.name) document.getElementById("inputOrgName").value = profile.name;
+          if (profile.rep) document.getElementById("inputOrgRep").value = profile.rep;
+          if (profile.phone) document.getElementById("inputOrgPhone").value = profile.phone;
+          applyOrgProfileToReport();
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function saveOrgProfile() {
+      const profile = {
+        address: document.getElementById("inputOrgAddress").value.trim(),
+        name: document.getElementById("inputOrgName").value.trim(),
+        rep: document.getElementById("inputOrgRep").value.trim(),
+        phone: document.getElementById("inputOrgPhone").value.trim()
+      };
+      localStorage.setItem("odekake_org_profile", JSON.stringify(profile));
+      applyOrgProfileToReport();
+    }
+
+    function applyOrgProfileToReport() {
+      const addr = document.getElementById("inputOrgAddress")?.value.trim();
+      const name = document.getElementById("inputOrgName")?.value.trim();
+      const rep = document.getElementById("inputOrgRep")?.value.trim();
+      const phone = document.getElementById("inputOrgPhone")?.value.trim();
+
+      if (addr) document.getElementById("repOrgAddress").textContent = addr;
+      if (name) document.getElementById("repOrgName").textContent = name;
+      if (rep) document.getElementById("repOrgRep").textContent = rep;
+      if (phone) document.getElementById("repOrgPhone").textContent = phone;
+    }
+
+    function toggleOrgForm() {
+      isOrgFormOpen = !isOrgFormOpen;
+      const area = document.getElementById("orgProfileFormArea");
+      const arrow = document.getElementById("iconOrgFormArrow");
+      if (isOrgFormOpen) {
+        area.classList.remove("hidden");
+        if (arrow) arrow.classList.add("rotate-180");
+      } else {
+        area.classList.add("hidden");
+        if (arrow) arrow.classList.remove("rotate-180");
+      }
+    }
+
     function updateAnnualReportView() {
       const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect").value, 10) || 2026;
       const reiwaYear = selectedYear - 2018;
@@ -2649,10 +2731,13 @@
       const todayReiwa = today.getFullYear() - 2018;
       document.getElementById("repSubmitDate").textContent = `令和${todayReiwa}年${today.getMonth() + 1}月${today.getDate()}日`;
 
-      if (drivers.length > 0) {
-        if (drivers[0].address) document.getElementById("repOrgAddress").textContent = drivers[0].address;
-        if (drivers[0].name) document.getElementById("repOrgRep").textContent = `代表 ${drivers[0].name}`;
-        if (drivers[0].phone) document.getElementById("repOrgPhone").textContent = drivers[0].phone;
+      // 提出者情報：保存データがあればそれを適用、なければ初期値をセット
+      if (!loadOrgProfile()) {
+        if (drivers.length > 0) {
+          if (drivers[0].address) document.getElementById("repOrgAddress").textContent = drivers[0].address;
+          if (drivers[0].name) document.getElementById("repOrgRep").textContent = `代表 ${drivers[0].name}`;
+          if (drivers[0].phone) document.getElementById("repOrgPhone").textContent = drivers[0].phone;
+        }
       }
 
       const questDestMap = {};
@@ -2865,7 +2950,7 @@
       return `${year}-${m}-${d}`;
     }
 
-    // ★初期化処理（整理・一本化済み）
+    // 初期化処理
     window.addEventListener("DOMContentLoaded", () => {
       refreshLucide();
 
@@ -3096,6 +3181,21 @@
       };
       document.getElementById("reportFiscalYearSelect").onchange = updateAnnualReportView;
       document.getElementById("btnTriggerReportPrint").onclick = () => window.print();
+      document.getElementById("btnToggleOrgForm").onclick = toggleOrgForm;
+
+      // 帳票上での直接入力時もローカルストレージへ逆同期
+      ["repOrgAddress", "repOrgName", "repOrgRep", "repOrgPhone"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener("input", () => {
+            document.getElementById("inputOrgAddress").value = document.getElementById("repOrgAddress").textContent.trim();
+            document.getElementById("inputOrgName").value = document.getElementById("repOrgName").textContent.trim();
+            document.getElementById("inputOrgRep").value = document.getElementById("repOrgRep").textContent.trim();
+            document.getElementById("inputOrgPhone").value = document.getElementById("repOrgPhone").textContent.trim();
+            saveOrgProfile();
+          });
+        }
+      });
 
       document.getElementById("btnCloseRouteMap").onclick = closeRouteMapModal;
       document.getElementById("btnCloseRouteMapBtn").onclick = closeRouteMapModal;
