@@ -1162,12 +1162,16 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label class="block font-semibold text-slate-600 mb-1">所在地</label>
-            <input type="text" id="inputOrgAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+            <label class="block font-semibold text-slate-600 mb-1">対象年度</label>
+            <input type="text" id="inputOrgYear" placeholder="例: 2026 または 令和8" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600 font-bold text-blue-700" oninput="saveOrgProfile()" />
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">団体名</label>
             <input type="text" id="inputOrgName" placeholder="例: おでかけサポート事務局" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-slate-600 mb-1">所在地</label>
+            <input type="text" id="inputOrgAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 outline-none focus:border-blue-600" oninput="saveOrgProfile()" />
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">代表者名</label>
@@ -2704,11 +2708,13 @@
     }
 
     // 提出団体情報の保存・読み込み
+    // 提出団体情報の保存・読み込み
     function loadOrgProfile() {
       try {
         const saved = localStorage.getItem("odekake_org_profile");
         if (saved) {
           const profile = JSON.parse(saved);
+          if (profile.year) document.getElementById("inputOrgYear").value = profile.year;
           if (profile.address) document.getElementById("inputOrgAddress").value = profile.address;
           if (profile.name) document.getElementById("inputOrgName").value = profile.name;
           if (profile.rep) document.getElementById("inputOrgRep").value = profile.rep;
@@ -2722,6 +2728,7 @@
 
     function saveOrgProfile() {
       const profile = {
+        year: document.getElementById("inputOrgYear").value.trim(),
         address: document.getElementById("inputOrgAddress").value.trim(),
         name: document.getElementById("inputOrgName").value.trim(),
         rep: document.getElementById("inputOrgRep").value.trim(),
@@ -2729,8 +2736,8 @@
       };
       localStorage.setItem("odekake_org_profile", JSON.stringify(profile));
       applyOrgProfileToReport();
+      updateAnnualReportView(); // ★年度変更時に帳票の月別集計も即座に再計算
     }
-
     function applyOrgProfileToReport() {
       const addr = document.getElementById("inputOrgAddress")?.value.trim();
       const name = document.getElementById("inputOrgName")?.value.trim();
@@ -2757,8 +2764,29 @@
     }
 
     function updateAnnualReportView() {
-      const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect").value, 10) || 2026;
-      const reiwaYear = selectedYear - 2018;
+      // 入力された年度文字列（2026、令和8、8 等）から西暦と和暦を自動解析
+      const yearInput = (document.getElementById("inputOrgYear")?.value || "").trim();
+      let selectedYear = 2026;
+      let reiwaYear = 8;
+
+      if (/^令和\s*(\d+)/.test(yearInput)) {
+        reiwaYear = parseInt(yearInput.match(/^令和\s*(\d+)/)[1], 10);
+        selectedYear = reiwaYear + 2018;
+      } else if (/^\d{4}$/.test(yearInput)) {
+        selectedYear = parseInt(yearInput, 10);
+        reiwaYear = selectedYear - 2018;
+      } else if (/^\d{1,2}$/.test(yearInput)) {
+        reiwaYear = parseInt(yearInput, 10);
+        selectedYear = reiwaYear + 2018;
+      } else {
+        const curY = new Date().getFullYear();
+        selectedYear = curY;
+        reiwaYear = curY - 2018;
+        if (document.getElementById("inputOrgYear") && !document.getElementById("inputOrgYear").value) {
+          document.getElementById("inputOrgYear").value = String(selectedYear);
+        }
+      }
+
       document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
 
       const today = new Date();
@@ -3233,7 +3261,6 @@
         document.getElementById("annualReportModal").classList.add("hidden");
         document.body.classList.remove("print-report");
       };
-      document.getElementById("reportFiscalYearSelect").onchange = updateAnnualReportView;
       document.getElementById("btnTriggerReportPrint").onclick = () => window.print();
       document.getElementById("btnToggleOrgForm").onclick = toggleOrgForm;
 
