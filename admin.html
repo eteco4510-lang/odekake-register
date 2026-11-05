@@ -3307,12 +3307,32 @@
 
       preRegSelect.onchange = () => {
         const val = preRegSelect.value;
+        const lineBadge = document.getElementById("preRegLineBadge");
+        const lineHidden = document.getElementById("dRegLineUserId");
+
         if (val !== "" && preRegList[val]) {
           const item = preRegList[val];
           document.getElementById("dRegName").value = item.name !== '名前未記入' ? item.name : '';
           document.getElementById("dRegPhone").value = item.phone !== '電話未記入' ? item.phone : '';
           document.getElementById("dRegNote").value = item.carInfo || "";
           if (item.address) document.getElementById("dRegAddress").value = item.address;
+
+          // ★Form Responses 5のM列から取得したLINE IDをセット
+          const uid = (item.lineUserId || '').trim();
+          lineHidden.value = uid;
+
+          if (uid) {
+            lineBadge.className = "rounded bg-emerald-100 text-emerald-800 px-1.5 py-0.5 font-bold";
+            lineBadge.textContent = "🟢 LINE連携済";
+            lineBadge.classList.remove("hidden");
+          } else {
+            lineBadge.className = "rounded bg-slate-100 text-slate-600 px-1.5 py-0.5 font-bold";
+            lineBadge.textContent = "⚪ 未連携";
+            lineBadge.classList.remove("hidden");
+          }
+        } else {
+          lineHidden.value = "";
+          lineBadge.classList.add("hidden");
         }
       };
 
@@ -3328,6 +3348,7 @@
           driverId: document.getElementById("dRegId").value.trim(),
           name: document.getElementById("dRegName").value.trim(),
           phone: document.getElementById("dRegPhone").value.trim(),
+          lineUserId: document.getElementById("dRegLineUserId").value.trim(), // ★M列のLINE IDをD列へ引き継ぐ
           licenseType: document.getElementById("dRegLicense").value,
           certNo: document.getElementById("dRegCertNo").value.trim(),
           trainingDate: document.getElementById("dRegTrainingDate").value,
