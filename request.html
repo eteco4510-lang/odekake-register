@@ -18,141 +18,141 @@
       -webkit-tap-highlight-color: transparent;
     }
     .lucide {
-      stroke-width: 2;
+      stroke-width: 2.2;
     }
     /* スマホ画面での横はみ出しを完全防止 */
     *, ::before, ::after {
       box-sizing: border-box !important;
     }
-    input[type="date"], input[type="text"], input[type="tel"], select, textarea {
+    input, select, textarea {
       box-sizing: border-box !important;
       max-width: 100% !important;
+    }
+    /* iOS/Safari等で日付テキストが上にずれる現象を完全解消 */
+    input[type="date"]::-webkit-date-and-time-value {
+      text-align: center !important;
+      margin: auto 0 !important;
+      line-height: 1.5 !important;
     }
     button, select, a {
       white-space: nowrap !important;
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-24 text-base">
 
   <!-- 全画面操作ロック用ローディングオーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
-    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center animate-in zoom-in-95 duration-150">
-      <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
-      <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">処理中</div>
+    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
+      <div class="mt-3 text-base font-bold text-slate-900" id="blockingTitle">処理中</div>
       <div class="mt-1 text-xs text-slate-500" id="blockingDesc">少々お待ちください</div>
     </div>
   </div>
 
-  <!-- スティッキーヘッダー -->
-  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
-    <div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-3.5 sm:px-6">
-      <div class="flex items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
-          <i data-lucide="car" class="h-4 w-4"></i>
+  <!-- ヘッダー -->
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3 sm:px-6">
+      <div class="flex items-center gap-2.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+          <i data-lucide="car" class="h-5 w-5"></i>
         </div>
-        <div>
-          <span class="text-[10px] font-bold tracking-wider text-slate-400 block uppercase leading-none">Odekake Support</span>
-          <h1 class="text-sm font-bold tracking-tight text-slate-900 sm:text-base leading-tight mt-0.5">送迎お申込みフォーム</h1>
-        </div>
+        <h1 class="text-lg font-black tracking-tight text-slate-900">送迎のお申込み</h1>
       </div>
-      <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 border border-blue-100 flex items-center gap-1">
-        <i data-lucide="shield-check" class="h-3 w-3"></i>
-        <span>地域助け合い活動</span>
+      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
+        おでかけサポート
       </span>
     </div>
   </header>
 
-  <main class="mx-auto max-w-2xl px-4 pt-5 sm:px-6">
-    <form id="questRequestForm" class="space-y-4" onsubmit="event.preventDefault(); openConfirmModal();">
+  <main class="mx-auto max-w-xl px-4 pt-5 sm:px-6">
+    <form id="questRequestForm" class="space-y-5" onsubmit="event.preventDefault(); openConfirmModal();">
 
-      <!-- STEP 1: ご利用者様の確認（名簿登録者専用・手入力登録機能は排除） -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-3.5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+      <!-- STEP 1: ご利用者様の確認 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-black text-white">1</span>
-            <h2 class="text-xs font-bold text-slate-900 sm:text-sm">ご利用者様の確認</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
+            <h2 class="text-base font-bold text-slate-900">利用者の確認</h2>
           </div>
-          <span class="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">
-            利用者登録番号（半角数字5桁）
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">
+            利用者登録番号（5桁）
           </label>
           <div class="relative">
             <input
               type="tel"
               id="userRegId"
               maxlength="5"
-              placeholder="例: 20101 / 30101"
+              placeholder="例: 20101"
               required
-              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 font-mono text-base font-bold text-slate-900 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-1 focus:ring-blue-600"
+              class="w-full h-13 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 font-mono text-xl font-black text-slate-900 outline-none transition focus:border-blue-600 focus:bg-white"
               oninput="handleUserNumberInput()"
             />
-            <div id="userLoadingSpinner" class="absolute right-3.5 top-1/2 -translate-y-1/2 hidden">
-              <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-blue-600"></i>
+            <div id="userLoadingSpinner" class="absolute right-4 top-1/2 -translate-y-1/2 hidden">
+              <i data-lucide="loader-2" class="h-5 w-5 animate-spin text-blue-600"></i>
             </div>
           </div>
-          <!-- 照合結果表示バッジ -->
-          <div id="userResultBadge" class="mt-2 hidden"></div>
+          <div id="userResultBadge" class="mt-2.5 hidden"></div>
         </div>
 
-        <!-- 照合成功時のみ表示される登録情報カード（手動改ざん不可） -->
-        <div id="verifiedUserCard" class="hidden rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2 text-xs">
-          <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
-            <span class="text-slate-500 font-medium">ご乗車代表者:</span>
-            <span id="dispUserName" class="font-bold text-slate-900 text-sm">----</span>
+        <!-- 照合成功時に大きく表示 -->
+        <div id="verifiedUserCard" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2 text-sm">
+          <div class="flex justify-between items-baseline border-b border-emerald-200/60 pb-2">
+            <span class="text-slate-600 font-semibold">お名前:</span>
+            <span id="dispUserName" class="font-black text-slate-900 text-lg">----</span>
           </div>
-          <div class="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
-            <span class="text-slate-500 font-medium">ご連絡先電話番号:</span>
-            <span id="dispUserPhone" class="font-mono font-bold text-slate-800">----</span>
+          <div class="flex justify-between items-center border-b border-emerald-200/60 pb-2">
+            <span class="text-slate-600 font-semibold">電話番号:</span>
+            <span id="dispUserPhone" class="font-mono font-bold text-slate-900">----</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-slate-500 font-medium">申請区分:</span>
+            <span class="text-slate-600 font-semibold">区分:</span>
             <span id="dispUserType" class="font-bold text-blue-700">----</span>
           </div>
-          <!-- 隠しフィールド -->
           <input type="hidden" id="userName" required />
           <input type="hidden" id="userPhone" required />
         </div>
       </section>
 
-      <!-- STEP 2: 日時・運行区分の指定 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+      <!-- STEP 2: 乗りたい日・時間 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-black text-white">2</span>
-            <h2 class="text-xs font-bold text-slate-900 sm:text-sm">運行日時・区分の指定</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
+            <h2 class="text-base font-bold text-slate-900">日時と往復・片道</h2>
           </div>
-          <span class="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <!-- 運行希望日（枠はみ出し防止ラッパー付き） -->
-        <div class="w-full">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">運行希望日</label>
-          <div class="w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <!-- 運行希望日（上下中央揃え） -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">運行希望日</label>
+          <div class="w-full rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
             <input
               type="date"
               id="targetDate"
               required
-              class="w-full h-11 px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600 block bg-transparent"
+              class="w-full h-13 px-4 text-center text-lg font-bold text-slate-900 outline-none focus:border-blue-600 block bg-transparent"
             />
           </div>
         </div>
 
-        <!-- 集合時間：プルダウン選択 -->
+        <!-- 集合時間（プルダウン） -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">
-            集合時間（ご自宅へのお迎え時間）
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">
+            集合時間（お迎え時間）
           </label>
           <div class="relative">
             <select
               id="targetTime"
               required
-              class="w-full h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-600 appearance-none font-mono"
+              class="w-full h-13 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600 appearance-none font-mono"
             >
-              <option value="">-- お迎え時間を選択してください --</option>
+              <option value="">時間をタップして選択</option>
               <option value="08:00">08:00 集合</option>
               <option value="08:30">08:30 集合</option>
               <option value="09:00" selected>09:00 集合</option>
@@ -173,40 +173,41 @@
               <option value="16:30">16:30 集合</option>
               <option value="17:00">17:00 集合</option>
             </select>
-            <i data-lucide="chevron-down" class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+            <i data-lucide="chevron-down" class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"></i>
           </div>
         </div>
 
+        <!-- 運行区分 -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1.5">運行区分</label>
-          <div class="grid grid-cols-2 gap-2.5">
-            <label id="cardTripRound" class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-blue-600 bg-blue-50/60 cursor-pointer transition">
+          <label class="block text-sm font-bold text-slate-800 mb-2">運行区分</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label id="cardTripRound" class="flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition">
               <input type="radio" name="tripTypeRadio" value="往復" checked class="hidden" onchange="handleTripPlanChange()" />
-              <div class="flex items-center gap-1.5 font-bold text-blue-700 text-xs sm:text-sm">
-                <i data-lucide="repeat" class="h-4 w-4"></i>
-                <span>往復（送り＋迎え）</span>
+              <div class="flex items-center gap-1.5 font-black text-blue-700 text-base">
+                <i data-lucide="repeat" class="h-5 w-5"></i>
+                <span>往復</span>
               </div>
-              <span class="text-[10px] text-blue-600 mt-0.5">病院受診・買物など</span>
+              <span class="text-xs text-blue-600 mt-0.5">受診・買物など</span>
             </label>
 
-            <label id="cardTripOneWay" class="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
+            <label id="cardTripOneWay" class="flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
               <input type="radio" name="tripTypeRadio" value="片道" class="hidden" onchange="handleTripPlanChange()" />
-              <div class="flex items-center gap-1.5 font-semibold text-slate-700 text-xs sm:text-sm">
-                <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                <span>片道（送りのみ）</span>
+              <div class="flex items-center gap-1.5 font-bold text-slate-600 text-base">
+                <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                <span>片道</span>
               </div>
-              <span class="text-[10px] text-slate-400 mt-0.5">退院・片道移動など</span>
+              <span class="text-xs text-slate-400 mt-0.5">送りのみ</span>
             </label>
           </div>
 
-          <!-- 往復時の待機目安時間選択 -->
-          <div id="waitDurationArea" class="mt-2.5 rounded-xl border border-blue-100 bg-blue-50/40 p-3 space-y-1.5">
-            <label class="block text-[11px] font-bold text-blue-900">往復時の待機目安時間（現地でのお待ち合わせ目安）</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              <button type="button" class="wait-chip rounded-lg border border-blue-300 bg-white py-1.5 text-xs font-bold text-blue-800 shadow-2xs" data-val="30分以内">30分以内</button>
-              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-600" data-val="30分〜1時間">30分〜1時間</button>
-              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-600" data-val="1〜2時間">1〜2時間</button>
-              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-600" data-val="2時間以上">2時間以上</button>
+          <!-- 往復時の待機目安 -->
+          <div id="waitDurationArea" class="mt-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
+            <label class="block text-xs font-bold text-blue-900">現地での用事の時間（待機目安）</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" class="wait-chip rounded-lg border border-blue-400 bg-white py-2 text-xs font-bold text-blue-800 shadow-2xs" data-val="30分以内">30分以内</button>
+              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-600" data-val="30分〜1時間">30分〜1時間</button>
+              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-600" data-val="1〜2時間">1〜2時間</button>
+              <button type="button" class="wait-chip rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-600" data-val="2時間以上">2時間以上</button>
             </div>
             <input type="hidden" id="waitDuration" value="30分以内" />
           </div>
@@ -214,183 +215,180 @@
       </section>
 
       <!-- STEP 3: 出発地と目的地の設定 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-black text-white">3</span>
-            <h2 class="text-xs font-bold text-slate-900 sm:text-sm">出発地とお迎え先の設定</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">3</span>
+            <h2 class="text-base font-bold text-slate-900">出発地と行先</h2>
           </div>
-          <span class="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
         <!-- 出発地 -->
-        <div class="space-y-1.5">
+        <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold text-slate-700 flex items-center gap-1">
-              <span class="inline-block w-2 h-2 rounded-full bg-emerald-600"></span>
+            <label class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
               <span>出発地（お迎え先）</span>
             </label>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
               <button
                 type="button"
                 id="btnSetHomePickup"
-                class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition active:scale-95"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 active:scale-95"
                 onclick="applyUserHomeAddress('pickup')"
               >
-                <i data-lucide="home" class="h-3 w-3 text-slate-500"></i>
+                <i data-lucide="home" class="h-3.5 w-3.5 text-slate-500"></i>
                 <span>自宅をセット</span>
               </button>
               <button
                 type="button"
-                class="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition active:scale-95"
+                class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 active:scale-95"
                 onclick="openMapPicker('pickup')"
               >
-                <i data-lucide="map-pin" class="h-3 w-3 text-blue-600"></i>
-                <span>地図から選ぶ</span>
+                <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600"></i>
+                <span>地図で指定</span>
               </button>
             </div>
           </div>
           <input
             type="text"
             id="pickupLocation"
-            placeholder="例: 相模原市緑区中野1-2-3（自宅・施設名など）"
+            placeholder="例: 相模原市緑区中野1-2-3"
             required
-            class="w-full h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-blue-600"
+            class="w-full h-13 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none focus:border-blue-600"
           />
         </div>
 
-        <!-- 行先（目的地） -->
-        <div class="space-y-1.5 pt-1 border-t border-slate-100">
+        <!-- 行先 -->
+        <div class="space-y-2 pt-2 border-t border-slate-100">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold text-slate-700 flex items-center gap-1">
-              <span class="inline-block w-2 h-2 rounded-full bg-red-600"></span>
+            <label class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600"></span>
               <span>行先（目的地）</span>
             </label>
             <button
               type="button"
-              class="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition active:scale-95"
+              class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100 active:scale-95"
               onclick="openMapPicker('dropoff')"
             >
-              <i data-lucide="map-pin" class="h-3 w-3 text-blue-600"></i>
-              <span>地図から選ぶ</span>
+              <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600"></i>
+              <span>地図で指定</span>
             </button>
           </div>
           <input
             type="text"
             id="dropoffLocation"
-            placeholder="例: 相模原協同病院、イオン橋本店など"
+            placeholder="例: 相模原協同病院"
             required
-            class="w-full h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-blue-600"
+            class="w-full h-13 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none focus:border-blue-600"
           />
-          <!-- 主要施設クイックセットチップス -->
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px]">
-            <span class="text-slate-400">主要施設:</span>
-            <button type="button" class="dest-chip rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-600 hover:bg-slate-100" onclick="setDestinationQuick('相模原協同病院')">協同病院</button>
-            <button type="button" class="dest-chip rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-600 hover:bg-slate-100" onclick="setDestinationQuick('津久井赤十字病院')">津久井日赤</button>
-            <button type="button" class="dest-chip rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-600 hover:bg-slate-100" onclick="setDestinationQuick('相模原市緑区合同庁舎')">緑区合同庁舎</button>
-            <button type="button" class="dest-chip rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-600 hover:bg-slate-100" onclick="setDestinationQuick('JR橋本駅')">橋本駅</button>
+          <!-- 主要施設クイック選択 -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
+            <span class="text-slate-400 font-bold">よく行く場所:</span>
+            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-bold hover:bg-slate-100" onclick="setDestinationQuick('相模原協同病院')">協同病院</button>
+            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-bold hover:bg-slate-100" onclick="setDestinationQuick('津久井赤十字病院')">津久井赤十字</button>
+            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-bold hover:bg-slate-100" onclick="setDestinationQuick('相模原市緑区合同庁舎')">緑区合同庁舎</button>
+            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 font-bold hover:bg-slate-100" onclick="setDestinationQuick('JR橋本駅')">橋本駅</button>
           </div>
         </div>
       </section>
 
-      <!-- STEP 4: 乗車人数・特記事項 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+      <!-- STEP 4: 人数・特記事項 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[11px] font-black text-white">4</span>
-            <h2 class="text-xs font-bold text-slate-900 sm:text-sm">乗車人数・特記事項</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">4</span>
+            <h2 class="text-base font-bold text-slate-900">人数と連絡事項</h2>
           </div>
-          <span class="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1.5">乗車人数</label>
-          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2" id="passengerGrid">
-            <button type="button" class="pass-chip h-10 rounded-xl border border-blue-600 bg-blue-50/70 text-xs font-bold text-blue-700" data-val="1名">1名</button>
-            <button type="button" class="pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50" data-val="2名">2名</button>
-            <button type="button" class="pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50" data-val="3名">3名</button>
-            <button type="button" class="pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50" data-val="4名">4名</button>
-            <button type="button" class="pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50" data-val="5名">5名</button>
-            <button type="button" class="pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50" data-val="6名">6名</button>
+          <label class="block text-sm font-bold text-slate-800 mb-2">乗車人数</label>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="passengerGrid">
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-sm font-black text-blue-700" data-val="1名">1名</button>
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="2名">2名</button>
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="3名">3名</button>
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="4名">4名</button>
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="5名">5名</button>
+            <button type="button" class="pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="6名">6名</button>
           </div>
           <input type="hidden" id="passengers" value="1名" required />
         </div>
 
         <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-semibold text-slate-700">介助要件・特記事項（任意）</label>
-            <span class="text-[10px] text-slate-400">車椅子の折りたたみ、杖歩行など</span>
-          </div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">ドライバーへの連絡事項（任意）</label>
           <textarea
             id="questNote"
             rows="2"
-            placeholder="例: 折りたたみ車椅子をトランクに積載希望。見守りをお願いします。"
-            class="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 outline-none focus:border-blue-600"
+            placeholder="例: 車椅子の積み込み希望、杖歩行で見守りが必要など"
+            class="w-full rounded-xl border-2 border-slate-200 bg-white p-3.5 text-sm text-slate-900 outline-none focus:border-blue-600"
           ></textarea>
         </div>
       </section>
 
-      <!-- 送信確認ボタン（名簿確認完了まで非活性） -->
+      <!-- 申込みボタン -->
       <div class="pt-2">
         <button
           type="submit"
           id="btnSubmitPreview"
           disabled
-          class="inline-flex w-full h-12 items-center justify-center gap-2 rounded-xl bg-slate-300 text-sm font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed"
+          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <i data-lucide="check" class="h-4 w-4"></i>
+          <i data-lucide="check" class="h-5 w-5"></i>
           <span>申込み内容を確認する</span>
         </button>
-        <p id="submitGuideText" class="text-[11px] text-center text-slate-400 mt-2">
-          ※半角数字5桁の登録番号を入力すると、お名前が確認され申込みが可能になります。
+        <p id="submitGuideText" class="text-xs text-center text-slate-500 mt-2.5 font-medium">
+          登録番号を入力すると申込みボタンが有効になります
         </p>
       </div>
 
     </form>
   </main>
 
-  <!-- 無料地図選択モーダル（Leaflet＋国土地理院逆引きAPI） -->
+  <!-- 無料地図選択モーダル（日本の住所順・緯度経度対応版） -->
   <div id="mapPickerModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-xl rounded-t-2xl sm:rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-150 flex flex-col max-h-[92vh]">
+    <div class="w-full max-w-lg rounded-t-3xl sm:rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl flex flex-col max-h-[92vh]">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <span id="mapPickerTargetBadge" class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">出発地を選択</span>
-          <h3 class="text-sm font-bold text-slate-900 mt-0.5">地図から場所を指定</h3>
+          <span id="mapPickerTargetBadge" class="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">出発地を指定</span>
+          <h3 class="text-base font-bold text-slate-900 mt-0.5">地図を動かして場所を合わせる</h3>
         </div>
-        <button type="button" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100" onclick="closeMapPicker()">
-          <i data-lucide="x" class="h-5 w-5"></i>
+        <button type="button" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100" onclick="closeMapPicker()">
+          <i data-lucide="x" class="h-6 w-6"></i>
         </button>
       </div>
 
-      <!-- 地図キャンバス（中心照準ピン方式） -->
-      <div class="relative w-full h-72 sm:h-80 my-3 rounded-xl border border-slate-200 overflow-hidden shadow-inner">
+      <!-- 地図キャンバス（中心照準ピン） -->
+      <div class="relative w-full h-72 sm:h-80 my-3 rounded-2xl border border-slate-200 overflow-hidden shadow-inner">
         <div id="pickerMapCanvas" class="w-full h-full"></div>
         <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full z-[400] flex flex-col items-center">
-          <div class="rounded-full bg-red-600 p-1.5 text-white shadow-lg border-2 border-white">
-            <i data-lucide="map-pin" class="h-5 w-5"></i>
+          <div class="rounded-full bg-red-600 p-2 text-white shadow-lg border-2 border-white">
+            <i data-lucide="map-pin" class="h-6 w-6"></i>
           </div>
-          <div class="w-1.5 h-1.5 rounded-full bg-slate-900 mt-0.5 opacity-60"></div>
+          <div class="w-2 h-2 rounded-full bg-slate-900 mt-0.5 opacity-60"></div>
         </div>
         <button
           type="button"
-          class="absolute bottom-3 right-3 z-[400] inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-md hover:bg-slate-50 active:scale-95"
+          class="absolute bottom-3 right-3 z-[400] inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-md active:scale-95"
           onclick="locateCurrentPosition()"
         >
-          <i data-lucide="crosshair" class="h-3.5 w-3.5 text-blue-600"></i>
-          <span>現在地</span>
+          <i data-lucide="crosshair" class="h-4 w-4 text-blue-600"></i>
+          <span>現在地へ</span>
         </button>
       </div>
 
-      <div class="rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-xs space-y-1">
-        <span class="text-[10px] text-slate-400 block font-bold">選択中の地点（地図を動かすと自動更新されます）</span>
-        <div id="pickedAddressText" class="font-bold text-slate-800 truncate">住所を取得中...</div>
+      <div class="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs space-y-1">
+        <span class="text-slate-400 font-bold block">選択中の場所:</span>
+        <div id="pickedAddressText" class="font-bold text-slate-800 text-sm truncate">住所を取得中...</div>
       </div>
 
       <div class="mt-3 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-        <button type="button" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50" onclick="closeMapPicker()">キャンセル</button>
-        <button type="button" id="btnConfirmPickedLocation" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 active:scale-95" onclick="applyPickedLocation()">
-          <i data-lucide="check" class="h-3.5 w-3.5"></i>
-          <span>この場所を設定する</span>
+        <button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="closeMapPicker()">キャンセル</button>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-slate-800 active:scale-95" onclick="applyPickedLocation()">
+          <i data-lucide="check" class="h-4 w-4"></i>
+          <span>ここに決定</span>
         </button>
       </div>
     </div>
@@ -398,73 +396,65 @@
 
   <!-- 申込最終確認モーダル -->
   <div id="confirmModalOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
       <div class="border-b border-slate-100 pb-3">
-        <span class="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">最終確認</span>
-        <h3 class="mt-1 text-base font-bold text-slate-900">この内容で申し込みますか？</h3>
+        <h3 class="text-lg font-black text-slate-900">お申込み内容の確認</h3>
       </div>
 
-      <div class="my-3 space-y-2 rounded-xl bg-slate-50 p-3.5 text-xs border border-slate-100 leading-relaxed">
+      <div class="my-4 space-y-2.5 rounded-xl bg-slate-50 p-4 text-sm border border-slate-200 leading-relaxed">
         <div class="flex justify-between">
-          <span class="text-slate-500">ご利用者:</span>
-          <strong id="confUser" class="text-slate-900">----</strong>
+          <span class="text-slate-500 font-medium">ご利用者:</span>
+          <strong id="confUser" class="text-slate-900 text-base">----</strong>
         </div>
         <div class="flex justify-between">
-          <span class="text-slate-500">運行希望日時:</span>
-          <strong id="confDateTime" class="text-blue-700">----</strong>
+          <span class="text-slate-500 font-medium">日時:</span>
+          <strong id="confDateTime" class="text-blue-700 text-base">----</strong>
         </div>
         <div class="flex justify-between">
-          <span class="text-slate-500">運行区分:</span>
+          <span class="text-slate-500 font-medium">区分:</span>
           <strong id="confTripPlan" class="text-slate-900">----</strong>
         </div>
         <div class="border-t border-slate-200 pt-2 space-y-1">
-          <div><span class="text-slate-400">出発地:</span> <strong id="confPickup" class="text-slate-800 block truncate">----</strong></div>
-          <div><span class="text-slate-400">行先:</span> <strong id="confDropoff" class="text-slate-800 block truncate">----</strong></div>
+          <div><span class="text-slate-400 font-semibold">出発地:</span> <strong id="confPickup" class="text-slate-800 block truncate">----</strong></div>
+          <div><span class="text-slate-400 font-semibold">行先:</span> <strong id="confDropoff" class="text-slate-800 block truncate">----</strong></div>
         </div>
         <div class="flex justify-between border-t border-slate-200 pt-2">
-          <span class="text-slate-500">乗車人数:</span>
+          <span class="text-slate-500 font-medium">乗車人数:</span>
           <strong id="confPassengers" class="text-slate-900">1名</strong>
         </div>
       </div>
 
-      <p class="text-[11px] text-slate-500 mb-3">
-        ※申込み完了後、運行掲示板へ即座に掲載され、担当ドライバーの募集が開始されます。
-      </p>
-
       <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-        <button type="button" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50" onclick="closeConfirmModal()">戻って修正</button>
-        <button type="button" id="btnExecuteSubmit" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95" onclick="executeSubmitQuest()">
-          <i data-lucide="send" class="h-3.5 w-3.5"></i>
+        <button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="closeConfirmModal()">戻る</button>
+        <button type="button" id="btnExecuteSubmit" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-black text-white shadow-md hover:bg-blue-700 active:scale-95" onclick="executeSubmitQuest()">
+          <i data-lucide="send" class="h-4 w-4"></i>
           <span>申し込む</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 申込み完了画面 -->
+  <!-- 完了画面 -->
   <div id="completeModalOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
-      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
-        <i data-lucide="badge-check" class="h-7 w-7"></i>
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+        <i data-lucide="badge-check" class="h-8 w-8"></i>
       </div>
-      <h3 class="text-base sm:text-lg font-black text-slate-900">送迎予約を受け付けました</h3>
-      <p class="text-xs text-slate-500 mt-1">掲示板にてボランティアドライバーの募集を開始します</p>
+      <h3 class="text-xl font-black text-slate-900">予約を受け付けました</h3>
+      <p class="text-sm text-slate-500 mt-1">ボランティアドライバーの募集を開始します</p>
 
       <div class="my-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-        <div class="text-xs font-bold text-blue-800">発行された案件番号</div>
+        <div class="text-xs font-bold text-blue-800">案件番号</div>
         <div id="issuedQuestId" class="mt-1 font-mono text-3xl font-black text-blue-700">#----</div>
       </div>
 
-      <div class="rounded-xl bg-slate-50 p-3.5 text-left text-xs space-y-2 text-slate-700 border border-slate-100 leading-relaxed">
-        <p>公式LINEへ受付完了通知をお送りしました。担当ドライバーが決まり次第、改めてLINE通知でお知らせいたします。</p>
-        <p class="text-[11px] text-slate-500">※ご都合が悪くなった場合は、LINE通知内のリンクからいつでもセルフキャンセルが可能です。</p>
-      </div>
+      <p class="text-xs text-slate-600 leading-relaxed mb-4">
+        担当ドライバーが決まり次第、LINE通知でお知らせします。<br>画面を閉じてお待ちください。
+      </p>
 
-      <div class="mt-4">
-        <button type="button" class="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition" onclick="window.location.reload()">
-          閉じる
-        </button>
-      </div>
+      <button type="button" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition" onclick="window.location.reload()">
+        閉じる
+      </button>
     </div>
   </div>
 
@@ -481,7 +471,6 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // 運行区分の切り替え
     function handleTripPlanChange() {
       const isRound = document.querySelector('input[name="tripTypeRadio"]:checked').value === '往復';
       const cardRound = document.getElementById("cardTripRound");
@@ -489,12 +478,12 @@
       const waitArea = document.getElementById("waitDurationArea");
 
       if (isRound) {
-        cardRound.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-blue-600 bg-blue-50/60 cursor-pointer transition";
-        cardOneWay.className = "flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
+        cardRound.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition";
+        cardOneWay.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
         waitArea.classList.remove("hidden");
       } else {
-        cardOneWay.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-blue-600 bg-blue-50/60 cursor-pointer transition";
-        cardRound.className = "flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
+        cardOneWay.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition";
+        cardRound.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
         waitArea.classList.add("hidden");
       }
     }
@@ -503,9 +492,9 @@
       document.querySelectorAll(".wait-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll(".wait-chip").forEach(c => {
-            c.className = "wait-chip rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-600";
+            c.className = "wait-chip rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-600";
           });
-          chip.className = "wait-chip rounded-lg border border-blue-300 bg-white py-1.5 text-xs font-bold text-blue-800 shadow-2xs";
+          chip.className = "wait-chip rounded-lg border border-blue-400 bg-white py-2 text-xs font-bold text-blue-800 shadow-2xs";
           document.getElementById("waitDuration").value = chip.getAttribute("data-val");
         };
       });
@@ -515,15 +504,15 @@
       document.querySelectorAll(".pass-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll(".pass-chip").forEach(c => {
-            c.className = "pass-chip h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50";
+            c.className = "pass-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50";
           });
-          chip.className = "pass-chip h-10 rounded-xl border border-blue-600 bg-blue-50/70 text-xs font-bold text-blue-700";
+          chip.className = "pass-chip h-12 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-sm font-black text-blue-700";
           document.getElementById("passengers").value = chip.getAttribute("data-val");
         };
       });
     }
 
-    // 利用者番号 リアルタイム名簿逆引き（二重フォールバックにより確実に取得）
+    // 利用者番号 リアルタイム照合
     let userFetchTimer = null;
     function handleUserNumberInput() {
       const val = document.getElementById("userRegId").value.trim();
@@ -538,8 +527,8 @@
         userCard.classList.add("hidden");
         cachedUser = null;
         submitBtn.disabled = true;
-        submitBtn.className = "inline-flex w-full h-12 items-center justify-center gap-2 rounded-xl bg-slate-300 text-sm font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed";
-        guideText.textContent = "※半角数字5桁の登録番号を入力すると、お名前が確認され申込みが可能になります。";
+        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed";
+        guideText.textContent = "登録番号を入力すると申込みボタンが有効になります";
         return;
       }
 
@@ -549,15 +538,13 @@
         try {
           let user = null;
 
-          // 1. getUserDetail APIへ問い合わせ
+          // 1. getUserDetail API
           try {
             const res = await (await fetch(`${GAS_API_URL}?action=getUserDetail&userId=${encodeURIComponent(val)}&_t=${Date.now()}`)).json();
-            if (res && res.success && res.user) {
-              user = res.user;
-            }
+            if (res && res.success && res.user) user = res.user;
           } catch (e) {}
 
-          // 2. 失敗した場合は getAdminDashboardData の利用者名簿からフォールバック検索
+          // 2. 名簿フォールバック
           if (!user) {
             try {
               const dashRes = await (await fetch(`${GAS_API_URL}?action=getAdminDashboardData&_t=${Date.now()}`)).json();
@@ -585,28 +572,27 @@
             document.getElementById("dispUserPhone").textContent = user.phone || "登録なし";
             document.getElementById("dispUserType").textContent = user.userType || "本人申請";
 
-            badge.className = "mt-2 flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-800";
-            badge.innerHTML = `<i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-600 flex-shrink-0"></i><span>登録名簿を確認しました</span>`;
+            badge.className = "mt-2.5 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800";
+            badge.innerHTML = `<i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i><span>登録情報を確認しました</span>`;
             badge.classList.remove("hidden");
             userCard.classList.remove("hidden");
 
-            // 申込みボタンを活性化
             submitBtn.disabled = false;
-            submitBtn.className = "inline-flex w-full h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-md hover:bg-blue-700 active:scale-98 transition";
-            guideText.textContent = "※登録確認が完了しました。「申込み内容を確認する」ボタンを押して進んでください。";
+            submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition";
+            guideText.textContent = "確認完了。「申込み内容を確認する」を押してください。";
           } else {
             cachedUser = null;
             userCard.classList.add("hidden");
             document.getElementById("userName").value = "";
             document.getElementById("userPhone").value = "";
 
-            badge.className = "mt-2 flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 leading-snug";
-            badge.innerHTML = `<i data-lucide="alert-circle" class="h-3.5 w-3.5 text-red-600 flex-shrink-0"></i><span>名簿に未登録の番号です。先におでかけサポートの利用者事前登録を行ってください。</span>`;
+            badge.className = "mt-2.5 flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2 text-xs font-bold text-red-700 leading-snug";
+            badge.innerHTML = `<i data-lucide="alert-circle" class="h-4 w-4 text-red-600 flex-shrink-0"></i><span>名簿に未登録です。番号をご確認ください。</span>`;
             badge.classList.remove("hidden");
 
             submitBtn.disabled = true;
-            submitBtn.className = "inline-flex w-full h-12 items-center justify-center gap-2 rounded-xl bg-slate-300 text-sm font-bold text-white shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed";
-            guideText.textContent = "※未登録の番号では申込みできません。正しい番号をお確かめください。";
+            submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed";
+            guideText.textContent = "※未登録の番号では申し込めません。";
           }
         } catch (e) {
           badge.classList.add("hidden");
@@ -619,7 +605,7 @@
 
     function applyUserHomeAddress(targetField) {
       if (!cachedUser || !cachedUser.address) {
-        alert("登録情報から住所を取得できませんでした。直接ご入力いただくか、地図からご指定ください。");
+        alert("登録住所が見つかりませんでした。直接入力するか、地図からご指定ください。");
         return;
       }
       if (targetField === 'pickup') {
@@ -632,13 +618,13 @@
     }
 
     // ==========================================
-    // 無料地図選択モーダル（Leaflet＋OSM逆引き）
+    // 地図選択（Googleマップが100%認識する住所整形）
     // ==========================================
     function openMapPicker(target) {
       currentMapTarget = target;
       const modal = document.getElementById("mapPickerModal");
       const badge = document.getElementById("mapPickerTargetBadge");
-      badge.textContent = target === 'pickup' ? "出発地を選択" : "行先を選択";
+      badge.textContent = target === 'pickup' ? "出発地を指定" : "行先を指定";
 
       modal.classList.remove("hidden");
       refreshLucide();
@@ -680,6 +666,7 @@
       fetchReverseAddress(center.lat, center.lng);
     }
 
+    // 日本の住所順（都道府県＋市区町村＋町名＋番地）に整頓
     async function fetchReverseAddress(lat, lng) {
       const textEl = document.getElementById("pickedAddressText");
       textEl.textContent = "地点の住所を照会中...";
@@ -689,10 +676,22 @@
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja`);
           const data = await res.json();
-          if (data && data.display_name) {
-            let addr = data.display_name.replace(/^日本、\s*/, '').replace(/[0-9]{3}-[0-9]{4}、\s*/, '');
-            pickedAddress = addr;
-            textEl.textContent = addr;
+          if (data && data.address) {
+            const a = data.address;
+            const pref = a.province || a.state || '';
+            const city = a.city || a.town || a.village || a.county || '';
+            const ward = a.city_district || a.ward || '';
+            const town = a.suburb || a.quarter || a.neighbourhood || '';
+            const house = a.house_number ? `${a.house_number}番地` : '';
+            const facility = (data.name && data.name !== a.road) ? ` ${data.name}` : '';
+
+            // 日本語の正しい住所順序に結合（余計な道路線名やカンマを排除）
+            let cleanAddr = `${pref}${city}${ward}${town}${house}${facility}`.trim();
+            if (!cleanAddr) {
+              cleanAddr = data.display_name.replace(/〒?[0-9]{3}-?[0-9]{4}/g, '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+            pickedAddress = cleanAddr;
+            textEl.textContent = cleanAddr;
           } else {
             pickedAddress = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
             textEl.textContent = pickedAddress;
@@ -715,7 +714,7 @@
             mapInstance.setView([pos.coords.latitude, pos.coords.longitude], 16);
           }
         },
-        () => alert("現在地を取得できませんでした。地図を直接動かしてご指定ください。"),
+        () => alert("現在地を取得できませんでした。"),
         { timeout: 8000 }
       );
     }
@@ -730,9 +729,7 @@
       closeMapPicker();
     }
 
-    // ==========================================
-    // 申込み確認 ＆ 送信処理
-    // ==========================================
+    // 申込み確認モーダル
     function openConfirmModal() {
       const uId = document.getElementById("userRegId").value.trim();
       const uName = document.getElementById("userName").value.trim();
@@ -745,7 +742,7 @@
       const pass = document.getElementById("passengers").value;
 
       if (!cachedUser || !uId || !uName) {
-        alert("有効な登録番号を入力し、ご利用者名が表示されていることをご確認ください。");
+        alert("有効な登録番号を入力してください。");
         return;
       }
       if (!date || !time || !pickup || !dropoff) {
@@ -773,7 +770,7 @@
     async function executeSubmitQuest() {
       closeConfirmModal();
       const overlay = document.getElementById("blockingOverlay");
-      document.getElementById("blockingTitle").textContent = "送迎予約を送信中";
+      document.getElementById("blockingTitle").textContent = "予約を送信中";
       document.getElementById("blockingDesc").textContent = "配車システムへ登録しています...";
       overlay.classList.remove("hidden");
       refreshLucide();
@@ -809,7 +806,7 @@
           document.getElementById("completeModalOverlay").classList.remove("hidden");
           refreshLucide();
         } else {
-          alert("申込みに失敗しました: " + (data.message || "スプレッドシートの書き込みエラー"));
+          alert("申込みに失敗しました: " + (data.message || "エラー"));
         }
       } catch (err) {
         alert("通信エラーが発生しました: " + err.message);
@@ -823,7 +820,7 @@
       initWaitChips();
       initPassengerChips();
 
-      // 明日の日付をデフォルトセット（はみ出し防止）
+      // 明日の日付をデフォルトセット
       const tmrw = new Date();
       tmrw.setDate(tmrw.getDate() + 1);
       const y = tmrw.getFullYear();
