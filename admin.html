@@ -971,9 +971,12 @@
           <select id="preRegSelect" class="w-full h-8 rounded-lg border border-emerald-300 bg-white px-2 font-medium text-slate-800 outline-none">
             <option value="">読み込み中...</option>
           </select>
-          <p id="preRegStatusText" class="mt-1 text-[11px] text-emerald-700 leading-tight">
-            事前登録データを読み込んでいます...
-          </p>
+          <div class="mt-1.5 flex items-center justify-between text-[11px]">
+            <p id="preRegStatusText" class="text-emerald-700 leading-tight">事前登録データを読み込んでいます...</p>
+            <span id="preRegLineBadge" class="hidden rounded px-1.5 py-0.5 font-bold"></span>
+          </div>
+          <!-- M列のLINE IDを保持する隠しフィールド -->
+          <input type="hidden" id="dRegLineUserId" value="" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
