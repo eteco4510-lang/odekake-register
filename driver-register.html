@@ -38,7 +38,7 @@
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
       <div class="mt-3 text-base font-bold text-slate-900">登録処理中</div>
-      <div class="mt-1 text-xs text-slate-500">LINE通知を送信しています...</div>
+      <div class="mt-1 text-xs text-slate-500">LINEへ確認メッセージを送信中...</div>
     </div>
   </div>
 
@@ -57,10 +57,27 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-xl px-4 pt-5 sm:px-6">
+  <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
+
+    <!-- LINE連携状態カード -->
+    <div id="lineStatusCard" class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div id="lineStatusDot" class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+        <span id="lineStatusText" class="text-xs font-bold text-slate-700">LINEアカウント確認中...</span>
+      </div>
+      <button
+        type="button"
+        id="btnLineLogin"
+        class="hidden rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95"
+        onclick="triggerLineLogin()"
+      >
+        LINEでログイン
+      </button>
+    </div>
+
     <form id="driverRegisterForm" class="space-y-5" onsubmit="event.preventDefault(); openConfirmModal();">
 
-      <!-- STEP 1: お名前・ご連絡先 -->
+      <!-- STEP 1: 基本情報 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
@@ -163,7 +180,6 @@
           />
         </div>
 
-        <!-- ナンバープレート専用入力カード -->
         <div>
           <label class="block text-sm font-bold text-slate-800 mb-1.5">ナンバープレート</label>
           <div class="rounded-xl border-2 border-slate-300 bg-slate-50 p-3 space-y-2">
@@ -301,7 +317,7 @@
           <i data-lucide="message-circle" class="h-4 w-4"></i>
           <span>LINEへ確認メッセージをお送りしました</span>
         </div>
-        <p>公式LINEのトーク画面をご確認ください。今後の詳細確認やご連絡は、このLINEチャットを通じて事務局より差し上げます。</p>
+        <p>公式LINEのトーク画面をご確認ください。事務局よりこのLINEでご連絡を差し上げます。</p>
       </div>
 
       <div class="mt-5">
@@ -314,10 +330,12 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-    // ドライバー登録用のLIFF ID（※LINE Developersで登録したIDに差し替えてご利用いただけます）
-    const DRIVER_REG_LIFF_ID = "2011784961-0qNrk1l4";
+
+    // 新規発行されたドライバー事前登録用LIFF ID
+    const DRIVER_REG_LIFF_ID = "2011784961-sUfOdAbp";
 
     let lineUserId = '';
+    let lineDisplayName = '';
 
     function refreshLucide() {
       if (window.lucide) lucide.createIcons();
@@ -350,6 +368,30 @@
           document.getElementById("carCapacity").value = chip.getAttribute("data-val");
         };
       });
+    }
+
+    function triggerLineLogin() {
+      if (window.liff && !liff.isLoggedIn()) {
+        liff.login();
+      }
+    }
+
+    function updateLineStatus(isSuccess, name = '', uid = '') {
+      const dot = document.getElementById("lineStatusDot");
+      const text = document.getElementById("lineStatusText");
+      const btn = document.getElementById("btnLineLogin");
+
+      if (isSuccess) {
+        dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+        text.className = "text-xs font-bold text-emerald-800";
+        text.innerHTML = `<span class="text-slate-500 font-normal">LINE連携:</span> ${name} 様 <span class="font-mono text-[10px] text-slate-400">(${uid.substring(0, 6)}...)</span>`;
+        btn.classList.add("hidden");
+      } else {
+        dot.className = "h-2.5 w-2.5 rounded-full bg-red-500";
+        text.className = "text-xs font-bold text-red-700";
+        text.textContent = "LINE未連携（自動通知を受け取るにはログインが必要です）";
+        btn.classList.remove("hidden");
+      }
     }
 
     function openConfirmModal() {
@@ -389,6 +431,12 @@
 
     async function executeSubmit() {
       closeConfirmModal();
+
+      if (!lineUserId) {
+        const ok = confirm("LINEアカウント情報が取得できていません。このまま登録するとLINEへの自動メッセージが届きませんがよろしいですか？\n（LINEアプリ内から開くか「LINEでログイン」を押すと連携できます）");
+        if (!ok) return;
+      }
+
       const overlay = document.getElementById("blockingOverlay");
       overlay.classList.remove("hidden");
       refreshLucide();
@@ -406,7 +454,7 @@
         plateKana: document.getElementById("plateKana").value.trim(),
         plateNum: document.getElementById("plateNum").value.trim(),
         capacity: document.getElementById("carCapacity").value,
-        lineUserId: lineUserId // ★自動取得したLINE IDを送信
+        lineUserId: lineUserId
       };
 
       try {
@@ -442,17 +490,27 @@
       initDaysChips();
       initCapacityChips();
 
-      // LIFF初期化（LINE内アクセス時はLINE IDを自動取得）
       try {
         if (window.liff) {
           await liff.init({ liffId: DRIVER_REG_LIFF_ID });
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             lineUserId = profile.userId || '';
+            lineDisplayName = profile.displayName || '';
+            updateLineStatus(true, lineDisplayName, lineUserId);
+          } else {
+            if (liff.isInClient()) {
+              liff.login();
+            } else {
+              updateLineStatus(false);
+            }
           }
+        } else {
+          updateLineStatus(false);
         }
       } catch (e) {
-        console.warn("LIFFスキップ（通常ブラウザ表示）:", e);
+        console.warn("LIFF初期化エラー:", e);
+        updateLineStatus(false);
       }
     });
   </script>
