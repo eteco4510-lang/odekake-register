@@ -16,35 +16,26 @@
       font-variant-numeric: tabular-nums;
       -webkit-tap-highlight-color: transparent;
     }
-    .lucide {
-      stroke-width: 2.2;
-    }
-    *, ::before, ::after {
-      box-sizing: border-box !important;
-    }
-    input, select, textarea {
-      box-sizing: border-box !important;
-      max-width: 100% !important;
-    }
-    button {
-      white-space: nowrap !important;
-    }
+    .lucide { stroke-width: 2.2; }
+    *, ::before, ::after { box-sizing: border-box !important; }
+    input, select, textarea { box-sizing: border-box !important; max-width: 100% !important; }
+    button, select, a { white-space: nowrap !important; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-20 text-base">
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-24 text-base">
 
-  <!-- 全画面操作ロック用ローディングオーバーレイ -->
+  <!-- ローディングオーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
-      <div class="mt-3 text-base font-bold text-slate-900" id="blockingTitle">登録処理中</div>
-      <div class="mt-1 text-xs text-slate-500" id="blockingDesc">名簿データベースを更新しています...</div>
+      <div class="mt-3 text-base font-bold text-slate-900">登録処理中</div>
+      <div class="mt-1 text-xs text-slate-500">LINEへ登録完了メッセージを送信中...</div>
     </div>
   </div>
 
   <!-- スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-md">
-    <div class="mx-auto flex max-w-lg items-center justify-between px-4 py-3.5 sm:px-6">
+    <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3.5 sm:px-6">
       <div class="flex items-center gap-2.5">
         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
           <i data-lucide="user-plus" class="h-5 w-5"></i>
@@ -57,254 +48,164 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-lg px-4 pt-5 sm:px-6">
+  <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
 
-    <!-- 登録フォームビュー -->
-    <div id="formView" class="space-y-4">
-      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-5">
+    <!-- LINE連携状態カード -->
+    <div id="lineStatusCard" class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div id="lineStatusDot" class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+        <span id="lineStatusText" class="text-xs font-bold text-slate-700">LINEアカウント確認中...</span>
+      </div>
+      <button
+        type="button"
+        id="btnLineLogin"
+        class="hidden rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95"
+        onclick="triggerLineLogin()"
+      >
+        LINEでログイン
+      </button>
+    </div>
 
-        <!-- 申請区分 -->
-        <div class="space-y-2">
-          <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <i data-lucide="badge-check" class="h-4 w-4 text-blue-600"></i>
-            <span>申請区分</span>
-            <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 ml-auto">必須</span>
-          </label>
-          <div class="grid grid-cols-2 gap-3">
-            <label id="labelHonin" class="flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition">
-              <input type="radio" name="userType" value="本人申請" checked class="hidden" onchange="handleUserTypeChange()">
-              <div class="flex items-center gap-1.5 font-black text-blue-700 text-base">
-                <i data-lucide="user" class="h-5 w-5"></i>
-                <span>本人申請</span>
-              </div>
-              <span class="text-xs text-blue-600 mt-0.5 font-medium">ご自身で利用</span>
-            </label>
+    <form id="userRegisterForm" class="space-y-5" onsubmit="event.preventDefault(); executeUserRegister();">
 
-            <label id="labelCare" class="flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition">
-              <input type="radio" name="userType" value="ケアマネ等代理" class="hidden" onchange="handleUserTypeChange()">
-              <div class="flex items-center gap-1.5 font-bold text-slate-600 text-base">
-                <i data-lucide="heart-handshake" class="h-5 w-5"></i>
-                <span>ケアマネ等代理</span>
-              </div>
-              <span class="text-xs text-slate-400 mt-0.5 font-medium">家族や担当者が代理</span>
-            </label>
-          </div>
-          <p class="text-xs text-slate-500 leading-relaxed pt-0.5">
-            ※ご自身で乗車される方は「本人申請」、ご家族やケアマネジャー等として代理登録される方は「ケアマネ等代理」を選択してください。
-          </p>
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 class="text-base font-bold text-slate-900">利用者情報入力</h2>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <!-- 利用者氏名 -->
-        <div class="space-y-1.5 pt-2 border-t border-slate-100">
-          <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <i data-lucide="user-check" class="h-4 w-4 text-blue-600"></i>
-            <span>利用者氏名</span>
-            <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 ml-auto">必須</span>
-          </label>
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">お名前</label>
           <input
             type="text"
             id="userName"
-            placeholder="例: 相模 太郎"
+            placeholder="例: 相模 花子"
             required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3.5 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
           />
-          <p class="text-xs text-slate-400">※漢字またはひらがなでお名前を入力してください。</p>
         </div>
 
-        <!-- 連絡先電話番号 -->
-        <div class="space-y-1.5 pt-2 border-t border-slate-100">
-          <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <i data-lucide="phone" class="h-4 w-4 text-blue-600"></i>
-            <span>連絡先電話番号</span>
-            <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 ml-auto">必須</span>
-          </label>
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">お電話番号</label>
           <input
             type="tel"
             id="userPhone"
             placeholder="例: 090-1234-5678"
             required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3.5 text-base font-mono font-bold text-slate-900 outline-none transition focus:border-blue-600"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
           />
-          <p class="text-xs text-slate-400">※日中つながる電話番号を入力してください（ハイフン有無どちらでも可）。</p>
         </div>
 
-        <!-- ご住所（ご自宅）★新設 -->
-        <div class="space-y-1.5 pt-2 border-t border-slate-100">
-          <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <i data-lucide="map-pin" class="h-4 w-4 text-blue-600"></i>
-            <span>ご住所（ご自宅）</span>
-            <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 ml-auto">必須</span>
-          </label>
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">ご住所</label>
           <input
             type="text"
             id="userAddress"
             placeholder="例: 相模原市緑区中野1-2-3"
             required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3.5 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
           />
-          <p class="text-xs text-blue-700 bg-blue-50/70 p-2.5 rounded-lg border border-blue-100 leading-relaxed font-medium">
-            ※送迎のお申込み時に<strong>「自宅をセット」ボタン</strong>を押すだけで、お迎え先住所として自動入力できるようになります。
-          </p>
         </div>
 
-        <!-- 登録ボタン -->
-        <div class="pt-3">
-          <button
-            type="button"
-            id="btnSubmit"
-            class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition disabled:opacity-50"
-            onclick="submitRegistration()"
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">申請区分</label>
+          <select
+            id="userType"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
           >
-            <i data-lucide="check" class="h-5 w-5"></i>
-            <span>登録する</span>
-          </button>
+            <option value="本人申請">本人申請</option>
+            <option value="ケアマネ等代理">ケアマネ等代理</option>
+          </select>
         </div>
+      </section>
 
-      </div>
-    </div>
-
-    <!-- 登録完了ビュー -->
-    <div id="completeView" class="hidden space-y-4">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
-          <i data-lucide="badge-check" class="h-8 w-8"></i>
-        </div>
-        <h2 class="text-xl font-black text-slate-900">登録が完了しました</h2>
-        <p class="text-xs text-slate-500 mt-1">
-          おでかけサポートの利用者登録を受け付けました
-        </p>
-
-        <!-- 発行された登録番号 -->
-        <div class="my-5 rounded-2xl border-2 border-emerald-200 bg-emerald-50/70 p-4">
-          <div class="text-xs font-bold text-emerald-800">あなたの利用者登録番号</div>
-          <div id="dispUserNum" class="mt-1 font-mono text-4xl font-black text-emerald-700 tracking-wider">-----</div>
-          <div id="dispUserName" class="mt-1 text-sm font-bold text-slate-800">相模 太郎 様</div>
-        </div>
-
-        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-left space-y-1.5 text-xs text-red-900 mb-4 leading-relaxed">
-          <div class="font-black text-sm flex items-center gap-1.5 text-red-700">
-            <i data-lucide="info" class="h-4 w-4 flex-shrink-0"></i>
-            <span>画面右上の「 × 」で閉じてください</span>
-          </div>
-          <p>公式LINEのトーク画面にも登録番号が届いています。</p>
-          <p class="text-red-800 font-semibold">今後の送迎お申込みの際に、上記の「登録番号（5桁）」が必要となりますので大切にお控えください。</p>
-        </div>
-
+      <div class="pt-2">
         <button
-          type="button"
-          class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition active:scale-98"
-          onclick="handleCloseWindow()"
+          type="submit"
+          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition"
         >
-          閉じる
+          <i data-lucide="check" class="h-5 w-5"></i>
+          <span>登録する</span>
         </button>
       </div>
-    </div>
 
+    </form>
   </main>
 
-  <!-- サイト名非表示カスタムダイアログ（iOS風） -->
-  <div id="customDialogOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4 backdrop-blur-xs hidden" onclick="handleDialogOverlayClick(event)">
-    <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-2xl animate-in zoom-in-95 duration-150">
-      <div id="customDialogIconArea" class="mb-2.5 flex justify-center"></div>
-      <h3 id="customDialogTitle" class="text-base font-bold text-slate-900">通知</h3>
-      <div id="customDialogMessage" class="my-3 rounded-xl bg-slate-50 p-3.5 text-left text-xs leading-relaxed text-slate-700 whitespace-pre-wrap border border-slate-100"></div>
-      <button type="button" class="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition" onclick="closeCustomDialog()">閉じる</button>
+  <!-- 完了モーダル -->
+  <div id="completeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+        <i data-lucide="badge-check" class="h-8 w-8"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900">利用者登録が完了しました</h3>
+      
+      <div class="my-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-left text-xs space-y-2 text-emerald-900 leading-relaxed">
+        <div class="font-bold text-sm text-emerald-800 flex items-center gap-1">
+          <i data-lucide="message-circle" class="h-4 w-4"></i>
+          <span>LINEへ登録番号をお送りしました</span>
+        </div>
+        <p>公式LINEのトーク画面をご確認ください。今後の送迎依頼には発行された登録番号を使用します。</p>
+        <div class="mt-2 text-sm font-bold text-slate-900 bg-white p-2.5 rounded-lg border border-emerald-200 text-center">
+          登録番号: <span id="dispUserNum" class="font-mono text-blue-600 text-base">----</span>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <button type="button" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition" onclick="handleCloseWindow()">
+          画面を閉じる
+        </button>
+      </div>
     </div>
   </div>
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-    const USER_REG_LIFF_ID = "2011784961-0qNrk1l4";
+    // 利用者登録用LIFF ID
+    const USER_REG_LIFF_ID = "2011784961-LZ6p8VqP";
 
     let lineUserId = '';
-    let isSubmitting = false;
 
     function refreshLucide() {
-      if (window.lucide) {
-        lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function triggerLineLogin() {
+      if (window.liff && !liff.isLoggedIn()) {
+        liff.login();
       }
     }
 
-    // サイト名非表示カスタムダイアログ
-    let customDialogResolve = null;
-    function showCustomAlert(message, title = 'お知らせ', iconName = 'alert-circle', iconColorClass = 'text-red-600') {
-      return new Promise((resolve) => {
-        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" class="h-10 w-10 ${iconColorClass}"></i>`;
-        document.getElementById('customDialogTitle').textContent = title;
-        document.getElementById('customDialogMessage').textContent = message;
-        customDialogResolve = resolve;
-        document.getElementById('customDialogOverlay').classList.remove('hidden');
-        refreshLucide();
-      });
-    }
+    function updateLineStatus(isSuccess, name = '', uid = '') {
+      const dot = document.getElementById("lineStatusDot");
+      const text = document.getElementById("lineStatusText");
+      const btn = document.getElementById("btnLineLogin");
 
-    function closeCustomDialog() {
-      document.getElementById('customDialogOverlay').classList.add('hidden');
-      if (customDialogResolve) {
-        const cb = customDialogResolve;
-        customDialogResolve = null;
-        cb();
-      }
-    }
-
-    function handleDialogOverlayClick(e) {
-      if (e.target.id === 'customDialogOverlay') closeCustomDialog();
-    }
-
-    // 申請区分の切り替え
-    function handleUserTypeChange() {
-      const isHonin = document.querySelector('input[name="userType"]:checked').value === '本人申請';
-      const labelHonin = document.getElementById("labelHonin");
-      const labelCare = document.getElementById("labelCare");
-
-      if (isHonin) {
-        labelHonin.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition";
-        labelCare.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
+      if (isSuccess) {
+        dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+        text.className = "text-xs font-bold text-emerald-800";
+        text.innerHTML = `<span class="text-slate-500 font-normal">LINE連携:</span> ${name} 様`;
+        btn.classList.add("hidden");
       } else {
-        labelCare.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-blue-600 bg-blue-50/70 cursor-pointer transition";
-        labelHonin.className = "flex flex-col items-center justify-center p-3.5 rounded-xl border-2 border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition";
+        dot.className = "h-2.5 w-2.5 rounded-full bg-red-500";
+        text.className = "text-xs font-bold text-red-700";
+        text.textContent = "LINE未連携（登録番号通知を受け取るにはログインが必要です）";
+        btn.classList.remove("hidden");
       }
     }
 
-    // 登録送信処理
-    async function submitRegistration() {
-      if (isSubmitting) return;
-
-      const name = document.getElementById("userName").value.trim();
-      const phone = document.getElementById("userPhone").value.trim();
-      const address = document.getElementById("userAddress").value.trim();
-      const userType = document.querySelector('input[name="userType"]:checked').value;
-
-      if (!name) {
-        await showCustomAlert("利用者氏名を入力してください。", "入力確認", "alert-circle", "text-amber-600");
-        document.getElementById("userName").focus();
-        return;
-      }
-
-      if (!phone) {
-        await showCustomAlert("連絡先電話番号を入力してください。", "入力確認", "alert-circle", "text-amber-600");
-        document.getElementById("userPhone").focus();
-        return;
-      }
-
-      if (!address) {
-        await showCustomAlert("ご住所（ご自宅）を入力してください。\n送迎申込時のお迎え先自動入力に使用されます。", "入力確認", "alert-circle", "text-amber-600");
-        document.getElementById("userAddress").focus();
-        return;
-      }
-
-      isSubmitting = true;
+    async function executeUserRegister() {
       const overlay = document.getElementById("blockingOverlay");
       overlay.classList.remove("hidden");
       refreshLucide();
 
       const payload = {
         action: "registerUser",
-        name: name,
-        phone: phone,
-        address: address, // ★新設：ご住所
-        userType: userType,
-        lineUserId: lineUserId
+        name: document.getElementById("userName").value.trim(),
+        phone: document.getElementById("userPhone").value.trim(),
+        address: document.getElementById("userAddress").value.trim(),
+        userType: document.getElementById("userType").value,
+        lineUserId: lineUserId // 取得したLINE IDを送信
       };
 
       try {
@@ -313,22 +214,18 @@
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload)
         });
-        const result = await res.json();
-
-        if (result.success && result.userNum) {
-          document.getElementById("dispUserNum").textContent = result.userNum;
-          document.getElementById("dispUserName").textContent = `${result.name || name} 様`;
-          document.getElementById("formView").classList.add("hidden");
-          document.getElementById("completeView").classList.remove("hidden");
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("dispUserNum").textContent = data.userNum || '----';
+          document.getElementById("completeModal").classList.remove("hidden");
           refreshLucide();
         } else {
-          await showCustomAlert(result.message || "登録に失敗しました。時間をおいてお試しください。", "登録エラー", "alert-circle", "text-red-600");
+          alert("登録エラー: " + (data.message || "エラー"));
         }
-      } catch (err) {
-        await showCustomAlert("通信エラーが発生しました: " + err.message, "通信エラー", "alert-triangle", "text-red-600");
+      } catch (e) {
+        alert("通信エラー: " + e.message);
       } finally {
         overlay.classList.add("hidden");
-        isSubmitting = false;
       }
     }
 
@@ -340,21 +237,29 @@
       }
     }
 
-    // 初期化
     window.addEventListener("DOMContentLoaded", async () => {
       refreshLucide();
 
-      // LINE LIFF初期化
       try {
         if (window.liff) {
           await liff.init({ liffId: USER_REG_LIFF_ID });
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             lineUserId = profile.userId || '';
+            updateLineStatus(true, profile.displayName || '', lineUserId);
+          } else {
+            if (liff.isInClient()) {
+              liff.login();
+            } else {
+              updateLineStatus(false);
+            }
           }
+        } else {
+          updateLineStatus(false);
         }
       } catch (e) {
-        console.warn("LIFF初期化スキップ（通常ブラウザ表示）:", e);
+        console.warn("LIFF初期化エラー:", e);
+        updateLineStatus(false);
       }
     });
   </script>
