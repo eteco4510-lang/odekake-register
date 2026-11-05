@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ドライバー登録受付 | おでかけサポート</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lucide {
+      stroke-width: 2.2;
+    }
+    *, ::before, ::after {
+      box-sizing: border-box !important;
+    }
+    input, select, textarea {
+      box-sizing: border-box !important;
+      max-width: 100% !important;
+    }
+    button, select, a {
+      white-space: nowrap !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-24 text-base">
+
+  <!-- 操作ロック用ローディングオーバーレイ -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
+    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
+      <div class="mt-3 text-base font-bold text-slate-900">登録処理中</div>
+      <div class="mt-1 text-xs text-slate-500">少々お待ちください</div>
+    </div>
+  </div>
+
+  <!-- スティッキーヘッダー -->
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3.5 sm:px-6">
+      <div class="flex items-center gap-2.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+          <i data-lucide="heart-handshake" class="h-5 w-5"></i>
+        </div>
+        <h1 class="text-lg font-black tracking-tight text-slate-900">ドライバー登録受付</h1>
+      </div>
+      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
+        おでかけサポート
+      </span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-xl px-4 pt-5 sm:px-6">
+    <form id="driverRegisterForm" class="space-y-5" onsubmit="event.preventDefault(); openConfirmModal();">
+
+      <!-- STEP 1: お名前・ご連絡先 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
+            <h2 class="text-base font-bold text-slate-900">基本情報</h2>
+          </div>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">お名前（漢字）</label>
+          <input
+            type="text"
+            id="driverName"
+            placeholder="例: 相模 太郎"
+            required
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">お名前（ふりがな）</label>
+          <input
+            type="text"
+            id="driverKana"
+            placeholder="例: さがみ たろう"
+            required
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">携帯電話番号</label>
+          <input
+            type="tel"
+            id="driverPhone"
+            placeholder="例: 090-1234-5678"
+            required
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">ご住所（区から入力してください）</label>
+          <input
+            type="text"
+            id="driverAddress"
+            placeholder="例: 相模原市緑区中野1-2-3"
+            required
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
+          />
+          <p class="text-xs text-slate-400 mt-1">※自宅出発時のGPS測位・燃料費計算の基準となります。</p>
+        </div>
+      </section>
+
+      <!-- STEP 2: 運転可能な曜日 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
+            <h2 class="text-base font-bold text-slate-900">運転可能な曜日</h2>
+          </div>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+        </div>
+
+        <div>
+          <p class="text-xs text-slate-500 mb-3">ご都合のつきやすい曜日をタップしてください（複数選択可）。</p>
+          <div class="grid grid-cols-4 gap-2" id="daysGrid">
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition" data-val="月曜日">月</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition" data-val="火曜日">火</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition" data-val="水曜日">水</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition" data-val="木曜日">木</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition" data-val="金曜日">金</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-blue-200 bg-blue-50/50 font-bold text-blue-800 text-sm hover:bg-blue-100 transition" data-val="土曜日">土</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-red-200 bg-red-50/50 font-bold text-red-800 text-sm hover:bg-red-100 transition" data-val="日曜日">日</button>
+            <button type="button" class="day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-xs hover:bg-slate-50 transition" data-val="不定期・相談">相談</button>
+          </div>
+          <input type="hidden" id="selectedDays" required />
+        </div>
+      </section>
+
+      <!-- STEP 3: 車両情報 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">3</span>
+            <h2 class="text-base font-bold text-slate-900">使用するお車</h2>
+          </div>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">車種・お車の色</label>
+          <input
+            type="text"
+            id="carModel"
+            placeholder="例: プリウス（白）、タント（シルバー）"
+            required
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
+          />
+        </div>
+
+        <!-- ナンバープレート専用入力カード -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">ナンバープレート</label>
+          <div class="rounded-xl border-2 border-slate-300 bg-slate-50 p-3 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[11px] font-bold text-slate-500 block mb-0.5">地名</span>
+                <input
+                  type="text"
+                  id="plateArea"
+                  placeholder="例: 相模"
+                  required
+                  class="w-full h-11 rounded-lg border border-slate-300 bg-white px-3 text-center text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                />
+              </div>
+              <div>
+                <span class="text-[11px] font-bold text-slate-500 block mb-0.5">分類番号（3桁）</span>
+                <input
+                  type="tel"
+                  id="plateClass"
+                  maxlength="3"
+                  placeholder="例: 500"
+                  required
+                  class="w-full h-11 rounded-lg border border-slate-300 bg-white px-3 font-mono text-center text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="col-span-1">
+                <span class="text-[11px] font-bold text-slate-500 block mb-0.5">かな（1文字）</span>
+                <input
+                  type="text"
+                  id="plateKana"
+                  maxlength="1"
+                  placeholder="例: あ"
+                  required
+                  class="w-full h-11 rounded-lg border border-slate-300 bg-white px-3 text-center text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                />
+              </div>
+              <div class="col-span-2">
+                <span class="text-[11px] font-bold text-slate-500 block mb-0.5">一連指定番号</span>
+                <input
+                  type="tel"
+                  id="plateNum"
+                  placeholder="例: 12-34"
+                  required
+                  class="w-full h-11 rounded-lg border border-slate-300 bg-white px-3 font-mono text-center text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-2">お車の定員（運転手を含む）</label>
+          <div class="grid grid-cols-5 gap-2" id="capacityGrid">
+            <button type="button" class="cap-chip h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="4名">4名</button>
+            <button type="button" class="cap-chip h-11 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-sm font-black text-blue-700" data-val="5名">5名</button>
+            <button type="button" class="cap-chip h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="6名">6名</button>
+            <button type="button" class="cap-chip h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="7名">7名</button>
+            <button type="button" class="cap-chip h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="8名">8名</button>
+          </div>
+          <input type="hidden" id="carCapacity" value="5名" required />
+        </div>
+      </section>
+
+      <!-- 送信確認ボタン -->
+      <div class="pt-2">
+        <button
+          type="submit"
+          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition"
+        >
+          <i data-lucide="check" class="h-5 w-5"></i>
+          <span>入力内容を確認する</span>
+        </button>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- 最終確認モーダル -->
+  <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+      <div class="border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-black text-slate-900">登録内容の確認</h3>
+      </div>
+
+      <div class="my-4 space-y-2.5 rounded-xl bg-slate-50 p-4 text-sm border border-slate-200 leading-relaxed">
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-medium">お名前:</span>
+          <strong id="confName" class="text-slate-900 text-base">----</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-medium">ふりがな:</span>
+          <span id="confKana" class="text-slate-800">----</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-medium">電話番号:</span>
+          <strong id="confPhone" class="font-mono text-slate-900">----</strong>
+        </div>
+        <div class="border-t border-slate-200 pt-2">
+          <span class="text-slate-500 font-medium">ご住所:</span>
+          <span id="confAddress" class="block font-medium text-slate-800">----</span>
+        </div>
+        <div class="border-t border-slate-200 pt-2">
+          <span class="text-slate-500 font-medium">運転可能曜日:</span>
+          <strong id="confDays" class="block text-blue-700">----</strong>
+        </div>
+        <div class="border-t border-slate-200 pt-2 space-y-1">
+          <div><span class="text-slate-500 font-medium">お車:</span> <strong id="confCar" class="text-slate-900">----</strong></div>
+          <div><span class="text-slate-500 font-medium">ナンバー:</span> <strong id="confPlate" class="font-mono text-slate-900">----</strong></div>
+          <div><span class="text-slate-500 font-medium">定員:</span> <strong id="confCapacity" class="text-slate-900">----</strong></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+        <button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="closeConfirmModal()">戻って修正</button>
+        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-black text-white shadow-md hover:bg-blue-700 active:scale-95" onclick="executeSubmit()">
+          <i data-lucide="send" class="h-4 w-4"></i>
+          <span>登録する</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 完了モーダル -->
+  <div id="completeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+        <i data-lucide="badge-check" class="h-8 w-8"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900">登録を受付いたしました</h3>
+      <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+        ボランティアドライバーへのご協力ありがとうございます。<br>事務局にて確認後、担当者よりご連絡を差し上げます。
+      </p>
+      <div class="mt-5">
+        <button type="button" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition" onclick="window.location.reload()">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+
+    function refreshLucide() {
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // 曜日のトグル選択制御
+    const selectedDaysSet = new Set();
+    function initDaysChips() {
+      document.querySelectorAll(".day-chip").forEach(chip => {
+        chip.onclick = () => {
+          const val = chip.getAttribute("data-val");
+          if (selectedDaysSet.has(val)) {
+            selectedDaysSet.delete(val);
+            chip.className = "day-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50 transition";
+          } else {
+            selectedDaysSet.add(val);
+            chip.className = "day-chip h-11 rounded-xl border-2 border-blue-600 bg-blue-50 font-black text-blue-700 text-sm shadow-2xs";
+          }
+          document.getElementById("selectedDays").value = Array.from(selectedDaysSet).join("・");
+        };
+      });
+    }
+
+    // 定員チップス制御
+    function initCapacityChips() {
+      document.querySelectorAll(".cap-chip").forEach(chip => {
+        chip.onclick = () => {
+          document.querySelectorAll(".cap-chip").forEach(c => {
+            c.className = "cap-chip h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50";
+          });
+          chip.className = "cap-chip h-11 rounded-xl border-2 border-blue-600 bg-blue-50/70 text-sm font-black text-blue-700";
+          document.getElementById("carCapacity").value = chip.getAttribute("data-val");
+        };
+      });
+    }
+
+    function openConfirmModal() {
+      const name = document.getElementById("driverName").value.trim();
+      const kana = document.getElementById("driverKana").value.trim();
+      const phone = document.getElementById("driverPhone").value.trim();
+      const address = document.getElementById("driverAddress").value.trim();
+      const days = document.getElementById("selectedDays").value.trim();
+      const model = document.getElementById("carModel").value.trim();
+      const pArea = document.getElementById("plateArea").value.trim();
+      const pClass = document.getElementById("plateClass").value.trim();
+      const pKana = document.getElementById("plateKana").value.trim();
+      const pNum = document.getElementById("plateNum").value.trim();
+      const capacity = document.getElementById("carCapacity").value;
+
+      if (!days) {
+        alert("運転可能な曜日を1つ以上選択してください。");
+        return;
+      }
+
+      document.getElementById("confName").textContent = `${name} 様`;
+      document.getElementById("confKana").textContent = kana;
+      document.getElementById("confPhone").textContent = phone;
+      document.getElementById("confAddress").textContent = address;
+      document.getElementById("confDays").textContent = days;
+      document.getElementById("confCar").textContent = model;
+      document.getElementById("confPlate").textContent = `${pArea} ${pClass} ${pKana} ${pNum}`;
+      document.getElementById("confCapacity").textContent = capacity;
+
+      document.getElementById("confirmModal").classList.remove("hidden");
+      refreshLucide();
+    }
+
+    function closeConfirmModal() {
+      document.getElementById("confirmModal").classList.add("hidden");
+    }
+
+    async function executeSubmit() {
+      closeConfirmModal();
+      const overlay = document.getElementById("blockingOverlay");
+      overlay.classList.remove("hidden");
+      refreshLucide();
+
+      const payload = {
+        action: "registerDriverPre",
+        name: document.getElementById("driverName").value.trim(),
+        kana: document.getElementById("driverKana").value.trim(),
+        phone: document.getElementById("driverPhone").value.trim(),
+        days: document.getElementById("selectedDays").value.trim(),
+        address: document.getElementById("driverAddress").value.trim(),
+        carModel: document.getElementById("carModel").value.trim(),
+        plateArea: document.getElementById("plateArea").value.trim(),
+        plateClass: document.getElementById("plateClass").value.trim(),
+        plateKana: document.getElementById("plateKana").value.trim(),
+        plateNum: document.getElementById("plateNum").value.trim(),
+        capacity: document.getElementById("carCapacity").value
+      };
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=registerDriverPre`, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("completeModal").classList.remove("hidden");
+          refreshLucide();
+        } else {
+          alert("登録に失敗しました: " + (data.message || "スプレッドシートエラー"));
+        }
+      } catch (e) {
+        alert("通信エラーが発生しました: " + e.message);
+      } finally {
+        overlay.classList.add("hidden");
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      refreshLucide();
+      initDaysChips();
+      initCapacityChips();
+    });
+  </script>
+</body>
+</html>
