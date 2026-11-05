@@ -104,7 +104,6 @@
 
   <!-- 2. 運行掲示板メイン画面（認証後） -->
   <div id="boardSection" style="display:none;">
-    <!-- スティッキーヘッダー（タイトルの改行崩れ防止: whitespace-nowrap） -->
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
       <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3 sm:px-6">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -231,15 +230,22 @@
         .replace(/'/g, '&#039;');
     }
 
-    // 緯度経度文字列（例: "35.5661, 139.2586"）を分かりやすい表記に変換
+    // 住所から冗長な都道府県名・相模原市名を自動カットして見やすくする関数
     function formatLocationText(locStr) {
       if (!locStr) return '未指定';
       const str = String(locStr).trim();
+      
       const latLngRegex = /^([0-9]+\.[0-9]+)\s*,\s*([0-9]+\.[0-9]+)$/;
       if (latLngRegex.test(str)) {
         return `指定地点 (${str})`;
       }
-      return str;
+
+      let cleaned = str
+        .replace(/^日本?,\s*/, '')
+        .replace(/^神奈川県/, '')
+        .replace(/^相模原市(緑区|中央区|南区)?/, '');
+
+      return cleaned.trim() ? cleaned.trim() : str;
     }
 
     function showCustomAlert(title, message, isOkOnly = true, callback = null) {
@@ -420,9 +426,9 @@
 
         let navUrl = '';
         if (q.pickup && q.dropoff && q.pickup !== '未指定' && q.dropoff !== '未指定') {
-          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(cleanPickup)}&destination=${encodeURIComponent(cleanDropoff)}&travelmode=driving`;
+          navUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(q.pickup)}&destination=${encodeURIComponent(q.dropoff)}&travelmode=driving`;
         } else if (q.dropoff && q.dropoff !== '未指定') {
-          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanDropoff)}`;
+          navUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q.dropoff)}`;
         }
 
         card.innerHTML = `
