@@ -735,24 +735,38 @@
       try {
         const res = await (await fetch(`${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(qid)}`)).json();
         if (res && res.success && res.quest) {
-          const q = res.quest;
-          if (q.driverId) document.getElementById('driverId').value = q.driverId;
-          if (q.driverName) cachedDriverName = q.driverName;
+        const q = res.quest;
+        if (q.driverId) document.getElementById('driverId').value = q.driverId;
+        if (q.driverName) cachedDriverName = q.driverName;
 
-          if (q.passengers && q.passengers.length > 0) {
-            document.getElementById('passengerContainer').innerHTML = '';
-            passengerCount = 0;
-            q.passengers.forEach(pName => {
-              passengerCount++;
-              const inp = document.createElement('input');
-              inp.type = 'text';
-              inp.id = 'passenger' + passengerCount;
-              inp.value = pName;
-              inp.oninput = handleFieldChange;
-              document.getElementById('passengerContainer').appendChild(inp);
-            });
-          }
+        // ★同乗者名（利用者名）の反映処理
+        const pContainer = document.getElementById('passengerContainer');
+        const passengerName = (q.passengers && q.passengers.length > 0) ? q.passengers[0] : (q.userName || '');
 
+        if (pContainer) {
+          pContainer.innerHTML = ''; // 一旦クリア
+          passengerCount = 1;
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.id = 'passenger1';
+          inp.value = passengerName; // ★名前をセット
+          inp.placeholder = '乗客1のお名前';
+          inp.oninput = handleFieldChange;
+          pContainer.appendChild(inp);
+        }
+
+        // 区分（往復・片道）の反映
+        if (q.tripPlan) {
+          const isOneWay = q.tripPlan.includes('片道');
+          const radioOneWay = document.querySelector('input[name="tripType"][value="片道"]');
+          const radioRound = document.querySelector('input[name="tripType"][value="往復"]');
+          if (isOneWay && radioOneWay) radioOneWay.checked = true;
+          else if (radioRound) radioRound.checked = true;
+          if (typeof handleTripTypeChange === 'function') handleTripTypeChange();
+        }
+
+        checkSubmitRequirement();
+      }
           if (q.tripPlan) {
             const isOneWay = q.tripPlan.includes('片道');
             document.querySelector(`input[name="tripType"][value="${isOneWay ? '片道' : '往復'}"]`).checked = true;
