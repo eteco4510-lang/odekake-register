@@ -167,8 +167,8 @@
                 <span>自宅をセット</span>
               </button>
               <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100" onclick="openMapPicker('pickup')">
-                <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600"></i>
-                <span>地図で指定</span>
+                <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
+                <span>地図から町名検索</span>
               </button>
             </div>
           </div>
@@ -179,6 +179,7 @@
             required
             class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
           />
+          <p class="text-[11px] text-slate-400">※「地図から町名検索」で大まかなエリアを選び、必要に応じて番地を追記してください。</p>
         </div>
 
         <!-- 目的地 -->
@@ -186,8 +187,8 @@
           <div class="flex items-center justify-between">
             <label class="block text-sm font-bold text-slate-800">行き先（目的地）</label>
             <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100" onclick="openMapPicker('dropoff')">
-              <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600"></i>
-              <span>地図で指定</span>
+              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
+              <span>地図から町名検索</span>
             </button>
           </div>
           <input
@@ -253,13 +254,13 @@
     </form>
   </main>
 
-  <!-- 無料地図選択モーダル（Leaflet版） -->
+  <!-- 地図から町名検索モーダル（Leaflet版） -->
   <div id="mapPickerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl flex flex-col max-h-[92vh]">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 class="text-base font-black text-slate-900 flex items-center gap-1.5">
-          <i data-lucide="map-pin" class="h-5 w-5 text-blue-600"></i>
-          <span id="mapModalTitle">地図から場所を選択</span>
+          <i data-lucide="map" class="h-5 w-5 text-blue-600"></i>
+          <span id="mapModalTitle">地図から町名検索</span>
         </h3>
         <button type="button" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100" onclick="closeMapPicker()">
           <i data-lucide="x" class="h-5 w-5"></i>
@@ -395,7 +396,6 @@
     }
 
     function initChips() {
-      // タイムチップス
       document.querySelectorAll(".time-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll(".time-chip").forEach(c => {
@@ -406,7 +406,6 @@
         };
       });
 
-      // 利用区分チップス
       document.querySelectorAll(".trip-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll(".trip-chip").forEach(c => {
@@ -417,7 +416,6 @@
         };
       });
 
-      // 人数チップス
       document.querySelectorAll(".pass-chip").forEach(chip => {
         chip.onclick = () => {
           document.querySelectorAll(".pass-chip").forEach(c => {
@@ -428,7 +426,6 @@
         };
       });
 
-      // デフォルトで今日の日付と最初の時間をセット
       const today = new Date().toISOString().split('T')[0];
       document.getElementById("targetDate").value = today;
     }
@@ -457,7 +454,6 @@
       }
     }
 
-    // 利用者番号入力時のリアルタイム逆引き
     let userFetchTimer = null;
     function handleUserNumInput() {
       if (userFetchTimer) clearTimeout(userFetchTimer);
@@ -477,7 +473,6 @@
               statusEl.innerHTML = `✓ 確認完了: <strong class="text-slate-900">${escapeHtml(cachedUserName)} 様</strong> (${escapeHtml(data.user.userType)})`;
               statusEl.className = "mt-2 text-xs font-bold text-emerald-600";
               
-              // 住所が登録されていればお迎え先の初期値として提案
               if (cachedUserAddress && !document.getElementById("pickupLocation").value) {
                 document.getElementById("pickupLocation").value = cachedUserAddress;
               }
@@ -512,10 +507,9 @@
       document.getElementById("dropoffLocation").value = placeName;
     }
 
-    // Leaflet無料地図ピッカー関連（逆ジオコーディングの安定化・フォールバック強化）
     function openMapPicker(target) {
       currentMapTarget = target;
-      document.getElementById("mapModalTitle").textContent = (target === 'pickup') ? 'お迎え先を地図から指定' : '行き先を地図から指定';
+      document.getElementById("mapModalTitle").textContent = (target === 'pickup') ? 'お迎え先を地図から町名検索' : '行き先を地図から町名検索';
       document.getElementById("mapPickerModal").classList.remove("hidden");
       
       setTimeout(() => {
@@ -541,10 +535,9 @@
       document.getElementById("mapPickerModal").classList.add("hidden");
     }
 
-    // 逆ジオコーディング（デバウンス時間を1秒に延長してAPI制限回避 ＆ 失敗時は緯度経度ではなく直前位置を保持）
     async function fetchReverseAddress(lat, lng) {
       const textEl = document.getElementById("pickedAddressText");
-      textEl.textContent = "周辺の住所を照会中...";
+      textEl.textContent = "周辺の町名を照会中...";
 
       if (mapMoveTimer) clearTimeout(mapMoveTimer);
       mapMoveTimer = setTimeout(async () => {
@@ -556,15 +549,14 @@
             const pref = a.province || a.state || '';
             const city = a.city || a.town || a.village || a.county || '';
             const suburb = a.suburb || a.neighbourhood || '';
-            const road = a.road || a.house_number || a.quarter || '';
+            const road = a.road || '';
             
             let fullAddr = `${pref}${city}${suburb}${road}`.replace(/日本/, '');
-            let cleanAddr = fullAddr.includes('相模原市') ? fullAddr : ('相模原市' + fullAddr);
+            let cleanAddr = fullAddr.includes('相模原') ? fullAddr : ('相模原市' + fullAddr);
             
             pickedAddress = cleanAddr;
             textEl.textContent = cleanAddr;
           } else {
-            // APIが空を返した場合も直前の住所を維持するか、わかりやすい表現にする
             if (!pickedAddress) {
               pickedAddress = `相模原市付近 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
               textEl.textContent = pickedAddress;
@@ -573,7 +565,6 @@
             }
           }
         } catch (e) {
-          // 通信エラーやレートリミット時は緯度経度を出さず、エラーメッセージと直前住所を維持して操作性を確保
           if (!pickedAddress) {
             pickedAddress = `相模原市緑区付近`;
             textEl.textContent = "相模原市付近 (位置を選択中)";
@@ -581,7 +572,7 @@
             textEl.textContent = pickedAddress;
           }
         }
-      }, 1000); // 1秒遅延（デバウンス）により連続リクエスト負荷を完全防止
+      }, 1000);
     }
 
     function locateCurrentPosition() {
