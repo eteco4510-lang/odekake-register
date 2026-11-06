@@ -3,16 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>送迎のお申込み | おでかけサポート</title>
+  <title>送迎お申込み | おでかけサポート</title>
   <!-- LINE LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Leaflet CSS & JS (完全無料の地図ライブラリ) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     body {
       font-feature-settings: "tnum";
@@ -21,18 +18,30 @@
     }
     .lucide { stroke-width: 2.2; }
     *, ::before, ::after { box-sizing: border-box !important; }
-    input, select, textarea { box-sizing: border-box !important; max-width: 100% !important; }
-    button, select, a { white-space: nowrap !important; }
   </style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-28 text-base">
 
-  <!-- 操作ロック用ローディングオーバーレイ -->
-  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
+  <!-- 全画面読み込み・送信中ブロックオーバーレイ -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs hidden">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
-      <div class="mt-3 text-base font-bold text-slate-900">処理中</div>
-      <div class="mt-1 text-xs text-slate-500">データを送信しています...</div>
+      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">処理中</div>
+      <div id="blockingDesc" class="mt-1 text-xs text-slate-500">しばらくお待ちください...</div>
+    </div>
+  </div>
+
+  <!-- iOS風カスタムアラート/確認ダイアログ -->
+  <div id="customDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <div id="dialogIconArea" class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+        <i data-lucide="info" class="h-6 w-6"></i>
+      </div>
+      <h3 id="dialogTitle" class="text-lg font-black text-slate-900">確認</h3>
+      <p id="dialogMessage" class="mt-2 text-sm text-slate-600 leading-relaxed">メッセージ</p>
+      <div id="dialogButtons" class="mt-5 flex items-center justify-center gap-2">
+        <button type="button" id="dialogBtnOk" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700">OK</button>
+      </div>
     </div>
   </div>
 
@@ -41,9 +50,9 @@
     <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3.5 sm:px-6">
       <div class="flex items-center gap-2.5">
         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
-          <i data-lucide="car" class="h-5 w-5"></i>
+          <i data-lucide="calendar-plus" class="h-5 w-5"></i>
         </div>
-        <h1 class="text-lg font-black tracking-tight text-slate-900">送迎のお申込み</h1>
+        <h1 class="text-lg font-black tracking-tight text-slate-900">送迎お申込み</h1>
       </div>
       <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
         おでかけサポート
@@ -53,316 +62,195 @@
 
   <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
 
-    <!-- LINE連携状態カード -->
-    <div id="lineStatusCard" class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div id="lineStatusDot" class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></div>
-        <span id="lineStatusText" class="text-xs font-bold text-slate-700">LINEアカウント確認中...</span>
+    <!-- 案内バナー -->
+    <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900 leading-relaxed space-y-1">
+      <div class="font-black text-sm text-blue-800 flex items-center gap-1.5">
+        <i data-lucide="info" class="h-4 w-4"></i>
+        <span>ご利用にあたって</span>
       </div>
-      <button
-        type="button"
-        id="btnLineLogin"
-        class="hidden rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95"
-        onclick="triggerLineLogin()"
-      >
-        LINEでログイン
-      </button>
+      <p>登録番号を入力すると、ご登録されているお名前と電話番号が自動で呼び出されます。必要事項をご記入の上、お申込みください。</p>
     </div>
 
-    <form id="questRequestForm" class="space-y-4" onsubmit="event.preventDefault(); openConfirmModal();">
+    <form id="requestForm" class="space-y-4" onsubmit="event.preventDefault(); openConfirmModal();">
 
-      <!-- STEP 1: ご依頼者（利用者番号） -->
+      <!-- STEP 1: 依頼主情報 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
-            <h2 class="text-base font-bold text-slate-900">ご依頼者情報</h2>
+            <h2 class="text-base font-bold text-slate-900">利用者情報の確認</h2>
           </div>
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">利用者登録番号（5桁）</label>
-          <input
-            type="tel"
-            id="userNumInput"
-            maxlength="5"
-            placeholder="例: 20101"
-            oninput="handleUserNumInput()"
-            required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-lg font-bold text-slate-900 outline-none transition focus:border-blue-600"
-          />
-          <div id="userFetchStatus" class="mt-2 text-xs font-bold text-slate-400">
-            ※5桁の番号を入力するとお名前が自動表示されます
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">登録番号（5桁）</label>
+          <div class="flex gap-2">
+            <input
+              type="tel"
+              id="userNumInput"
+              maxlength="5"
+              placeholder="例: 20101"
+              oninput="handleUserNumInput()"
+              required
+              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-lg font-bold text-slate-900 outline-none transition focus:border-blue-600"
+            />
+            <button
+              type="button"
+              onclick="manualFetchUser()"
+              class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 whitespace-nowrap"
+            >
+              読込確認
+            </button>
+          </div>
+          <p id="userFetchStatus" class="text-xs text-slate-400 mt-1">※5桁の登録番号を入力してください</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">お名前</label>
+            <input
+              type="text"
+              id="userNameDisplay"
+              readonly
+              placeholder="自動取得されます"
+              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700 outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">お電話番号</label>
+            <input
+              type="text"
+              id="userPhoneDisplay"
+              readonly
+              placeholder="自動取得されます"
+              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm font-bold text-slate-700 outline-none"
+            />
           </div>
         </div>
       </section>
 
-      <!-- STEP 2: 日時と利用区分 -->
+      <!-- STEP 2: 運行日時・プラン -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
-            <h2 class="text-base font-bold text-slate-900">希望日時とプラン</h2>
+            <h2 class="text-base font-bold text-slate-900">日時と利用プラン</h2>
           </div>
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">ご希望日</label>
-          <input
-            type="date"
-            id="targetDate"
-            required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none transition focus:border-blue-600"
-          />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
+            <input
+              type="date"
+              id="targetDate"
+              required
+              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
+            <input
+              type="time"
+              id="targetTime"
+              value="09:00"
+              required
+              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
-          <div class="grid grid-cols-4 gap-2" id="timeGrid">
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="08:30">08:30</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="09:00">09:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="09:30">09:30</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="10:00">10:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="10:30">10:30</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="11:00">11:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="13:00">13:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="13:30">13:30</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="14:00">14:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="14:30">14:30</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="15:00">15:00</button>
-            <button type="button" class="time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50" data-val="15:30">15:30</button>
-          </div>
-          <input type="hidden" id="targetTime" required />
-        </div>
-
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-2">利用区分</label>
-          <div class="grid grid-cols-2 gap-2" id="tripTypeGrid">
-            <button type="button" class="trip-chip h-12 rounded-xl border-2 border-blue-600 bg-blue-50 text-sm font-black text-blue-700" data-val="往復（待機目安: 30分〜1時間）">往復（待機あり）</button>
-            <button type="button" class="trip-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50" data-val="片道（送り届けのみ）">片道（送りのみ）</button>
-          </div>
-          <input type="hidden" id="tripPlan" value="往復（待機目安: 30分〜1時間）" required />
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">利用プラン（運行区分）</label>
+          <select
+            id="tripPlan"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+          >
+            <option value="往復（待機目安: 1時間〜2時間）">往復（待機目安: 1時間〜2時間）</option>
+            <option value="往復（待機目安: 30分〜1時間）">往復（待機目安: 30分〜1時間）</option>
+            <option value="往復（待機目安: 2時間以上）">往復（待機目安: 2時間以上）</option>
+            <option value="片道（送り届けのみ）">片道（送り届けのみ）</option>
+            <option value="片道（お迎えのみ）">片道（お迎えのみ）</option>
+          </select>
         </div>
       </section>
 
-      <!-- STEP 3: 出発地・目的地 -->
+      <!-- STEP 3: お迎え先・行先 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">3</span>
-            <h2 class="text-base font-bold text-slate-900">出発地と目的地</h2>
+            <h2 class="text-base font-bold text-slate-900">お迎え先 と 行き先</h2>
           </div>
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <!-- 出発地 -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-sm font-bold text-slate-800">お迎え先（出発地）</label>
-            <div class="flex gap-1">
-              <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" onclick="setHomeAsPickup()">
-                <i data-lucide="home" class="h-3.5 w-3.5 text-emerald-600"></i>
-                <span>自宅をセット</span>
-              </button>
-              <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100" onclick="openMapPicker('pickup')">
-                <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
-                <span>地図から町名検索</span>
-              </button>
-            </div>
-          </div>
+        <!-- お迎え先 -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-bold text-slate-800">お迎え先（ご自宅など）</label>
           <input
             type="text"
             id="pickupLocation"
-            placeholder="例: 相模原市緑区中野1-2-3"
+            placeholder="例: 相模原市緑区中野1-2-3 自宅"
             required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
           />
-          <input
-            type="text"
-            id="pickupBuilding"
-            placeholder="建物名・マンション名・フロア・号室 (任意)"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-medium text-slate-800 outline-none transition focus:border-blue-600"
-          />
-          <p class="text-[11px] text-slate-400">※「地図から町名検索」で場所を選び、必要に応じて建物名を追記してください。</p>
         </div>
 
-        <!-- 目的地 -->
-        <div class="space-y-2 pt-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-sm font-bold text-slate-800">行き先（目的地）</label>
-            <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 hover:bg-blue-100" onclick="openMapPicker('dropoff')">
-              <i data-lucide="map" class="h-3.5 w-3.5 text-blue-600"></i>
-              <span>地図から町名検索</span>
-            </button>
-          </div>
+        <!-- 行先 -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-bold text-slate-800">行き先（病院・店舗・施設など）</label>
           <input
             type="text"
             id="dropoffLocation"
-            placeholder="例: 相模原協同病院"
+            placeholder="例: 津久井赤十字病院"
             required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
+            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
           />
-          <input
-            type="text"
-            id="dropoffBuilding"
-            placeholder="施設名・病棟・フロア・窓口等 (任意)"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-medium text-slate-800 outline-none transition focus:border-blue-600"
-          />
-          <div class="flex flex-wrap gap-1.5 pt-1">
-            <span class="text-[11px] text-slate-400 self-center">よく使う場所:</span>
-            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" onclick="setDestinationQuick('相模原協同病院')">相模原協同病院</button>
-            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" onclick="setDestinationQuick('津久井赤十字病院')">津久井赤十字病院</button>
-            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" onclick="setDestinationQuick('緑区合同庁舎')">緑区合同庁舎</button>
-            <button type="button" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" onclick="setDestinationQuick('JR橋本駅')">橋本駅</button>
-          </div>
         </div>
       </section>
 
-      <!-- STEP 4: 人数・備考 -->
+      <!-- STEP 4: 備考・特記事項 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">4</span>
-            <h2 class="text-base font-bold text-slate-900">乗車人数・備考</h2>
+            <h2 class="text-base font-bold text-slate-900">備考・特記事項</h2>
           </div>
-          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-slate-500">任意</span>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-800 mb-2">乗車人数</label>
-          <div class="grid grid-cols-4 gap-2" id="passengerGrid">
-            <button type="button" class="pass-chip h-11 rounded-xl border-2 border-blue-600 bg-blue-50 font-black text-blue-700 text-sm shadow-2xs" data-val="1名">1名</button>
-            <button type="button" class="pass-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50" data-val="2名">2名</button>
-            <button type="button" class="pass-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50" data-val="3名">3名</button>
-            <button type="button" class="pass-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50" data-val="4名">4名</button>
-          </div>
-          <input type="hidden" id="passengers" value="1名" required />
-        </div>
-
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">備考・特記事項（車椅子利用など）</label>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">車椅子利用、杖歩行、お荷物などのご要望</label>
           <textarea
-            id="note"
-            rows="2"
-            placeholder="例: 車椅子対応希望、お荷物多めなど"
-            class="w-full rounded-xl border-2 border-slate-200 bg-white p-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-600"
+            id="noteInput"
+            rows="3"
+            placeholder="例: 折りたたみ車椅子をトランクに積載します。付き添い1名あり。"
+            class="w-full rounded-xl border-2 border-slate-200 bg-white p-3 text-sm font-medium text-slate-900 outline-none focus:border-blue-600"
           ></textarea>
         </div>
       </section>
 
-      <!-- 申込確認ボタン -->
+      <!-- 送信ボタン -->
       <div class="pt-2">
         <button
           type="submit"
-          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition"
+          id="btnSubmit"
+          disabled
+          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition"
         >
-          <i data-lucide="check" class="h-5 w-5"></i>
-          <span>入力内容を確認する</span>
+          <i data-lucide="send" class="h-5 w-5"></i>
+          <span>送迎をお申込みする</span>
         </button>
+        <p id="submitGuide" class="text-xs text-center text-slate-400 mt-2 font-semibold">
+          ※有効な登録番号を入力するとお申込みできるようになります。
+        </p>
       </div>
 
     </form>
   </main>
-
-  <!-- 地図から町名検索モーダル（Leaflet版） -->
-  <div id="mapPickerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 backdrop-blur-xs hidden">
-    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl flex flex-col max-h-[92vh]">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-base font-black text-slate-900 flex items-center gap-1.5">
-          <i data-lucide="map" class="h-5 w-5 text-blue-600"></i>
-          <span id="mapModalTitle">地図から町名検索</span>
-        </h3>
-        <button type="button" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100" onclick="closeMapPicker()">
-          <i data-lucide="x" class="h-5 w-5"></i>
-        </button>
-      </div>
-
-      <!-- 地図キャンバス -->
-      <div class="relative my-3 flex-1 min-h-[300px] rounded-xl overflow-hidden border border-slate-200">
-        <div id="mapCanvas" class="absolute inset-0 z-10"></div>
-        <!-- 中央固定ピン -->
-        <div class="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-full pointer-events-none flex flex-col items-center">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg animate-bounce">
-            <i data-lucide="map-pin" class="h-6 w-6"></i>
-          </div>
-          <div class="h-2 w-2 rounded-full bg-slate-900/60 blur-xs"></div>
-        </div>
-        <!-- 現在地ボタン -->
-        <button
-          type="button"
-          class="absolute bottom-3 right-3 z-30 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-md active:scale-95"
-          onclick="locateCurrentPosition()"
-        >
-          <i data-lucide="crosshair" class="h-4 w-4 text-blue-600"></i>
-          <span>現在地へ</span>
-        </button>
-      </div>
-
-      <!-- 選択中の住所プレビュー -->
-      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs space-y-1">
-        <span class="text-slate-400 font-bold block">選択中の場所:</span>
-        <div id="pickedAddressText" class="font-bold text-slate-800 text-sm truncate">地図を動かして位置を合わせてください</div>
-      </div>
-
-      <div class="mt-3 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-        <button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="closeMapPicker()">キャンセル</button>
-        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-black text-white shadow-md hover:bg-blue-700 active:scale-95" onclick="applyPickedLocation()">
-          <i data-lucide="check" class="h-4 w-4"></i>
-          <span>この場所を決定する</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 確認モーダル -->
-  <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-      <div class="border-b border-slate-100 pb-3">
-        <h3 class="text-lg font-black text-slate-900">お申込み内容の確認</h3>
-      </div>
-
-      <div class="my-4 space-y-2.5 rounded-xl bg-slate-50 p-4 text-sm border border-slate-200 leading-relaxed">
-        <div class="flex justify-between">
-          <span class="text-slate-500 font-medium">ご依頼者:</span>
-          <strong id="confUserName" class="text-slate-900 text-base">----</strong>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-500 font-medium">登録番号:</span>
-          <strong id="confUserNum" class="font-mono text-blue-600">----</strong>
-        </div>
-        <div class="border-t border-slate-200 pt-2 flex justify-between">
-          <span class="text-slate-500 font-medium">希望日時:</span>
-          <strong id="confDateTime" class="text-slate-900">----</strong>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-500 font-medium">利用プラン:</span>
-          <strong id="confTripPlan" class="text-slate-900">----</strong>
-        </div>
-        <div class="border-t border-slate-200 pt-2 space-y-1">
-          <div><span class="text-slate-500 font-medium">お迎え先:</span> <strong id="confPickup" class="block text-slate-900">----</strong></div>
-          <div><span class="text-slate-500 font-medium">行き先:</span> <strong id="confDropoff" class="block text-slate-900">----</strong></div>
-        </div>
-        <div class="border-t border-slate-200 pt-2 flex justify-between">
-          <span class="text-slate-500 font-medium">乗車人数:</span>
-          <strong id="confPassengers" class="text-slate-900">----</strong>
-        </div>
-        <div id="confNoteArea" class="border-t border-slate-200 pt-2 hidden">
-          <span class="text-slate-500 font-medium">備考:</span>
-          <p id="confNote" class="text-slate-800 text-xs mt-0.5">----</p>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-        <button type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onclick="closeConfirmModal()">戻って修正</button>
-        <button type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-black text-white shadow-md hover:bg-blue-700 active:scale-95" onclick="executeSubmit()">
-          <i data-lucide="send" class="h-4 w-4"></i>
-          <span>申し込む</span>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- 完了モーダル -->
   <div id="completeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
@@ -370,17 +258,14 @@
       <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
         <i data-lucide="badge-check" class="h-8 w-8"></i>
       </div>
-      <h3 class="text-xl font-black text-slate-900">送迎のお申込みが完了しました</h3>
+      <h3 class="text-xl font-black text-slate-900">お申込みを受け付けました</h3>
       
       <div class="my-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-left text-xs space-y-2 text-emerald-900 leading-relaxed">
         <div class="font-bold text-sm text-emerald-800 flex items-center gap-1">
           <i data-lucide="message-circle" class="h-4 w-4"></i>
-          <span>LINEへ受付完了メッセージをお送りしました</span>
+          <span>LINEへ受付完了通知を送信しました</span>
         </div>
-        <p>公式LINEのトーク画面をご確認ください。ドライバーが受託次第、改めて通知が届きます。</p>
-        <div class="mt-2 text-sm font-bold text-slate-900 bg-white p-2.5 rounded-lg border border-emerald-200 text-center">
-          発行された案件番号: <span id="dispQuestId" class="font-mono text-blue-600 text-base">#----</span>
-        </div>
+        <p>ボランティアドライバーの募集を開始いたしました。マッチングが成立次第、LINEにてお知らせいたします。</p>
       </div>
 
       <div class="mt-5">
@@ -393,319 +278,152 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-    const REQUEST_LIFF_ID = "2011784961-LZ6p8VqP";
+    const REQUEST_LIFF_ID = "2011784961-0qNrk1l4";
 
     let lineUserId = '';
-    let cachedUserName = '';
-    let cachedUserAddress = '';
-    let mapInstance = null;
-    let currentMapTarget = 'pickup';
-    let pickedAddress = '';
-    let mapMoveTimer = null;
+    let isUserValid = false;
 
     function refreshLucide() {
       if (window.lucide) lucide.createIcons();
     }
 
-    function initChips() {
-      document.querySelectorAll(".time-chip").forEach(chip => {
-        chip.onclick = () => {
-          document.querySelectorAll(".time-chip").forEach(c => {
-            c.className = "time-chip h-10 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50";
-          });
-          chip.className = "time-chip h-10 rounded-xl border-2 border-blue-600 bg-blue-50 text-xs font-black text-blue-700 shadow-2xs";
-          document.getElementById("targetTime").value = chip.getAttribute("data-val");
-        };
-      });
-
-      document.querySelectorAll(".trip-chip").forEach(chip => {
-        chip.onclick = () => {
-          document.querySelectorAll(".trip-chip").forEach(c => {
-            c.className = "trip-chip h-12 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-600 hover:bg-slate-50";
-          });
-          chip.className = "trip-chip h-12 rounded-xl border-2 border-blue-600 bg-blue-50 text-sm font-black text-blue-700 shadow-2xs";
-          document.getElementById("tripPlan").value = chip.getAttribute("data-val");
-        };
-      });
-
-      document.querySelectorAll(".pass-chip").forEach(chip => {
-        chip.onclick = () => {
-          document.querySelectorAll(".pass-chip").forEach(c => {
-            c.className = "pass-chip h-11 rounded-xl border-2 border-slate-200 bg-white font-bold text-slate-700 text-sm hover:bg-slate-50";
-          });
-          chip.className = "pass-chip h-11 rounded-xl border-2 border-blue-600 bg-blue-50 font-black text-blue-700 text-sm shadow-2xs";
-          document.getElementById("passengers").value = chip.getAttribute("data-val");
-        };
-      });
-
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById("targetDate").value = today;
+    function showCustomAlert(title, message, callback = null) {
+      const dialog = document.getElementById('customDialog');
+      document.getElementById('dialogTitle').textContent = title;
+      document.getElementById('dialogMessage').textContent = message;
+      document.getElementById('dialogBtnOk').onclick = () => {
+        dialog.classList.add('hidden');
+        if (callback) callback();
+      };
+      dialog.classList.remove('hidden');
+      refreshLucide();
     }
 
-    function triggerLineLogin() {
-      if (window.liff && !liff.isLoggedIn()) {
-        liff.login();
-      }
+    function showBlockingLoading(title, desc) {
+      document.getElementById('blockingTitle').textContent = title;
+      document.getElementById('blockingDesc').textContent = desc;
+      document.getElementById('blockingOverlay').classList.remove('hidden');
+      refreshLucide();
     }
 
-    function updateLineStatus(isSuccess, name = '', uid = '') {
-      const dot = document.getElementById("lineStatusDot");
-      const text = document.getElementById("lineStatusText");
-      const btn = document.getElementById("btnLineLogin");
-
-      if (isSuccess) {
-        dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
-        text.className = "text-xs font-bold text-emerald-800";
-        text.innerHTML = `<span class="text-slate-500 font-normal">LINE連携:</span> ${name} 様`;
-        btn.classList.add("hidden");
-      } else {
-        dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400";
-        text.className = "text-xs font-bold text-slate-700";
-        text.textContent = "LINE未連携（ブラウザからのお申込み）";
-        btn.classList.add("hidden");
-      }
+    function hideBlockingLoading() {
+      document.getElementById('blockingOverlay').classList.add('hidden');
     }
 
-    let userFetchTimer = null;
     function handleUserNumInput() {
-      if (userFetchTimer) clearTimeout(userFetchTimer);
-      const val = document.getElementById("userNumInput").value.trim();
-      const statusEl = document.getElementById("userFetchStatus");
-
-      if (val.length === 5) {
-        userFetchTimer = setTimeout(async () => {
-          statusEl.textContent = "ご依頼者様を確認中...";
-          statusEl.className = "mt-2 text-xs font-bold text-blue-600 animate-pulse";
-          try {
-            const res = await fetch(`${GAS_API_URL}?action=getUserDetail&userNum=${encodeURIComponent(val)}&_t=${Date.now()}`);
-            const data = await res.json();
-            if (data.success && data.user) {
-              cachedUserName = data.user.name;
-              cachedUserAddress = data.user.address || '';
-              statusEl.innerHTML = `✓ 確認完了: <strong class="text-slate-900">${escapeHtml(cachedUserName)} 様</strong> (${escapeHtml(data.user.userType)})`;
-              statusEl.className = "mt-2 text-xs font-bold text-emerald-600";
-              
-              if (cachedUserAddress && !document.getElementById("pickupLocation").value) {
-                document.getElementById("pickupLocation").value = cachedUserAddress;
-              }
-            } else {
-              cachedUserName = '';
-              cachedUserAddress = '';
-              statusEl.textContent = "⚠ 該当する登録番号が見つかりませんでした";
-              statusEl.className = "mt-2 text-xs font-bold text-amber-600";
-            }
-          } catch (e) {
-            statusEl.textContent = "⚠ 通信エラーが発生しました";
-            statusEl.className = "mt-2 text-xs font-bold text-red-600";
-          }
-        }, 400);
+      const val = document.getElementById('userNumInput').value.trim();
+      if (/^\d{5}$/.test(val)) {
+        fetchUserData(val);
       } else {
-        cachedUserName = '';
-        cachedUserAddress = '';
-        statusEl.textContent = "※5桁の番号を入力するとお名前が自動表示されます";
-        statusEl.className = "mt-2 text-xs font-bold text-slate-400";
+        isUserValid = false;
+        document.getElementById('userNameDisplay').value = '';
+        document.getElementById('userPhoneDisplay').value = '';
+        document.getElementById('userFetchStatus').textContent = "※5桁の登録番号を入力してください";
+        document.getElementById('userFetchStatus').className = "text-xs text-slate-400 mt-1";
+        checkSubmitRequirement();
       }
     }
 
-    function setHomeAsPickup() {
-      if (cachedUserAddress) {
-        document.getElementById("pickupLocation").value = cachedUserAddress;
-      } else {
-        alert("先にご依頼者の「利用者登録番号（5桁）」を入力して名簿を読み込んでください。");
-      }
+    function manualFetchUser() {
+      const val = document.getElementById('userNumInput').value.trim();
+      if (val) fetchUserData(val);
     }
 
-    function setDestinationQuick(placeName) {
-      document.getElementById("dropoffLocation").value = placeName;
-    }
-
-    function openMapPicker(target) {
-      currentMapTarget = target;
-      document.getElementById("mapModalTitle").textContent = (target === 'pickup') ? 'お迎え先を地図から町名検索' : '行き先を地図から町名検索';
-      document.getElementById("mapPickerModal").classList.remove("hidden");
+    async function fetchUserData(userNum) {
+      showBlockingLoading('確認中', '登録番号を照合しています...');
+      const statusEl = document.getElementById('userFetchStatus');
       
-      setTimeout(() => {
-        if (!mapInstance) {
-          mapInstance = L.map('mapCanvas', { zoomControl: true }).setView([35.586, 139.256], 15);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-          }).addTo(mapInstance);
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getUserDetail&userNum=${encodeURIComponent(userNum)}&_t=${Date.now()}`);
+        const data = await res.json();
+        hideBlockingLoading();
 
-          mapInstance.on('moveend', () => {
-            const center = mapInstance.getCenter();
-            fetchReverseAddress(center.lat, center.lng);
-          });
+        if (data && data.success && data.user) {
+          const u = data.user;
+          document.getElementById('userNameDisplay').value = u.name || '';
+          document.getElementById('userPhoneDisplay').value = u.phone || '';
+          isUserValid = true;
+          statusEl.textContent = `✓ ${u.name} 様を確認しました`;
+          statusEl.className = "text-xs font-bold text-emerald-600 mt-1";
+        } else {
+          isUserValid = false;
+          document.getElementById('userNameDisplay').value = '';
+          document.getElementById('userPhoneDisplay').value = '';
+          statusEl.textContent = "⚠ 該当する登録番号が見つかりません";
+          statusEl.className = "text-xs font-bold text-amber-600 mt-1";
         }
-        mapInstance.invalidateSize();
-        const center = mapInstance.getCenter();
-        fetchReverseAddress(center.lat, center.lng);
-      }, 150);
-    }
-
-    function closeMapPicker() {
-      document.getElementById("mapPickerModal").classList.add("hidden");
-    }
-
-    async function fetchReverseAddress(lat, lng) {
-      const textEl = document.getElementById("pickedAddressText");
-      textEl.textContent = "周辺の町名を照会中...";
-
-      if (mapMoveTimer) clearTimeout(mapMoveTimer);
-      mapMoveTimer = setTimeout(async () => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja`);
-          const data = await res.json();
-          if (data && data.address) {
-            const a = data.address;
-            const pref = a.province || a.state || '';
-            const city = a.city || a.town || a.village || a.county || '';
-            const suburb = a.suburb || a.neighbourhood || '';
-            const road = a.road || '';
-            
-            let fullAddr = `${pref}${city}${suburb}${road}`.replace(/日本/, '');
-            let cleanAddr = fullAddr.includes('相模原') ? fullAddr : ('相模原市' + fullAddr);
-            
-            pickedAddress = cleanAddr;
-            textEl.textContent = cleanAddr;
-          } else {
-            if (!pickedAddress) {
-              pickedAddress = `相模原市付近 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-              textEl.textContent = pickedAddress;
-            } else {
-              textEl.textContent = pickedAddress + " (付近)";
-            }
-          }
-        } catch (e) {
-          if (!pickedAddress) {
-            pickedAddress = `相模原市緑区付近`;
-            textEl.textContent = "相模原市付近 (位置を選択中)";
-          } else {
-            textEl.textContent = pickedAddress;
-          }
-        }
-      }, 1000);
-    }
-
-    function locateCurrentPosition() {
-      if (!navigator.geolocation) {
-        alert("お使いの端末は位置情報に対応していません");
-        return;
+      } catch (e) {
+        hideBlockingLoading();
+        isUserValid = false;
+        statusEl.textContent = "⚠ 通信エラーが発生しました";
+        statusEl.className = "text-xs font-bold text-red-600 mt-1";
       }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          if (mapInstance) {
-            mapInstance.setView([pos.coords.latitude, pos.coords.longitude], 16);
-          }
-        },
-        () => alert("現在地を取得できませんでした。"),
-        { timeout: 8000 }
-      );
+      checkSubmitRequirement();
     }
 
-    function applyPickedLocation() {
-      if (!pickedAddress) {
-        alert("住所がまだ特定されていません。少し地図を動かして確定させてください。");
-        return;
-      }
-      if (currentMapTarget === 'pickup') {
-        document.getElementById("pickupLocation").value = pickedAddress;
-      } else if (currentMapTarget === 'dropoff') {
-        document.getElementById("dropoffLocation").value = pickedAddress;
-      }
-      closeMapPicker();
-    }
+    function checkSubmitRequirement() {
+      const submitBtn = document.getElementById('btnSubmit');
+      const submitGuide = document.getElementById('submitGuide');
+      const pickup = document.getElementById('pickupLocation').value.trim();
+      const dropoff = document.getElementById('dropoffLocation').value.trim();
+      const date = document.getElementById('targetDate').value;
 
-    function openConfirmModal() {
-      const userNum = document.getElementById("userNumInput").value.trim();
-      const date = document.getElementById("targetDate").value;
-      const time = document.getElementById("targetTime").value;
-      const tripPlan = document.getElementById("tripPlan").value;
-      
-      let pickup = document.getElementById("pickupLocation").value.trim();
-      const pBldg = document.getElementById("pickupBuilding").value.trim();
-      if (pBldg) pickup += ` (${pBldg})`;
-
-      let dropoff = document.getElementById("dropoffLocation").value.trim();
-      const dBldg = document.getElementById("dropoffBuilding").value.trim();
-      if (dBldg) dropoff += ` (${dBldg})`;
-
-      const passengers = document.getElementById("passengers").value;
-      const note = document.getElementById("note").value.trim();
-
-      if (!time) {
-        alert("集合時間を選択してください。");
-        return;
-      }
-
-      document.getElementById("confUserName").textContent = cachedUserName ? `${cachedUserName} 様` : '確認中...';
-      document.getElementById("confUserNum").textContent = userNum;
-      document.getElementById("confDateTime").textContent = `${date} ${time} 集合`;
-      document.getElementById("confTripPlan").textContent = tripPlan;
-      document.getElementById("confPickup").textContent = pickup;
-      document.getElementById("confDropoff").textContent = dropoff;
-      document.getElementById("confPassengers").textContent = passengers;
-
-      const noteArea = document.getElementById("confNoteArea");
-      if (note) {
-        document.getElementById("confNote").textContent = note;
-        noteArea.classList.remove("hidden");
+      if (isUserValid && pickup && dropoff && date) {
+        submitBtn.disabled = false;
+        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition cursor-pointer";
+        submitGuide.textContent = "✓ お申込み内容が揃いました。送信ボタンを押してください。";
+        submitGuide.className = "text-xs text-center text-emerald-600 mt-2 font-bold";
       } else {
-        noteArea.classList.add("hidden");
+        submitBtn.disabled = true;
+        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition";
+        submitGuide.textContent = "※登録番号の確認、希望日、お迎え先、行き先をすべて入力してください。";
+        submitGuide.className = "text-xs text-center text-slate-400 mt-2 font-semibold";
       }
-
-      document.getElementById("confirmModal").classList.remove("hidden");
-      refreshLucide();
     }
 
-    function closeConfirmModal() {
-      document.getElementById("confirmModal").classList.add("hidden");
-    }
+    // 入力項目の変更監視
+    ['pickupLocation', 'dropoffLocation', 'targetDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', checkSubmitRequirement);
+        el.addEventListener('change', checkSubmitRequirement);
+      }
+    });
 
-    async function executeSubmit() {
-      closeConfirmModal();
-      document.getElementById("blockingOverlay").classList.remove("hidden");
-      refreshLucide();
-
-      let pickupFinal = document.getElementById("pickupLocation").value.trim();
-      const pBldg = document.getElementById("pickupBuilding").value.trim();
-      if (pBldg) pickupFinal += ` (${pBldg})`;
-
-      let dropoffFinal = document.getElementById("dropoffLocation").value.trim();
-      const dBldg = document.getElementById("dropoffBuilding").value.trim();
-      if (dBldg) dropoffFinal += ` (${dBldg})`;
+    async function openConfirmModal() {
+      showBlockingLoading('お申込み送信中', '送迎予約データを送信しています...');
 
       const payload = {
-        action: "createQuestFromWeb",
-        userNum: document.getElementById("userNumInput").value.trim(),
-        targetDate: document.getElementById("targetDate").value,
-        targetTime: document.getElementById("targetTime").value,
-        tripPlan: document.getElementById("tripPlan").value,
-        pickup: pickupFinal,
-        dropoff: dropoffFinal,
-        passengers: document.getElementById("passengers").value,
-        note: document.getElementById("note").value.trim(),
+        action: "createQuest",
+        userNum: document.getElementById('userNumInput').value.trim(),
+        targetDate: document.getElementById('targetDate').value,
+        targetTime: document.getElementById('targetTime').value,
+        tripPlan: document.getElementById('tripPlan').value,
+        pickup: document.getElementById('pickupLocation').value.trim(),
+        dropoff: document.getElementById('dropoffLocation').value.trim(),
+        passengers: "1名",
+        note: document.getElementById('noteInput').value.trim(),
         lineUserId: lineUserId
       };
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=createQuestFromWeb`, {
+        const res = await fetch(`${GAS_API_URL}?action=createQuest`, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
+        hideBlockingLoading();
+
         if (data.success) {
-          document.getElementById("dispQuestId").textContent = `#${data.questId || '----'}`;
-          document.getElementById("completeModal").classList.remove("hidden");
+          document.getElementById('completeModal').classList.remove('hidden');
           refreshLucide();
         } else {
-          alert("お申込みエラー: " + (data.message || "エラー"));
+          showCustomAlert('送信エラー', data.message || 'お申込みの送信に失敗しました。');
         }
       } catch (e) {
-        alert("通信エラーが発生しました: " + e.message);
-      } finally {
-        document.getElementById("blockingOverlay").classList.add("hidden");
+        hideBlockingLoading();
+        showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
       }
     }
 
@@ -717,9 +435,13 @@
       }
     }
 
-    window.addEventListener("DOMContentLoaded", async () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
-      initChips();
+
+      // 明日をデフォルトの日付に設定
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('targetDate').value = tomorrow.toISOString().split('T')[0];
 
       try {
         if (window.liff) {
@@ -727,21 +449,11 @@
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             lineUserId = profile.userId || '';
-            updateLineStatus(true, profile.displayName || '', lineUserId);
-          } else {
-            if (liff.isInClient()) {
-              liff.login();
-            } else {
-              updateLineStatus(false);
-            }
           }
-        } else {
-          updateLineStatus(false);
         }
-      } catch (e) {
-        console.warn("LIFF初期化エラー:", e);
-        updateLineStatus(false);
-      }
+      } catch (e) {}
+
+      checkSubmitRequirement();
     });
   </script>
 </body>
