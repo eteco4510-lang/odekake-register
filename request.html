@@ -179,13 +179,13 @@
             required
             class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
           />
-          <!-- 建物名個別入力欄 -->
           <input
             type="text"
             id="pickupBuilding"
-            placeholder="建物名・マンション名・フロア・号室（任意）"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+            placeholder="建物名・マンション名・フロア・号室 (任意)"
+            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-medium text-slate-800 outline-none transition focus:border-blue-600"
           />
+          <p class="text-[11px] text-slate-400">※「地図から町名検索」で場所を選び、必要に応じて建物名を追記してください。</p>
         </div>
 
         <!-- 目的地 -->
@@ -204,12 +204,11 @@
             required
             class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-medium text-slate-900 outline-none transition focus:border-blue-600"
           />
-          <!-- 目的地建物名個別入力欄 -->
           <input
             type="text"
             id="dropoffBuilding"
-            placeholder="建物名・フロア・病棟・窓口など（任意）"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-600 focus:bg-white"
+            placeholder="施設名・病棟・フロア・窓口等 (任意)"
+            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-medium text-slate-800 outline-none transition focus:border-blue-600"
           />
           <div class="flex flex-wrap gap-1.5 pt-1">
             <span class="text-[11px] text-slate-400 self-center">よく使う場所:</span>
@@ -624,12 +623,12 @@
       const tripPlan = document.getElementById("tripPlan").value;
       
       let pickup = document.getElementById("pickupLocation").value.trim();
-      const pickupBldg = document.getElementById("pickupBuilding").value.trim();
-      if (pickupBldg) pickup += ` (${pickupBldg})`;
+      const pBldg = document.getElementById("pickupBuilding").value.trim();
+      if (pBldg) pickup += ` (${pBldg})`;
 
       let dropoff = document.getElementById("dropoffLocation").value.trim();
-      const dropoffBldg = document.getElementById("dropoffBuilding").value.trim();
-      if (dropoffBldg) dropoff += ` (${dropoffBldg})`;
+      const dBldg = document.getElementById("dropoffBuilding").value.trim();
+      if (dBldg) dropoff += ` (${dBldg})`;
 
       const passengers = document.getElementById("passengers").value;
       const note = document.getElementById("note").value.trim();
@@ -669,12 +668,12 @@
       refreshLucide();
 
       let pickupFinal = document.getElementById("pickupLocation").value.trim();
-      const pickupBldg = document.getElementById("pickupBuilding").value.trim();
-      if (pickupBldg) pickupFinal += ` (${pickupBldg})`;
+      const pBldg = document.getElementById("pickupBuilding").value.trim();
+      if (pBldg) pickupFinal += ` (${pBldg})`;
 
       let dropoffFinal = document.getElementById("dropoffLocation").value.trim();
-      const dropoffBldg = document.getElementById("dropoffBuilding").value.trim();
-      if (dropoffBldg) dropoffFinal += ` (${dropoffBldg})`;
+      const dBldg = document.getElementById("dropoffBuilding").value.trim();
+      if (dBldg) dropoffFinal += ` (${dBldg})`;
 
       const payload = {
         action: "createQuestFromWeb",
@@ -740,7 +739,7 @@
           updateLineStatus(false);
         }
       } catch (e) {
-        console.warn("LINE連携の初期化に失敗しました", e);
+        console.warn("LIFF初期化エラー:", e);
         updateLineStatus(false);
       }
     });
