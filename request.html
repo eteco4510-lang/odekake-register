@@ -100,7 +100,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">登録番号（5桁）</label>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">利用者登録番号（5桁）</label>
           <div class="flex gap-2">
             <input
               type="tel"
@@ -385,6 +385,11 @@
           isUserValid = true;
           statusEl.textContent = `✓ ${u.name} 様を確認しました`;
           statusEl.className = "text-xs font-bold text-emerald-600 mt-1";
+          
+          // 住所が登録されていればお迎え先の初期値としてセット
+          if (u.address && !document.getElementById('pickupLocation').value) {
+            document.getElementById('pickupLocation').value = u.address;
+          }
         } else {
           isUserValid = false;
           document.getElementById('userNameDisplay').value = '';
@@ -433,7 +438,7 @@
       showBlockingLoading('お申込み送信中', '送迎予約データを送信しています...');
 
       const payload = {
-        action: "createQuest",
+        action: "createQuestFromWeb",
         userNum: document.getElementById('userNumInput').value.trim(),
         targetDate: document.getElementById('targetDate').value,
         targetTime: document.getElementById('targetTime').value,
@@ -446,7 +451,7 @@
       };
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=createQuest`, {
+        const res = await fetch(`${GAS_API_URL}?action=createQuestFromWeb`, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload)
