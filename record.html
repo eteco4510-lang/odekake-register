@@ -22,12 +22,12 @@
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-28 text-base">
 
-  <!-- 操作ロック・ローディング用オーバーレイ -->
-  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
+  <!-- ★データ取得中・送信中の全画面操作ロックオーバーレイ（触らせない機能） -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
-      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">処理中...</div>
-      <div id="blockingDesc" class="mt-1 text-xs text-slate-500">しばらくお待ちください</div>
+      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">読み込み中</div>
+      <div id="blockingDesc" class="mt-1 text-xs text-slate-500">依頼情報を取得しています...</div>
     </div>
   </div>
 
@@ -380,12 +380,14 @@
     }
 
     async function fetchQuestData(qid) {
+      showBlockingLoading('依頼情報を取得中', `案件 #${qid} の情報を読み込んでいます...`);
       const statusEl = document.getElementById('questFetchStatus');
       statusEl.textContent = `案件 #${qid} の情報を取得中...`;
       
       try {
         const res = await fetch(`${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(qid)}&_t=${Date.now()}`);
         const data = await res.json();
+        hideBlockingLoading();
         
         if (data && data.success && data.quest) {
           const q = data.quest;
@@ -411,6 +413,7 @@
           statusEl.className = "text-xs font-bold text-amber-600 mt-1";
         }
       } catch (e) {
+        hideBlockingLoading();
         statusEl.textContent = "⚠ 通信エラー: 情報を取得できませんでした";
         statusEl.className = "text-xs font-bold text-red-600 mt-1";
       }
@@ -639,12 +642,13 @@
         }
       } catch (e) {}
 
-      // URLから案件番号（qid）を自動抽出して自動読み込みを実行
+      // URLから案件番号（qid）を自動抽出して自動読み込みを実行（ブロッキングオーバーレイ連動）
       const qid = extractQuestId();
       if (qid) {
         document.getElementById('questIdInput').value = qid;
         await fetchQuestData(qid);
       } else {
+        hideBlockingLoading();
         document.getElementById('questFetchStatus').textContent = "⚠ 案件番号が指定されていません（手動入力してください）";
         checkSubmitRequirement();
       }
