@@ -31,7 +31,7 @@
     </div>
   </div>
 
-  <!-- iOS風カスタムアラート/確認ダイアログ -->
+  <!-- iOS風カスタムアラートダイアログ -->
   <div id="customDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <div id="dialogIconArea" class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
@@ -61,6 +61,22 @@
   </header>
 
   <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
+
+    <!-- LINE連携状態カード -->
+    <div id="lineStatusCard" class="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div id="lineStatusDot" class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></div>
+        <span id="lineStatusText" class="text-xs font-bold text-slate-700">LINEアカウント確認中...</span>
+      </div>
+      <button
+        type="button"
+        id="btnLineLogin"
+        class="hidden rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95"
+        onclick="triggerLineLogin()"
+      >
+        LINEでログイン
+      </button>
+    </div>
 
     <!-- 案内バナー -->
     <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900 leading-relaxed space-y-1">
@@ -278,7 +294,7 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-    const REQUEST_LIFF_ID = "2011784961-0qNrk1l4";
+    const REQUEST_LIFF_ID = "2011784961-LZ6p8VqP";
 
     let lineUserId = '';
     let isUserValid = false;
@@ -308,6 +324,30 @@
 
     function hideBlockingLoading() {
       document.getElementById('blockingOverlay').classList.add('hidden');
+    }
+
+    function triggerLineLogin() {
+      if (window.liff && !liff.isLoggedIn()) {
+        liff.login();
+      }
+    }
+
+    function updateLineStatus(isSuccess, name = '', uid = '') {
+      const dot = document.getElementById("lineStatusDot");
+      const text = document.getElementById("lineStatusText");
+      const btn = document.getElementById("btnLineLogin");
+
+      if (isSuccess) {
+        dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+        text.className = "text-xs font-bold text-emerald-800";
+        text.innerHTML = `<span class="text-slate-500 font-normal">LINE連携:</span> ${name} 様`;
+        btn.classList.add("hidden");
+      } else {
+        dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400";
+        text.className = "text-xs font-bold text-slate-700";
+        text.textContent = "LINE未連携（ブラウザからのお申込み）";
+        btn.classList.add("hidden");
+      }
     }
 
     function handleUserNumInput() {
@@ -381,7 +421,6 @@
       }
     }
 
-    // 入力項目の変更監視
     ['pickupLocation', 'dropoffLocation', 'targetDate'].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -438,7 +477,6 @@
     window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
 
-      // 明日をデフォルトの日付に設定
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       document.getElementById('targetDate').value = tomorrow.toISOString().split('T')[0];
@@ -449,9 +487,21 @@
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             lineUserId = profile.userId || '';
+            updateLineStatus(true, profile.displayName || '', lineUserId);
+          } else {
+            if (liff.isInClient()) {
+              liff.login();
+            } else {
+              updateLineStatus(false);
+            }
           }
+        } else {
+          updateLineStatus(false);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("LIFF初期化エラー:", e);
+        updateLineStatus(false);
+      }
 
       checkSubmitRequirement();
     });
