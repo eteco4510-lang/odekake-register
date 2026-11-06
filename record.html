@@ -3,835 +3,444 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>おでかけサポート 活動記録</title>
-  <!-- Lucide Icons -->
+  <title>活動記録・実績報告 | おでかけサポート</title>
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root {
-      --primary-blue: #007AFF;
-      --primary-hover: #0056B3;
-      --bg-base: #F2F2F7;
-      --card-bg: #FFFFFF;
-      --text-main: #1C1C1E;
-      --text-muted: #6C6C70;
-      --danger-red: #DC2626;
-      --warning-amber: #D97706;
-      --success-green: #15803D;
-      --border-color: rgba(60, 60, 67, 0.12);
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    body {
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
       -webkit-tap-highlight-color: transparent;
     }
-    body {
-      background: var(--bg-base);
-      color: var(--text-main);
-      padding-bottom: 40px;
-      line-height: 1.5;
-    }
-    .lucide {
-      width: 1.15em;
-      height: 1.15em;
-      vertical-align: -0.18em;
-      stroke-width: 2.2;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-    button, a {
-      white-space: nowrap !important;
-    }
-    header {
-      background: #FFFFFF;
-      border-bottom: 1px solid #E5E5EA;
-      padding: 14px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    header h1 {
-      font-size: 1.05rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 20px 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      border: 0.5px solid var(--border-color);
-      margin-bottom: 16px;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    .form-group label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--text-main);
-    }
-    .sub-label {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-top: -2px;
-      margin-bottom: 6px;
-    }
-    input[type="text"], input[type="number"], input[type="tel"] {
-      width: 100%;
-      height: 46px;
-      border: 1.5px solid #E5E5EA;
-      border-radius: 10px;
-      padding: 0 12px;
-      font-size: 1rem;
-      color: var(--text-main);
-      background: #FAFAFA;
-      outline: none;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    input:focus {
-      border-color: var(--primary-blue);
-      background: #FFFFFF;
-    }
-    .radio-group {
-      display: grid;
-      grid-template-cols: 1fr 1fr;
-      gap: 8px;
-    }
-    .radio-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      height: 46px;
-      border: 1.5px solid #E5E5EA;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      cursor: pointer;
-      background: #FAFAFA;
-      transition: all 0.15s;
-    }
-    .radio-label input {
-      display: none;
-    }
-    .radio-label.active {
-      border-color: var(--primary-blue);
-      background: #EFF6FF;
-      color: var(--primary-blue);
-    }
-    .passenger-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .btn-add-passenger {
-      background: none;
-      border: 1px dashed var(--primary-blue);
-      color: var(--primary-blue);
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .step-section {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 16px;
-    }
-    .step-title {
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: #1E293B;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-gps-trigger {
-      width: 100%;
-      height: 48px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      border: none;
-      background: var(--primary-blue);
-      color: #FFFFFF;
-      box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
-      transition: all 0.15s;
-    }
-    .btn-gps-trigger.recorded {
-      background: var(--success-green);
-      color: #FFFFFF;
-      box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
-    }
-    .btn-gps-fallback {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.76rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      text-decoration: underline;
-      display: block;
-      width: 100%;
-      text-align: center;
-    }
-    .status-box {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 8px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .status-box.recorded {
-      color: var(--success-green);
-      font-weight: 700;
-    }
-    .lock-notice-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #92400E;
-      background: #FEF3C7;
-      padding: 8px 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .submit-notice-box {
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-      line-height: 1.45;
-    }
-    .submit-notice-box.warning {
-      background: #FEF2F2;
-      border: 1px solid #FCA5A5;
-      color: #991B1B;
-    }
-    .submit-notice-box.ready {
-      background: #F0FDF4;
-      border: 1px solid #86EFAC;
-      color: #166534;
-    }
-    .btn-submit {
-      width: 100%;
-      height: 50px;
-      background: var(--primary-blue);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 12px;
-      font-size: 1.05rem;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
-    }
-    .btn-submit:disabled {
-      background: #C7C7CC;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .danger-actions-section {
-      margin-top: 24px;
-      padding-top: 18px;
-      border-top: 1px dashed #E5E5EA;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .btn-decline {
-      background: none;
-      border: 1.5px solid #FCA5A5;
-      color: var(--danger-red);
-      height: 42px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .btn-abort {
-      background: none;
-      border: 1.5px solid #FCD34D;
-      color: #B45309;
-      height: 42px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    /* 全画面操作ロック用オーバーレイ */
-    .blocking-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.45);
-      z-index: 300;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-    .blocking-card {
-      background: #FFFFFF;
-      border-radius: 20px;
-      padding: 24px 20px;
-      text-align: center;
-      width: 280px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .blocking-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-top: 12px;
-    }
-    .blocking-desc {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    /* iOS風 カスタムダイアログ */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      backdrop-filter: blur(6px);
-    }
-    .modal-card {
-      background: #FFFFFF;
-      border-radius: 20px;
-      width: 100%;
-      max-width: 340px;
-      padding: 22px 18px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      border: 0.5px solid var(--border-color);
-    }
-    .modal-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .modal-message {
-      font-size: 0.88rem;
-      color: var(--text-main);
-      line-height: 1.5;
-      white-space: pre-wrap;
-      text-align: left;
-      background: var(--surface-secondary);
-      padding: 12px;
-      border-radius: 12px;
-      margin: 12px 0 16px 0;
-    }
-    .modal-btn-row {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-modal-cancel {
-      flex: 1;
-      height: 44px;
-      background: #E5E5EA;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      cursor: pointer;
-    }
-    .btn-modal-confirm {
-      flex: 1;
-      height: 44px;
-      background: var(--primary-blue);
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: #FFFFFF;
-      cursor: pointer;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin {
-      animation: spin 0.9s linear infinite;
-    }
+    .lucide { stroke-width: 2.2; }
+    *, ::before, ::after { box-sizing: border-box !important; }
   </style>
 </head>
-<body>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-28 text-base">
 
-  <!-- 全画面操作ロック用オーバーレイ -->
-  <div id="blockingOverlay" class="blocking-overlay" style="display:none;">
-    <div class="blocking-card">
-      <i data-lucide="loader-2" class="animate-spin" style="width:36px; height:36px; color:var(--primary-blue); margin: 0 auto;"></i>
-      <div class="blocking-title" id="blockingTitle">依頼情報を取得中</div>
-      <div class="blocking-desc" id="blockingDesc">最新データを読み込んでいます<br>少々お待ちください</div>
+  <!-- 操作ロック・ローディング用オーバーレイ -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
+    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
+      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">処理中...</div>
+      <div id="blockingDesc" class="mt-1 text-xs text-slate-500">しばらくお待ちください</div>
     </div>
   </div>
 
-  <header>
-    <h1>
-      <i data-lucide="car"></i>
-      <span>おでかけサポート 活動記録</span>
-    </h1>
+  <!-- iOS風カスタムアラート/確認ダイアログ -->
+  <div id="customDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <div id="dialogIconArea" class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+        <i data-lucide="info" class="h-6 w-6"></i>
+      </div>
+      <h3 id="dialogTitle" class="text-lg font-black text-slate-900">確認</h3>
+      <p id="dialogMessage" class="mt-2 text-sm text-slate-600 leading-relaxed">メッセージ</p>
+      <div id="dialogButtons" class="mt-5 flex items-center justify-center gap-2">
+        <button type="button" id="dialogBtnOk" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- スティッキーヘッダー -->
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3.5 sm:px-6">
+      <div class="flex items-center gap-2.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+          <i data-lucide="file-text" class="h-5 w-5"></i>
+        </div>
+        <h1 class="text-lg font-black tracking-tight text-slate-900">活動記録入力</h1>
+      </div>
+      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
+        おでかけサポート
+      </span>
+    </div>
   </header>
 
-  <div class="container" id="formView">
-    <div class="card">
-      <!-- 案件番号 -->
-      <div class="form-group">
-        <label>
-          <i data-lucide="hash"></i>
-          <span>案件番号</span>
-        </label>
-        <input type="text" id="questIdInput" placeholder="例: 1001" inputmode="numeric" oninput="handleQuestIdInput()" style="background:#F1F5F9; font-weight:800; color:#1E40AF;">
-        <div id="questFetchStatus" class="sub-label">※入力すると、お名前・登録番号・運行区分が自動反映されます</div>
-      </div>
+  <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
 
-      <!-- 運行区分 -->
-      <div class="form-group">
-        <label>
-          <i data-lucide="repeat"></i>
-          <span>運行区分</span>
-        </label>
-        <div class="radio-group">
-          <label class="radio-label active" id="labelRound">
-            <input type="radio" name="tripType" value="往復" checked onchange="handleTripTypeChange()">
-            <i data-lucide="repeat"></i>
-            <span>往復</span>
-          </label>
-          <label class="radio-label" id="labelOneWay">
-            <input type="radio" name="tripType" value="片道" onchange="handleTripTypeChange()">
-            <i data-lucide="arrow-right"></i>
-            <span>片道</span>
-          </label>
+    <form id="activityForm" class="space-y-4" onsubmit="event.preventDefault(); openSubmitConfirmModal();">
+
+      <!-- STEP 1: 案件基本情報（自動取得） -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
+            <h2 class="text-base font-bold text-slate-900">対象案件の確認</h2>
+          </div>
+          <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded border border-blue-100 flex items-center gap-1">
+            <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-blue-600"></i>
+            <span>依頼情報から自動取得</span>
+          </span>
         </div>
-      </div>
 
-      <!-- ドライバー登録番号 -->
-      <div class="form-group">
-        <label>
-          <i data-lucide="id-card"></i>
-          <span>ドライバー登録番号</span>
-        </label>
-        <input type="tel" id="driverId" placeholder="例: 10101" inputmode="numeric" oninput="handleFieldChange()">
-      </div>
-
-      <!-- 同乗利用者名 -->
-      <div class="form-group">
-        <label>
-          <i data-lucide="users"></i>
-          <span>同乗利用者名</span>
-        </label>
-        <div id="passengerContainer" class="passenger-list">
-          <input type="text" id="passenger1" placeholder="乗客1のお名前" oninput="handleFieldChange()">
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">案件番号（4桁）</label>
+          <div class="flex gap-2">
+            <input
+              type="tel"
+              id="questIdInput"
+              maxlength="4"
+              placeholder="例: 1025"
+              oninput="handleQuestIdInput()"
+              required
+              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-lg font-bold text-slate-900 outline-none transition focus:border-blue-600"
+            />
+            <button
+              type="button"
+              onclick="manualFetchQuest()"
+              class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 whitespace-nowrap"
+            >
+              再読込
+            </button>
+          </div>
+          <p id="questFetchStatus" class="text-xs text-slate-400 mt-1">※URLから自動読み込み中...</p>
         </div>
-        <button type="button" class="btn-add-passenger" id="btnAddPassenger" onclick="addPassengerField()">
-          <i data-lucide="plus"></i>
-          <span>乗客を追加</span>
-        </button>
-      </div>
 
-      <!-- 1. 出発時セクション -->
-      <div class="step-section">
-        <div class="step-title">
-          <i data-lucide="map-pin"></i>
-          <span>1. 出発時</span>
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">担当ドライバー番号</label>
+            <input
+              type="text"
+              id="driverId"
+              placeholder="例: 10101"
+              required
+              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">運行区分</label>
+            <select
+              id="tripType"
+              class="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+              onchange="checkSubmitRequirement()"
+            >
+              <option value="往復">往復</option>
+              <option value="片道">片道</option>
+            </select>
+          </div>
         </div>
-        <button type="button" class="btn-gps-trigger" id="btnDep" onclick="recordDeparture()">
-          <i data-lucide="navigation"></i>
-          <span>出発地を記録する</span>
-        </button>
-        <button type="button" class="btn-gps-fallback" onclick="manualRecordDeparture()">
-          ※現在時刻を手動セット
-        </button>
-        <div class="lock-notice-box">
-          <i data-lucide="alert-circle" style="color:#B45309;"></i>
-          <span>出発ボタンを押したらそのままスマホをロックしてください</span>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1">同乗利用者名</label>
+          <div id="passengerContainer" class="space-y-2">
+            <input
+              type="text"
+              class="passenger-input w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+              placeholder="例: 相模 花子"
+              required
+            />
+          </div>
         </div>
-        <div id="depStatus" class="status-box">押し忘れた場合は到着だけ記録してください</div>
-      </div>
+      </section>
 
-      <!-- 2. 到着時セクション -->
-      <div class="step-section">
-        <div class="step-title">
-          <i data-lucide="map-pin"></i>
-          <span>2. 到着時</span>
+      <!-- STEP 2: 運行ステップ（GPS測位） -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
+            <h2 class="text-base font-bold text-slate-900">運行ステータス記録</h2>
+          </div>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
-        <button type="button" class="btn-gps-trigger" id="btnArr" onclick="recordArrival()">
-          <i data-lucide="flag"></i>
-          <span>到着地を記録する</span>
+
+        <!-- 出発時 -->
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="navigation" class="h-4 w-4 text-blue-600"></i>
+              <span>1. 出発時記録</span>
+            </span>
+            <button
+              type="button"
+              id="btnDep"
+              onclick="recordDeparture()"
+              class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+            >
+              出発地を記録する
+            </button>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span id="depStatus" class="text-slate-500">未記録</span>
+            <button type="button" onclick="manualRecordDeparture()" class="text-blue-600 font-semibold underline hover:text-blue-800">
+              ※時刻を手動セット
+            </button>
+          </div>
+        </div>
+
+        <!-- 到着時 -->
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="h-4 w-4 text-blue-600"></i>
+              <span>2. 到着時記録</span>
+            </span>
+            <button
+              type="button"
+              id="btnArr"
+              onclick="recordArrival()"
+              class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+            >
+              到着地を記録する
+            </button>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span id="arrStatus" class="text-slate-500">未記録</span>
+            <button type="button" onclick="manualRecordArrival()" class="text-blue-600 font-semibold underline hover:text-blue-800">
+              ※時刻を手動セット
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: その他実費 ＆ 送信 -->
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">3</span>
+            <h2 class="text-base font-bold text-slate-900">立替実費・送信</h2>
+          </div>
+          <span class="text-xs font-bold text-slate-500">任意</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-1.5">その他実費立替（有料道路代・駐車場代など）</label>
+          <div class="relative">
+            <input
+              type="tel"
+              id="otherExpense"
+              value="0"
+              placeholder="0"
+              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+            <span class="absolute right-4 top-3.5 text-sm font-bold text-slate-500">円</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">※レシート写真のLINE送信が必要となります。</p>
+        </div>
+
+        <div id="submitNoticeBox" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 leading-relaxed">
+          ⚠️ 案件番号、ドライバー番号、同乗者名、および出発・到着記録がすべて揃うと送信可能になります。
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            id="btnSubmitRecord"
+            disabled
+            class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition"
+          >
+            <i data-lucide="send" class="h-5 w-5"></i>
+            <span>活動実績を送信する</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 例外アクションバー -->
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button
+          type="button"
+          onclick="confirmAbortQuest()"
+          class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50/50 py-3 text-xs font-bold text-red-700 hover:bg-red-100 active:scale-95 transition"
+        >
+          <i data-lucide="ban" class="h-4 w-4"></i>
+          <span>送迎中止（10分不在等）</span>
         </button>
-        <button type="button" class="btn-gps-fallback" onclick="manualRecordArrival()">
-          ※現在時刻を手動セット
-        </button>
-        <div id="arrStatus" class="status-box">自動で現在時刻が記録されます</div>
-      </div>
-
-      <!-- ★その他実費（送信ボタンの直上に配置） -->
-      <div class="form-group" style="margin-top: 20px;">
-        <label>
-          <i data-lucide="receipt"></i>
-          <span>その他実費（有料道路・駐車場代）</span>
-        </label>
-        <div class="sub-label">※立替実費がある場合のみ入力してください（ない場合は空欄で可）</div>
-        <input type="number" id="otherExpense" placeholder="0" min="0" step="10" inputmode="numeric" oninput="handleFieldChange()">
-      </div>
-
-      <!-- 送信確認通知ボックス -->
-      <div id="submitNoticeBox" class="submit-notice-box warning">
-        確認中...
-      </div>
-
-      <!-- 送信ボタン -->
-      <button type="button" class="btn-submit" id="btnSubmit" onclick="submitRecord()">
-        <i data-lucide="send"></i>
-        <span>活動実績を送信</span>
-      </button>
-
-      <!-- 例外対応ボタン -->
-      <div class="danger-actions-section">
-        <button type="button" class="btn-decline" id="btnDecline" onclick="cancelThisQuest()">
-          <i data-lucide="alert-triangle"></i>
+        <button
+          type="button"
+          onclick="confirmCancelContract()"
+          class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+        >
+          <i data-lucide="x-circle" class="h-4 w-4"></i>
           <span>受託をキャンセルする</span>
         </button>
-        <button type="button" class="btn-abort" id="btnAbort" onclick="abortTrip()">
-          <i data-lucide="ban"></i>
-          <span>送迎中止（10分不在・不乗車）</span>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- 完了モーダル -->
+  <div id="completeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+        <i data-lucide="badge-check" class="h-8 w-8"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900">活動記録を送信しました</h3>
+      
+      <div class="my-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-left text-xs space-y-2 text-emerald-900 leading-relaxed">
+        <div class="font-bold text-sm text-emerald-800 flex items-center gap-1">
+          <i data-lucide="message-circle" class="h-4 w-4"></i>
+          <span>LINEへ運行完了通知を送信しました</span>
+        </div>
+        <p>お疲れ様でした！公式LINEのトーク画面へ「笑顔の集合写真」をお送りください。</p>
+      </div>
+
+      <div class="mt-5">
+        <button type="button" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition" onclick="handleCloseWindow()">
+          画面を閉じる
         </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 送信完了画面 -->
-  <div class="container" id="completeView" style="display:none;">
-    <div class="card" style="text-align:center; padding:32px 18px;">
-      <div style="width:60px; height:60px; background:#DCFCE7; color:var(--success-green); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-        <i data-lucide="badge-check" style="width:36px; height:36px;"></i>
-      </div>
-      <h2 style="font-size:1.3rem; font-weight:800; margin-bottom:6px;">活動実績の送信完了</h2>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;">
-        本日の送迎ボランティア、大変お疲れ様でした！
-      </p>
-
-      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px; margin-bottom:20px; text-align:left; font-size:0.88rem; line-height:1.6;">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #E2E8F0; padding-bottom:6px; margin-bottom:6px;">
-          <span style="color:var(--text-muted);">利用者請求額:</span>
-          <strong style="color:var(--text-main);">0 円（完全無料）</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:baseline;">
-          <span style="color:var(--success-green); font-weight:700;">ドライバー支給予定額:</span>
-          <strong id="dispPayoutAmt" style="font-size:1.15rem; color:var(--success-green); font-family:ui-monospace, monospace;">-- 円</strong>
-        </div>
-      </div>
-
-      <div id="dispPhotoNoticeArea" style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:12px; padding:12px; font-size:0.82rem; color:#92400E; text-align:left; margin-bottom:20px;">
-        <strong style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
-          <i data-lucide="camera"></i>
-          <span>写真送信のご案内:</span>
-        </strong>
-        <span id="dispPhotoNotice">
-          右上の「×」でLINEに戻ったら、集合写真をトーク画面に送信してください。
-        </span>
-      </div>
-
-      <p style="font-size:0.8rem; color:var(--text-muted);">
-        画面右上の「 × 」を押してトーク画面にお戻りください。
-      </p>
-    </div>
-  </div>
-
-  <!-- iOS風 カスタム確認ダイアログ -->
-  <div id="customDialogOverlay" class="modal-overlay" style="display:none;" onclick="handleDialogOverlayClick(event)">
-    <div class="modal-card">
-      <div id="customDialogIconArea" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
-      <h3 id="customDialogTitle" class="modal-title">通知</h3>
-      <div id="customDialogMessage" class="modal-message"></div>
-      <div class="modal-btn-row">
-        <button type="button" class="btn-modal-cancel" id="btnDialogCancel" onclick="closeCustomDialog(false)">キャンセル</button>
-        <button type="button" class="btn-modal-confirm" id="btnDialogOk" onclick="closeCustomDialog(true)">OK</button>
       </div>
     </div>
   </div>
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-
-    let questId = '';
-    let passengerCount = 1;
-    let cachedDriverName = '';
-    let isSubmitting = false;
-    let fetchTimer = null;
+    const RECORD_LIFF_ID = "2011743949-unqD1uQo";
 
     let runLog = {
-      depTime: '', depTimestamp: null, depLat: null, depLng: null,
-      arrTime: '', arrTimestamp: null, arrLat: null, arrLng: null,
-      durationMin: 0, oneWayKm: 0, roundTripKm: 0, fee: 0, fuelFee: 0
+      depTime: '', depTimestamp: null, depLat: 0, depLng: 0,
+      arrTime: '', arrTimestamp: null, arrLat: 0, arrLng: 0
     };
+    let lineUserId = '';
 
     function refreshLucide() {
-      if (window.lucide) {
-        lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function formatTime(d) {
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    function showCustomAlert(title, message, isOkOnly = true, callback = null) {
+      const dialog = document.getElementById('customDialog');
+      document.getElementById('dialogTitle').textContent = title;
+      document.getElementById('dialogMessage').textContent = message;
+      const btnArea = document.getElementById('dialogButtons');
+
+      if (isOkOnly) {
+        btnArea.innerHTML = `<button type="button" id="dialogBtnOk" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700">OK</button>`;
+        document.getElementById('dialogBtnOk').onclick = () => {
+          dialog.classList.add('hidden');
+          if (callback) callback();
+        };
+      } else {
+        btnArea.innerHTML = `
+          <button type="button" id="dialogBtnCancel" class="flex-1 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">いいえ</button>
+          <button type="button" id="dialogBtnConfirm" class="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-red-700">はい</button>
+        `;
+        document.getElementById('dialogBtnCancel').onclick = () => dialog.classList.add('hidden');
+        document.getElementById('dialogBtnConfirm').onclick = () => {
+          dialog.classList.add('hidden');
+          if (callback) callback();
+        };
       }
+      dialog.classList.remove('hidden');
+      refreshLucide();
     }
 
-    let customDialogResolve = null;
-    function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'var(--primary-blue)') {
-      return new Promise((resolve) => {
-        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:42px; height:42px; color:${iconColor};"></i>`;
-        document.getElementById('customDialogTitle').textContent = title;
-        document.getElementById('customDialogMessage').textContent = message;
-        document.getElementById('btnDialogCancel').style.display = 'none';
-        document.getElementById('btnDialogOk').textContent = '閉じる';
-        customDialogResolve = resolve;
-        document.getElementById('customDialogOverlay').style.display = 'flex';
-        refreshLucide();
-      });
-    }
-
-    function showCustomConfirm(message, title = 'ご確認', iconName = 'help-circle', iconColor = 'var(--primary-blue)') {
-      return new Promise((resolve) => {
-        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" style="width:42px; height:42px; color:${iconColor};"></i>`;
-        document.getElementById('customDialogTitle').textContent = title;
-        document.getElementById('customDialogMessage').textContent = message;
-        document.getElementById('btnDialogCancel').style.display = 'block';
-        document.getElementById('btnDialogCancel').textContent = 'キャンセル';
-        document.getElementById('btnDialogOk').textContent = 'OK';
-        customDialogResolve = resolve;
-        document.getElementById('customDialogOverlay').style.display = 'flex';
-        refreshLucide();
-      });
-    }
-
-    function closeCustomDialog(result) {
-      document.getElementById('customDialogOverlay').style.display = 'none';
-      if (customDialogResolve) {
-        const cb = customDialogResolve;
-        customDialogResolve = null;
-        cb(result);
-      }
-    }
-
-    function handleDialogOverlayClick(e) {
-      if (e.target.id === 'customDialogOverlay') closeCustomDialog(false);
-    }
-
-    function showBlockingLoading(title = '依頼情報を取得中', desc = '最新データを読み込んでいます<br>少々お待ちください') {
-      const overlay = document.getElementById('blockingOverlay');
-      if (overlay) {
-        document.getElementById('blockingTitle').textContent = title;
-        document.getElementById('blockingDesc').innerHTML = desc;
-        overlay.style.display = 'flex';
-        refreshLucide();
-      }
+    function showBlockingLoading(title, desc) {
+      document.getElementById('blockingTitle').textContent = title;
+      document.getElementById('blockingDesc').textContent = desc;
+      document.getElementById('blockingOverlay').classList.remove('hidden');
+      refreshLucide();
     }
 
     function hideBlockingLoading() {
-      const overlay = document.getElementById('blockingOverlay');
-      if (overlay) overlay.style.display = 'none';
+      document.getElementById('blockingOverlay').classList.add('hidden');
     }
 
-    function extractQuestIdFromUrl() {
-      const searchParams = new URLSearchParams(window.location.search);
-      let q = searchParams.get('qid');
+    // URLパラメータから案件番号（qid）を堅牢に抽出
+    function extractQuestId() {
+      const params = new URLSearchParams(window.location.search);
+      let q = params.get('qid') || params.get('questId');
       if (q) return q.trim();
-      let rawState = searchParams.get('liff.state');
-      if (rawState) {
-        if (rawState.startsWith('?')) rawState = rawState.substring(1);
-        const stateParams = new URLSearchParams(rawState);
-        q = stateParams.get('qid');
-        if (q) return q.trim();
+
+      const liffState = params.get('liff.state');
+      if (liffState) {
+        try {
+          const decoded = decodeURIComponent(liffState);
+          const stateParams = new URLSearchParams(decoded.includes('?') ? decoded.split('?')[1] : decoded);
+          q = stateParams.get('qid') || stateParams.get('questId');
+          if (q) return q.trim();
+        } catch (e) {}
       }
       return '';
     }
 
-    function handleTripTypeChange() {
-      const roundRadio = document.querySelector('input[name="tripType"][value="往復"]');
-      const labelRound = document.getElementById('labelRound');
-      const labelOneWay = document.getElementById('labelOneWay');
-      if (roundRadio.checked) {
-        labelRound.classList.add('active');
-        labelOneWay.classList.remove('active');
-      } else {
-        labelRound.classList.remove('active');
-        labelOneWay.classList.add('active');
-      }
-      handleFieldChange();
-    }
-
-    function handleFieldChange() {
-      checkSubmitRequirement();
-    }
-
     function handleQuestIdInput() {
-      if (fetchTimer) clearTimeout(fetchTimer);
-      fetchTimer = setTimeout(() => {
-        const val = document.getElementById('questIdInput').value.trim();
-        if (/^\d{4}$/.test(val)) {
-          fetchQuestData(val);
-        }
-      }, 500);
+      const val = document.getElementById('questIdInput').value.trim();
+      if (/^\d{4}$/.test(val)) {
+        fetchQuestData(val);
+      }
       checkSubmitRequirement();
+    }
+
+    function manualFetchQuest() {
+      const val = document.getElementById('questIdInput').value.trim();
+      if (val) fetchQuestData(val);
     }
 
     async function fetchQuestData(qid) {
       const statusEl = document.getElementById('questFetchStatus');
-      showBlockingLoading('依頼情報を取得中', `案件 #${qid} の情報を読み込んでいます...`);
-
+      statusEl.textContent = `案件 #${qid} の情報を取得中...`;
+      
       try {
-        const res = await (await fetch(`${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(qid)}`)).json();
-        if (res && res.success && res.quest) {
-        const q = res.quest;
-        if (q.driverId) document.getElementById('driverId').value = q.driverId;
-        if (q.driverName) cachedDriverName = q.driverName;
-
-        // ★同乗者名（利用者名）の反映処理
-        const pContainer = document.getElementById('passengerContainer');
-        const passengerName = (q.passengers && q.passengers.length > 0) ? q.passengers[0] : (q.userName || '');
-
-        if (pContainer) {
-          pContainer.innerHTML = ''; // 一旦クリア
-          passengerCount = 1;
-          const inp = document.createElement('input');
-          inp.type = 'text';
-          inp.id = 'passenger1';
-          inp.value = passengerName; // ★名前をセット
-          inp.placeholder = '乗客1のお名前';
-          inp.oninput = handleFieldChange;
-          pContainer.appendChild(inp);
-        }
-
-        // 区分（往復・片道）の反映
-        if (q.tripPlan) {
-          const isOneWay = q.tripPlan.includes('片道');
-          const radioOneWay = document.querySelector('input[name="tripType"][value="片道"]');
-          const radioRound = document.querySelector('input[name="tripType"][value="往復"]');
-          if (isOneWay && radioOneWay) radioOneWay.checked = true;
-          else if (radioRound) radioRound.checked = true;
-          if (typeof handleTripTypeChange === 'function') handleTripTypeChange();
-        }
-
-        checkSubmitRequirement();
-      }
+        const res = await fetch(`${GAS_API_URL}?action=getQuestDetail&qid=${encodeURIComponent(qid)}&_t=${Date.now()}`);
+        const data = await res.json();
+        
+        if (data && data.success && data.quest) {
+          const q = data.quest;
+          if (q.driverId) document.getElementById('driverId').value = q.driverId;
           if (q.tripPlan) {
-            const isOneWay = q.tripPlan.includes('片道');
-            document.querySelector(`input[name="tripType"][value="${isOneWay ? '片道' : '往復'}"]`).checked = true;
-            handleTripTypeChange();
+            const select = document.getElementById('tripType');
+            for (let opt of select.options) {
+              if (q.tripPlan.includes(opt.value)) {
+                select.value = opt.value;
+                break;
+              }
+            }
           }
-
-          statusEl.innerHTML = `<span style="color:var(--success-green); font-weight:700;"><i data-lucide="check"></i> 依頼情報から自動取得完了</span>`;
-          refreshLucide();
+          if (q.passengers && q.passengers.length > 0) {
+            document.getElementById('passengerContainer').innerHTML = `
+              <input type="text" class="passenger-input w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600" value="${escapeHtml(q.passengers[0])}" required />
+            `;
+          }
+          statusEl.textContent = `✓ 案件 #${qid} の情報を正常に読み込みました`;
+          statusEl.className = "text-xs font-bold text-emerald-600 mt-1";
         } else {
-          statusEl.textContent = '※該当する案件情報が見つかりませんでした（手入力可能）';
+          statusEl.textContent = "⚠ 該当する案件が見つかりませんでした";
+          statusEl.className = "text-xs font-bold text-amber-600 mt-1";
         }
       } catch (e) {
-        statusEl.textContent = '※通信エラーのため自動取得できませんでした';
-      } finally {
-        hideBlockingLoading();
-        checkSubmitRequirement();
+        statusEl.textContent = "⚠ 通信エラー: 情報を取得できませんでした";
+        statusEl.className = "text-xs font-bold text-red-600 mt-1";
       }
-    }
-
-    function addPassengerField() {
-      if (passengerCount >= 7) {
-        showCustomAlert('登録できる同乗者は最大7名までです。', '人数上限');
-        return;
-      }
-      passengerCount++;
-      const container = document.getElementById('passengerContainer');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = 'passenger' + passengerCount;
-      input.placeholder = `乗客${passengerCount}のお名前`;
-      input.oninput = handleFieldChange;
-      container.appendChild(input);
       checkSubmitRequirement();
     }
 
-    function formatTime(d) {
-      return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-    }
-
-    function setBtnRecorded(btnId, labelText) {
-      const btn = document.getElementById(btnId);
-      if (!btn) return;
-      btn.classList.add('recorded');
-      btn.innerHTML = `<i data-lucide="check"></i><span>${labelText}</span>`;
-      refreshLucide();
-    }
-
+    // 出発記録処理
     function recordDeparture() {
       const now = new Date();
       runLog.depTime = formatTime(now);
       runLog.depTimestamp = now.getTime();
-      setBtnRecorded('btnDep', `出発記録済 (${runLog.depTime})`);
-      document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (GPS取得中...)`;
-      document.getElementById('depStatus').className = 'status-box recorded';
+      
+      const btn = document.getElementById('btnDep');
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.textContent = `出発記録済 (${runLog.depTime})`;
+      
+      const status = document.getElementById('depStatus');
+      status.textContent = `出発: ${runLog.depTime} (GPS測位中...)`;
+      status.className = "text-xs font-bold text-emerald-700";
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             runLog.depLat = pos.coords.latitude;
             runLog.depLng = pos.coords.longitude;
-            document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (GPS測位完了)`;
+            status.textContent = `出発: ${runLog.depTime} (GPS測位完了)`;
             checkSubmitRequirement();
           },
           () => {
-            document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (時刻のみ)`;
+            status.textContent = `出発: ${runLog.depTime} (時刻のみ記録)`;
             checkSubmitRequirement();
           },
           { enableHighAccuracy: true, timeout: 8000 }
@@ -845,30 +454,41 @@
       const now = new Date();
       runLog.depTime = formatTime(now);
       runLog.depTimestamp = now.getTime();
-      setBtnRecorded('btnDep', `出発記録済 (${runLog.depTime})`);
-      document.getElementById('depStatus').textContent = `出発: ${runLog.depTime} (手動入力)`;
-      document.getElementById('depStatus').className = 'status-box recorded';
+      
+      const btn = document.getElementById('btnDep');
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.textContent = `出発記録済 (${runLog.depTime})`;
+      
+      const status = document.getElementById('depStatus');
+      status.textContent = `出発: ${runLog.depTime} (手動入力)`;
+      status.className = "text-xs font-bold text-emerald-700";
       checkSubmitRequirement();
     }
 
+    // 到着記録処理
     function recordArrival() {
       const now = new Date();
       runLog.arrTime = formatTime(now);
       runLog.arrTimestamp = now.getTime();
-      setBtnRecorded('btnArr', `到着記録済 (${runLog.arrTime})`);
-      document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (GPS取得中...)`;
-      document.getElementById('arrStatus').className = 'status-box recorded';
+      
+      const btn = document.getElementById('btnArr');
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.textContent = `到着記録済 (${runLog.arrTime})`;
+      
+      const status = document.getElementById('arrStatus');
+      status.textContent = `到着: ${runLog.arrTime} (GPS測位中...)`;
+      status.className = "text-xs font-bold text-emerald-700";
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             runLog.arrLat = pos.coords.latitude;
             runLog.arrLng = pos.coords.longitude;
-            document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (GPS測位完了)`;
+            status.textContent = `到着: ${runLog.arrTime} (GPS測位完了)`;
             checkSubmitRequirement();
           },
           () => {
-            document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (時刻のみ)`;
+            status.textContent = `到着: ${runLog.arrTime} (時刻のみ記録)`;
             checkSubmitRequirement();
           },
           { enableHighAccuracy: true, timeout: 8000 }
@@ -882,261 +502,150 @@
       const now = new Date();
       runLog.arrTime = formatTime(now);
       runLog.arrTimestamp = now.getTime();
-      setBtnRecorded('btnArr', `到着記録済 (${runLog.arrTime})`);
-      document.getElementById('arrStatus').textContent = `到着: ${runLog.arrTime} (手動入力)`;
-      document.getElementById('arrStatus').className = 'status-box recorded';
+      
+      const btn = document.getElementById('btnArr');
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.textContent = `到着記録済 (${runLog.arrTime})`;
+      
+      const status = document.getElementById('arrStatus');
+      status.textContent = `到着: ${runLog.arrTime} (手動入力)`;
+      status.className = "text-xs font-bold text-emerald-700";
       checkSubmitRequirement();
     }
 
     function checkSubmitRequirement() {
       const qid = document.getElementById('questIdInput').value.trim();
-      const did = document.getElementById('driverId').value.trim();
-      const p1 = document.getElementById('passenger1') ? document.getElementById('passenger1').value.trim() : '';
-      const hasArrival = !!runLog.arrTime;
+      const driverId = document.getElementById('driverId').value.trim();
+      const passenger = document.querySelector('.passenger-input')?.value.trim() || '';
+      const hasDep = !!runLog.depTime;
+      const hasArr = !!runLog.arrTime;
 
-      const notice = document.getElementById('submitNoticeBox');
-      const submitBtn = document.getElementById('btnSubmit');
+      const submitBtn = document.getElementById('btnSubmitRecord');
+      const noticeBox = document.getElementById('submitNoticeBox');
 
-      if (!qid) {
-        notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '<i data-lucide="alert-circle"></i> 案件番号を入力してください';
+      if (qid && driverId && passenger && hasDep && hasArr) {
+        submitBtn.disabled = false;
+        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition cursor-pointer";
+        noticeBox.className = "rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 leading-relaxed font-bold";
+        noticeBox.innerHTML = "✓ すべての必須項目と運行記録が揃いました。送信ボタンを押してください。";
+      } else {
         submitBtn.disabled = true;
-        refreshLucide();
-        return false;
+        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition";
+        noticeBox.className = "rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 leading-relaxed";
+        noticeBox.innerHTML = "⚠️ 案件番号、ドライバー番号、同乗者名、および出発・到着記録がすべて揃うと送信可能になります。";
       }
-      if (!did) {
-        notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '<i data-lucide="alert-circle"></i> ドライバー登録番号を入力してください';
-        submitBtn.disabled = true;
-        refreshLucide();
-        return false;
-      }
-      if (!p1) {
-        notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '<i data-lucide="alert-circle"></i> 同乗利用者名を入力してください';
-        submitBtn.disabled = true;
-        refreshLucide();
-        return false;
-      }
-      if (!hasArrival) {
-        notice.className = 'submit-notice-box warning';
-        notice.innerHTML = '<i data-lucide="alert-circle"></i> 到着時刻を記録してください';
-        submitBtn.disabled = true;
-        refreshLucide();
-        return false;
-      }
-
-      notice.className = 'submit-notice-box ready';
-      notice.innerHTML = '<i data-lucide="check-circle-2"></i> 送信準備が完了しました。送信ボタンを押してください。';
-      submitBtn.disabled = false;
-      refreshLucide();
-      return true;
     }
 
-    async function submitRecord() {
-      if (isSubmitting) return;
-      if (!checkSubmitRequirement()) return;
-
-      const ok = await showCustomConfirm('活動実績を送信しますか？', '実績送信の確認', 'send', 'var(--primary-blue)');
-      if (!ok) return;
-
-      isSubmitting = true;
-      const btn = document.getElementById('btnSubmit');
-      btn.disabled = true;
-      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i><span>送信中...</span>';
-      refreshLucide();
-
-      const passList = [];
-      for (let i = 1; i <= passengerCount; i++) {
-        const el = document.getElementById('passenger' + i);
-        if (el && el.value.trim()) passList.push(el.value.trim());
-      }
-
-      let duration = 0;
-      if (runLog.depTimestamp && runLog.arrTimestamp) {
-        duration = Math.max(1, Math.round((runLog.arrTimestamp - runLog.depTimestamp) / 60000));
-      }
-
-      const tripTypeVal = document.querySelector('input[name="tripType"]:checked').value;
-      const otherExp = Number(document.getElementById('otherExpense').value || 0);
-
+    async function openSubmitConfirmModal() {
+      showBlockingLoading('実績送信中', '活動記録をスプレッドシートへ送信しています...');
+      
       const payload = {
-        action: 'submitRecord',
+        action: "submitRecord",
         questId: document.getElementById('questIdInput').value.trim(),
         driverId: document.getElementById('driverId').value.trim(),
-        driverName: cachedDriverName,
-        tripType: tripTypeVal,
-        tripPlan: tripTypeVal,
-        otherExpense: otherExp,
-        passengers: passList,
+        tripType: document.getElementById('tripType').value,
+        passengers: document.querySelector('.passenger-input')?.value.trim() || '',
         depTime: runLog.depTime,
         arrTime: runLog.arrTime,
-        duration: duration,
         depLat: runLog.depLat,
         depLng: runLog.depLng,
         arrLat: runLog.arrLat,
         arrLng: runLog.arrLng,
-        arrMapUrl: runLog.arrLat ? `https://www.google.com/maps?q=${runLog.arrLat},${runLog.arrLng}` : '',
-        depMapUrl: runLog.depLat ? `https://www.google.com/maps?q=${runLog.depLat},${runLog.depLng}` : ''
+        otherExpense: parseFloat(document.getElementById('otherExpense').value || 0),
+        lineUserId: lineUserId
       };
 
       try {
         const res = await fetch(`${GAS_API_URL}?action=submitRecord`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
+        hideBlockingLoading();
 
         if (data.success) {
-          document.getElementById('formView').style.display = 'none';
-          document.getElementById('completeView').style.display = 'block';
-
-          const payout = (data.fee !== undefined) ? data.fee : (data.fuelFee ? (data.fuelFee + otherExp) : otherExp);
-          document.getElementById('dispPayoutAmt').textContent = `${Number(payout).toLocaleString()} 円`;
-
-          const photoNotice = document.getElementById('dispPhotoNotice');
-          if (otherExp > 0) {
-            photoNotice.innerHTML = `右上の「×」でLINEに戻ったら、集合写真と一緒に<strong>【有料道路・駐車場代のレシート写真】</strong>をトーク画面に送信してください。`;
-          } else {
-            photoNotice.textContent = `右上の「×」でLINEに戻ったら、笑顔の集合写真をトーク画面に送信してください。`;
-          }
+          document.getElementById('completeModal').classList.remove('hidden');
           refreshLucide();
         } else {
-          await showCustomAlert(data.message || '送信に失敗しました', '送信エラー', 'alert-circle', 'var(--danger-red)');
-          btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="send"></i><span>活動実績を送信</span>';
-          refreshLucide();
-        }
-      } catch (err) {
-        await showCustomAlert('通信エラーが発生しました: ' + err.message, '通信エラー', 'alert-circle', 'var(--danger-red)');
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="send"></i><span>活動実績を送信</span>';
-        refreshLucide();
-      } finally {
-        isSubmitting = false;
-      }
-    }
-
-    async function cancelThisQuest() {
-      const qid = document.getElementById('questIdInput').value.trim();
-      const did = document.getElementById('driverId').value.trim();
-      if (!qid || !did) {
-        showCustomAlert('受託をキャンセルするには、案件番号とドライバー登録番号が必要です。', '入力確認');
-        return;
-      }
-
-      const ok = await showCustomConfirm(
-        `案件 #${qid} の受託を取り消しますか？\n取り消すと掲示板で再度募集が開始されます。`,
-        '受託キャンセルの確認',
-        'alert-triangle',
-        'var(--danger-red)'
-      );
-      if (!ok) return;
-
-      showBlockingLoading('受託をキャンセル中', '処理を行っています...');
-      try {
-        const res = await (await fetch(`${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(did)}`)).json();
-        hideBlockingLoading();
-        if (res.success) {
-          await showCustomAlert('受託をキャンセルしました。掲示板にて再募集が行われます。', 'キャンセル完了', 'check-circle-2', 'var(--system-green)');
-          window.location.reload();
-        } else {
-          await showCustomAlert(res.message || 'キャンセルに失敗しました', 'エラー');
+          showCustomAlert('送信エラー', data.message || '送信に失敗しました。');
         }
       } catch (e) {
         hideBlockingLoading();
-        await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー');
+        showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
       }
     }
 
-    async function abortTrip() {
-      const qid = document.getElementById('questIdInput').value.trim();
-      const did = document.getElementById('driverId').value.trim();
-      if (!qid || !did) {
-        showCustomAlert('送迎中止処理を行うには、案件番号とドライバー登録番号が必要です。', '入力確認');
-        return;
-      }
-
-      const ok = await showCustomConfirm(
-        `利用者が現れず送迎中止（10分不在・不乗車）としますか？\n\n※自宅からお迎え先までの実走距離が自動計算され、ガソリン代補填の実績として記録されます。`,
-        '送迎中止の確認',
-        'ban',
-        '#B45309'
-      );
-      if (!ok) return;
-
-      showBlockingLoading('送迎中止を記録中', '位置情報と補填距離を記録しています...');
-
-      let curLat = null, curLng = null;
-      if (navigator.geolocation) {
+    function confirmAbortQuest() {
+      showCustomAlert('送迎中止の確認', 'お迎え先での10分不在等による「送迎中止」として処理しますか？', false, async () => {
+        showBlockingLoading('処理中', '送迎中止の実績を記録しています...');
+        const qid = document.getElementById('questIdInput').value.trim();
+        const driverId = document.getElementById('driverId').value.trim();
         try {
-          const pos = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000 });
-          });
-          curLat = pos.coords.latitude;
-          curLng = pos.coords.longitude;
-        } catch (e) {}
-      }
-
-      const payload = {
-        action: 'submitAbortRecord',
-        questId: qid,
-        driverId: did,
-        driverName: cachedDriverName,
-        abortReason: '10分不在・不乗車',
-        depTime: runLog.depTime || formatTime(new Date()),
-        arrTime: formatTime(new Date()),
-        startLat: runLog.depLat,
-        startLng: runLog.depLng,
-        endLat: curLat,
-        endLng: curLng
-      };
-
-      try {
-        const res = await (await fetch(`${GAS_API_URL}?action=submitAbortRecord`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload)
-        })).json();
-
-        hideBlockingLoading();
-
-        if (res.success) {
-          await showCustomAlert('送迎中止を記録しました。ガソリン代補填が適用されます。お気をつけてお戻りください。', '中止処理完了', 'badge-check', 'var(--system-green)');
-          window.location.reload();
-        } else {
-          await showCustomAlert(res.message || '中止処理に失敗しました', 'エラー');
+          const res = await fetch(`${GAS_API_URL}?action=submitAbortRecord&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&_t=${Date.now()}`);
+          const data = await res.json();
+          hideBlockingLoading();
+          if (data.success) {
+            showCustomAlert('処理完了', '送迎中止として記録し、ガソリン代実費を計上しました。', true, () => handleCloseWindow());
+          } else {
+            showCustomAlert('エラー', data.message || '処理に失敗しました。');
+          }
+        } catch (e) {
+          hideBlockingLoading();
+          showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
         }
-      } catch (e) {
-        hideBlockingLoading();
-        await showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー');
+      });
+    }
+
+    function confirmCancelContract() {
+      showCustomAlert('受託キャンセル確認', 'この案件の受託をキャンセルして掲示板に戻しますか？', false, async () => {
+        showBlockingLoading('処理中', '受託をキャンセルしています...');
+        const qid = document.getElementById('questIdInput').value.trim();
+        const driverId = document.getElementById('driverId').value.trim();
+        try {
+          const res = await fetch(`${GAS_API_URL}?action=cancelQuest&qid=${encodeURIComponent(qid)}&driverId=${encodeURIComponent(driverId)}&_t=${Date.now()}`);
+          const data = await res.json();
+          hideBlockingLoading();
+          if (data.success) {
+            showCustomAlert('完了', '受託をキャンセルしました。', true, () => handleCloseWindow());
+          } else {
+            showCustomAlert('エラー', data.message || 'キャンセルに失敗しました。');
+          }
+        } catch (e) {
+          hideBlockingLoading();
+          showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
+        }
+      });
+    }
+
+    function handleCloseWindow() {
+      if (window.liff && liff.isInClient()) {
+        liff.closeWindow();
+      } else {
+        window.close();
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
 
-      setTimeout(() => {
-        hideBlockingLoading();
-      }, 5000);
-
-      const savedDriver = localStorage.getItem('odekake_driver');
-      if (savedDriver) {
-        try {
-          const d = JSON.parse(savedDriver);
-          if (d && d.id) {
-            document.getElementById('driverId').value = d.id;
-            cachedDriverName = d.name || '';
+      try {
+        if (window.liff) {
+          await liff.init({ liffId: RECORD_LIFF_ID });
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            lineUserId = profile.userId || '';
           }
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
 
-      const qid = extractQuestIdFromUrl();
+      // URLから案件番号（qid）を自動抽出して自動読み込みを実行
+      const qid = extractQuestId();
       if (qid) {
         document.getElementById('questIdInput').value = qid;
-        fetchQuestData(qid);
+        await fetchQuestData(qid);
       } else {
+        document.getElementById('questFetchStatus').textContent = "⚠ 案件番号が指定されていません（手動入力してください）";
         checkSubmitRequirement();
       }
     });
