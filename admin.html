@@ -159,7 +159,7 @@
         <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
       </div>
 
-      <!-- サブタブ切り替え -->
+      <!-- サブタブ切り替え (運行予定 vs 活動記録ログ) -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2 overflow-x-auto">
           <button type="button" id="subTabOps" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('ops')">運行予定・アラート</button>
@@ -175,18 +175,18 @@
             type="text"
             id="searchInput"
             placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
-            oninput="renderQuests()"
+            oninput="renderOpsList()"
             class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
           />
         </div>
       </div>
 
-      <!-- 運行案件リスト -->
+      <!-- 運行案件 / 活動ログリスト -->
       <div id="questListContainer" class="space-y-3">
         <!-- 動的描画 -->
       </div>
       <div id="emptyState" class="hidden rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">
-        該当する運行案件はありません
+        該当するデータはありません
       </div>
     </div>
 
@@ -203,7 +203,6 @@
         </button>
       </div>
 
-      <!-- 名簿検索バー -->
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
         <div class="relative">
           <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
@@ -228,7 +227,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h2 class="text-base font-bold text-slate-900">実費弁償集計 ＆ A4受領書・報告書出力</h2>
-            <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷を行います。</p>
+            <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷、および市への提出書類作成を行います。</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
@@ -241,6 +240,7 @@
             </button>
           </div>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
             <div class="text-xs font-bold text-slate-500">期間内総運行回数</div>
@@ -255,13 +255,78 @@
             <div id="finTotalYen" class="mt-1 text-2xl font-black text-blue-600">0 円</div>
           </div>
         </div>
+
+        <div class="overflow-x-auto pt-2">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500">
+                <th class="py-2.5 px-3 font-bold">運行日時</th>
+                <th class="py-2.5 px-3 font-bold">案件番号</th>
+                <th class="py-2.5 px-3 font-bold">担当ドライバー</th>
+                <th class="py-2.5 px-3 font-bold">利用者名</th>
+                <th class="py-2.5 px-3 font-bold text-right">往復距離</th>
+                <th class="py-2.5 px-3 font-bold text-right">ガソリン代支給</th>
+              </tr>
+            </thead>
+            <tbody id="financeTableBody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- 動的描画 -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
   </main>
 
-  <!-- モーダル各種 -->
-  <!-- 3. 【正式版仕様】A4受領書 印刷プレビュー用モーダル -->
+  <!-- ==================== モーダル群 ==================== -->
+
+  <!-- 1. ボランティアドライバー対面登録モーダル (事前登録参照付き) -->
+  <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-black text-slate-900">ボランティアドライバー対面登録</h3>
+        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700">【事前登録フォーム回答から選択】</label>
+        <select id="preRegSelect" onchange="fillDriverFromPreReg()" class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 outline-none focus:border-blue-600">
+          <option value="">-- 事前登録者を選択して自動入力 --</option>
+        </select>
+      </div>
+
+      <form id="driverRegisterForm" onsubmit="event.preventDefault(); submitDriverRegister();" class="space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">登録番号</label>
+            <input type="text" id="regDriverId" readonly class="w-full h-10 rounded-xl border border-slate-200 bg-slate-100 px-3 font-mono text-sm font-bold text-slate-700 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">お名前</label>
+            <input type="text" id="regName" required placeholder="相模 太郎" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-900 outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">お電話番号</label>
+          <input type="tel" id="regPhone" required placeholder="090-1234-5678" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-xs font-bold text-slate-900 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ご住所</label>
+          <input type="text" id="regAddress" placeholder="相模原市緑区中野1-2-3" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">備考</label>
+          <textarea id="regNote" rows="2" placeholder="車種など" class="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700">キャンセル</button>
+          <button type="submit" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">登録する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. A4受領書 印刷プレビュー用モーダル (正規チケットフォーマット) -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
@@ -280,7 +345,7 @@
     </div>
   </div>
 
-  <!-- 4. 【正式版仕様】市提出用 実績報告書プレビュー用モーダル -->
+  <!-- 3. 市提出用 実績報告書プレビュー用モーダル (様式第1号正式フォーマット) -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
@@ -339,53 +404,6 @@
     </div>
   </div>
 
-  <!-- ドライバー対面登録モーダル (事前登録参照機能付き) -->
-  <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-base font-black text-slate-900">ボランティアドライバー対面登録</h3>
-        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
-      </div>
-
-      <!-- 事前登録回答からの選択 -->
-      <div class="space-y-2">
-        <label class="block text-xs font-bold text-slate-700">【事前登録フォーム回答から選択】</label>
-        <select id="preRegSelect" onchange="fillDriverFromPreReg()" class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 outline-none focus:border-blue-600">
-          <option value="">-- 事前登録者を選択して自動入力 --</option>
-        </select>
-      </div>
-
-      <form id="driverRegisterForm" onsubmit="event.preventDefault(); submitDriverRegister();" class="space-y-3.5">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">登録番号</label>
-            <input type="text" id="regDriverId" readonly class="w-full h-10 rounded-xl border border-slate-200 bg-slate-100 px-3 font-mono text-sm font-bold text-slate-700 outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">お名前</label>
-            <input type="text" id="regName" required placeholder="相模 太郎" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-900 outline-none" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">お電話番号</label>
-          <input type="tel" id="regPhone" required placeholder="090-1234-5678" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-xs font-bold text-slate-900 outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ご住所</label>
-          <input type="text" id="regAddress" placeholder="相模原市緑区中野1-2-3" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">備考</label>
-          <textarea id="regNote" rows="2" placeholder="車種など" class="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none"></textarea>
-        </div>
-        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700">キャンセル</button>
-          <button type="submit" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">登録する</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- スクリプト制御 -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
@@ -396,6 +414,7 @@
     let users = [];
     let preRegList = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
+    let currentSubTabOps = 'ops';
     let currentRosterTab = 'drivers';
 
     function refreshLucide() {
@@ -423,8 +442,6 @@
 
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
-      const container = document.getElementById("questListContainer");
-      const empty = document.getElementById("emptyState");
 
       showBlockingLoading(
         isRetry ? 'データを再取得中' : 'データを取得中',
@@ -469,7 +486,7 @@
           } catch (e) {}
 
           updateMetricsUI();
-          renderQuests();
+          renderOpsList();
           renderRosterList();
           renderFinanceSummary();
           showToast("最新データを取得しました");
@@ -495,10 +512,61 @@
       document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount + "件";
     }
 
-    function renderQuests() {
+    // サブタブ切り替え (運行予定 vs 活動ログ)
+    function switchSubTab(type) {
+      currentSubTabOps = type;
+      const btnOps = document.getElementById('subTabOps');
+      const btnLogs = document.getElementById('subTabLogs');
+      if (type === 'ops') {
+        if (btnOps) btnOps.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnLogs) btnLogs.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      } else {
+        if (btnLogs) btnLogs.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnOps) btnOps.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      }
+      renderOpsList();
+    }
+
+    function renderOpsList() {
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
       const search = document.getElementById("searchInput").value.toLowerCase();
+
+      if (currentSubTabOps === 'logs') {
+        let logs = records;
+        if (search) {
+          logs = logs.filter(l => 
+            (l.questId && l.questId.toLowerCase().includes(search)) ||
+            (l.driverName && l.driverName.toLowerCase().includes(search)) ||
+            (l.passengers && l.passengers.toLowerCase().includes(search))
+          );
+        }
+        if (logs.length === 0) {
+          container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">活動記録ログがありません</div>`;
+          empty.classList.add("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+        container.innerHTML = logs.map(l => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
+                <span class="text-xs font-bold text-slate-800">${l.recordDate}</span>
+              </div>
+              <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">${l.tripType}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 text-slate-600">
+              <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName}</strong> (#${l.driverId})</div>
+              <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers}</strong></div>
+              <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance} km</strong></div>
+              <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${(l.fuelFee || 0) + (l.otherExpense || 0)} 円</strong></div>
+            </div>
+          </div>
+        `).join('');
+        refreshLucide();
+        return;
+      }
 
       let filtered = quests;
       if (search) {
@@ -605,15 +673,33 @@
     }
 
     function renderFinanceSummary() {
+      let totalRuns = records.length;
       let totalKm = 0;
       let totalYen = 0;
       records.forEach(r => {
         totalKm += Number(r.roundTripDistance || 0);
         totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
       });
-      document.getElementById('finTotalRuns').textContent = records.length + ' 回';
+      document.getElementById('finTotalRuns').textContent = totalRuns + ' 回';
       document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
       document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+
+      const tbody = document.getElementById('financeTableBody');
+      if (!tbody) return;
+      if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">集計対象の運行実績ログがありません</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = records.map(r => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-3 font-semibold">${r.recordDate}</td>
+          <td class="py-3 px-3 font-mono font-bold">#${r.questId || '----'}</td>
+          <td class="py-3 px-3 font-bold text-slate-900">${r.driverName}</td>
+          <td class="py-3 px-3">${r.passengers}</td>
+          <td class="py-3 px-3 text-right font-mono">${r.roundTripDistance} km</td>
+          <td class="py-3 px-3 text-right font-mono font-bold text-blue-600">${((r.fuelFee || 0) + (r.otherExpense || 0)).toLocaleString()} 円</td>
+        </tr>
+      `).join('');
     }
 
     // タブ切替
@@ -642,14 +728,16 @@
       });
     });
 
-    // ドライバー対面登録関連
+    // ドライバー対面登録関連 (事前登録参照付き)
     function openDriverRegisterModal() {
       const sel = document.getElementById('preRegSelect');
-      sel.innerHTML = '<option value="">-- 事前登録者を選択して自動入力 --</option>';
-      preRegList.forEach((p, idx) => {
-        const tag = p.isRegistered ? " [名簿登録済]" : "";
-        sel.innerHTML += `<option value="${idx}">${p.name} 様 (${p.phone})${tag}</option>`;
-      });
+      if (sel) {
+        sel.innerHTML = '<option value="">-- 事前登録者を選択して自動入力 --</option>';
+        preRegList.forEach((p, idx) => {
+          const tag = p.isRegistered ? " [名簿登録済]" : "";
+          sel.innerHTML += `<option value="${idx}">${p.name} 様 (${p.phone})${tag}</option>`;
+        });
+      }
       document.getElementById('driverRegisterModal').classList.remove('hidden');
       refreshLucide();
     }
@@ -722,7 +810,7 @@
             </div>
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center my-1">
               <span class="text-xs font-bold text-slate-600">実費弁償金 領収金額:</span>
-              <span class="text-xl font-black text-slate-900 font-mono">￥${(r.fuelFee + r.otherExpense).toLocaleString()} -</span>
+              <span class="text-xl font-black text-slate-900 font-mono">￥${((r.fuelFee || 0) + (r.otherExpense || 0)).toLocaleString()} -</span>
             </div>
             <div class="text-[11px] text-slate-500 mt-1">
               但し: ガソリン代実費弁償金として（実走往復距離: ${r.roundTripDistance} km）
@@ -763,7 +851,7 @@
           <td class="py-2 px-2 border border-slate-300">${r.passengers}</td>
           <td class="py-2 px-2 border border-slate-300 text-center">${r.tripType}</td>
           <td class="py-2 px-2 border border-slate-300 text-right font-mono">${r.roundTripDistance} km</td>
-          <td class="py-2 px-2 border border-slate-300 text-right font-mono font-bold text-blue-700">${(r.fuelFee + r.otherExpense).toLocaleString()} 円</td>
+          <td class="py-2 px-2 border border-slate-300 text-right font-mono font-bold text-blue-700">${((r.fuelFee || 0) + (r.otherExpense || 0)).toLocaleString()} 円</td>
         </tr>
       `).join('');
 
