@@ -23,22 +23,14 @@
 
     @media print {
       body * { visibility: hidden !important; }
-      
       #printPreviewModal, #printPreviewModal *, 
       #annualReportModal, #annualReportModal * {
         visibility: visible !important;
       }
-      
-      #printPreviewModal {
+      #printPreviewModal, #annualReportModal {
         position: absolute !important; left: 0 !important; top: 0 !important;
         width: 100% !important; background: white !important; z-index: 999999 !important;
       }
-      
-      #annualReportModal {
-        position: absolute !important; left: 0 !important; top: 0 !important;
-        width: 100% !important; background: white !important; z-index: 999999 !important;
-      }
-
       .print\:hidden { display: none !important; }
       @page { size: A4 portrait; margin: 8mm 10mm; }
     }
@@ -46,8 +38,8 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
-  <!-- 全画面操作ロック用ローディングオーバーレイ -->
-  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
+  <!-- 全画面操作ロック用ローディングオーバーレイ（初期状態でflex表示） -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs" style="display: flex;">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
       <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">統合データを取得中</div>
@@ -161,6 +153,12 @@
         </div>
       </div>
 
+      <!-- スケルトンスクリーン -->
+      <div id="skeletonLoader" class="space-y-3">
+        <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
+        <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
+      </div>
+
       <!-- サブタブ切り替え -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2 overflow-x-auto">
@@ -177,40 +175,18 @@
             type="text"
             id="searchInput"
             placeholder="案件番号、氏名、出発地、行先、担当ドライバーで検索..."
-            oninput="renderOpsList()"
+            oninput="renderQuests()"
             class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
           />
-        </div>
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div class="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
-            <i data-lucide="calendar" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
-            <span class="font-bold">期間指定:</span>
-            <input type="date" id="filterStartDate" onchange="renderOpsList()" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none">
-            <span>〜</span>
-            <input type="date" id="filterEndDate" onchange="renderOpsList()" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none">
-          </div>
-          <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button type="button" onclick="setDateRange('currentMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">今月</button>
-            <button type="button" onclick="setDateRange('nextMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">来月</button>
-            <button type="button" onclick="setDateRange('all')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">全期間</button>
-          </div>
-        </div>
-
-        <!-- ステータスチップスフィルター -->
-        <div id="opsFilterChips" class="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100">
-          <button type="button" onclick="setOpsStatusFilter('all')" class="ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap flex-shrink-0">すべて</button>
-          <button type="button" onclick="setOpsStatusFilter('募集中')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">募集中</button>
-          <button type="button" onclick="setOpsStatusFilter('受注済')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">受注済</button>
-          <button type="button" onclick="setOpsStatusFilter('要対応')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">要対応</button>
-          <button type="button" onclick="setOpsStatusFilter('本日の運行')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">本日の運行</button>
-          <button type="button" onclick="setOpsStatusFilter('実績未報告')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">実績未報告</button>
-          <button type="button" onclick="setOpsStatusFilter('完了・中止')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">完了・中止</button>
         </div>
       </div>
 
       <!-- 運行案件リスト -->
-      <div id="opsListContainer" class="space-y-3">
+      <div id="questListContainer" class="space-y-3">
         <!-- 動的描画 -->
+      </div>
+      <div id="emptyState" class="hidden rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">
+        該当する運行案件はありません
       </div>
     </div>
 
@@ -226,20 +202,6 @@
           <span>新規ドライバー登録</span>
         </button>
       </div>
-
-      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
-        <div class="relative">
-          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
-          <input
-            type="text"
-            id="rosterSearchInput"
-            placeholder="名前、登録番号、電話番号で検索..."
-            oninput="renderRosterList()"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
-          />
-        </div>
-      </div>
-
       <div id="rosterListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- 動的描画 -->
       </div>
@@ -251,7 +213,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h2 class="text-base font-bold text-slate-900">実費弁償集計 ＆ A4受領書・報告書出力</h2>
-            <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷、および市への提出書類作成を行います。</p>
+            <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷を行います。</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
@@ -264,7 +226,6 @@
             </button>
           </div>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
             <div class="text-xs font-bold text-slate-500">期間内総運行回数</div>
@@ -279,188 +240,47 @@
             <div id="finTotalYen" class="mt-1 text-2xl font-black text-blue-600">0 円</div>
           </div>
         </div>
-
-        <div class="overflow-x-auto pt-2">
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="border-b border-slate-200 text-slate-500">
-                <th class="py-2.5 px-3 font-bold">運行日時</th>
-                <th class="py-2.5 px-3 font-bold">案件番号</th>
-                <th class="py-2.5 px-3 font-bold">担当ドライバー</th>
-                <th class="py-2.5 px-3 font-bold">利用者名</th>
-                <th class="py-2.5 px-3 font-bold text-right">往復距離</th>
-                <th class="py-2.5 px-3 font-bold text-right">ガソリン代支給</th>
-              </tr>
-            </thead>
-            <tbody id="financeTableBody" class="divide-y divide-slate-100 text-slate-700">
-              <!-- 動的描画 -->
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
 
   </main>
 
-  <!-- ==================== モーダル群 ==================== -->
-
-  <!-- 1. ドライバー対面登録モーダル -->
-  <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 flex-shrink-0">
-            <i data-lucide="user-plus" class="h-4 w-4 flex-shrink-0"></i>
-          </div>
-          <h3 class="text-base font-black text-slate-900">ボランティアドライバー対面登録</h3>
-        </div>
-        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
-      </div>
-
-      <div class="space-y-2">
-        <label class="block text-xs font-bold text-slate-700">【事前登録フォーム回答から選択】</label>
-        <select id="preRegSelect" onchange="fillDriverFromPreReg()" class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-800 outline-none focus:border-blue-600">
-          <option value="">-- 事前登録者を選択して自動入力 --</option>
-        </select>
-      </div>
-
-      <form id="driverRegisterForm" onsubmit="event.preventDefault(); submitDriverRegister();" class="space-y-3.5">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ドライバー登録番号</label>
-            <input type="text" id="regDriverId" readonly class="w-full h-10 rounded-xl border border-slate-200 bg-slate-100 px-3 font-mono text-sm font-bold text-slate-700 outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">お名前（フルネーム）</label>
-            <input type="text" id="regName" required placeholder="例: 相模 太郎" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-900 outline-none focus:border-blue-600" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">お電話番号</label>
-            <input type="tel" id="regPhone" required placeholder="例: 090-1234-5678" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-xs font-bold text-slate-900 outline-none focus:border-blue-600" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">緊急連絡先</label>
-            <input type="tel" id="regEmergency" placeholder="例: 090-9999-8888（配偶者）" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 outline-none focus:border-blue-600" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ご住所</label>
-          <input type="text" id="regAddress" placeholder="例: 相模原市緑区中野1-2-3" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 outline-none focus:border-blue-600" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">車両情報・可能曜日・備考</label>
-          <textarea id="regNote" rows="2" placeholder="車種、ナンバープレート、稼働可能曜日など" class="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"></textarea>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 flex-wrap">
-          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">キャンセル</button>
-          <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
-            <i data-lucide="check" class="h-4 w-4 flex-shrink-0"></i>
-            <span>正式に登録する</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 2. 案件詳細・マッチング打診モーダル -->
-  <div id="questDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span id="modalQidBadge" class="rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-bold text-blue-800">#1001</span>
-          <h3 id="modalTitle" class="text-base font-black text-slate-900">案件詳細 & マッチング打診</h3>
-        </div>
-        <button type="button" onclick="closeQuestDetailModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
-      </div>
-
-      <div id="modalContentArea" class="space-y-4 text-xs text-slate-700">
-        <!-- 動的インジェクション -->
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. 【正式版仕様】A4受領書 印刷プレビュー用モーダル -->
+  <!-- モーダル各種 -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
-        <div>
-          <h3 class="text-base font-bold text-slate-900">ボランティア実費弁償 受領書印刷プレビュー</h3>
-          <p class="text-xs text-slate-500">※A4用紙1枚につき3名分（または各運行実績）の正式受領書フォーマットが収まります。</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
-            <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i><span>印刷する</span>
-          </button>
-          <button type="button" onclick="document.getElementById('printPreviewModal').classList.add('hidden')" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">閉じる</button>
-        </div>
+        <h3 class="text-base font-bold text-slate-900">受領書印刷プレビュー</h3>
+        <button type="button" onclick="window.print()" class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white">印刷する</button>
+        <button type="button" onclick="document.getElementById('printPreviewModal').classList.add('hidden')" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold">閉じる</button>
       </div>
-      <div id="voucherListArea" class="space-y-6 bg-white p-2">
-        <!-- 正式版チケット形式が動的挿入 -->
-      </div>
+      <div id="voucherListArea" class="space-y-6 bg-white p-2"></div>
     </div>
   </div>
 
-  <!-- 4. 【正式版仕様】市提出用 実績報告書プレビュー用モーダル -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
-        <div>
-          <h3 class="text-base font-bold text-slate-900">事業活動実績報告書プレビュー</h3>
-          <p class="text-xs text-slate-500">※相模原市等への行政提出に対応した正式フォーマットです。</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 shadow-xs flex-shrink-0 whitespace-nowrap">
-            <i data-lucide="printer" class="h-3.5 w-3.5 flex-shrink-0"></i><span>印刷する</span>
-          </button>
-          <button type="button" onclick="document.getElementById('annualReportModal').classList.add('hidden')" class="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">閉じる</button>
-        </div>
+        <h3 class="text-base font-bold text-slate-900">実績報告書プレビュー</h3>
+        <button type="button" onclick="window.print()" class="rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white">印刷する</button>
+        <button type="button" onclick="document.getElementById('annualReportModal').classList.add('hidden')" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold">閉じる</button>
       </div>
-      
-      <!-- 市提出用正式報告書レイアウト本体 -->
-      <div class="bg-white p-6 rounded-xl border border-slate-200 space-y-4 text-slate-900 text-xs">
-        <div class="text-center space-y-1">
-          <div class="text-[11px] font-semibold text-slate-600">様式第1号（関係機関提出用）</div>
-          <h2 class="text-lg font-black tracking-wider">おでかけサポート事業 運行活動実績報告書</h2>
-        </div>
-
-        <div class="flex justify-between items-end border-b border-slate-300 pb-2 pt-2 text-xs">
-          <div>
-            <span class="text-slate-500">報告対象期間:</span> <strong id="reportPeriodText">全期間集計</strong>
-          </div>
-          <div class="text-right space-y-0.5">
-            <div>申請（報告）団体名: <span class="border-b border-slate-400 px-4 font-bold">おでかけサポート事務局</span></div>
-            <div>代表者氏名: <span class="border-b border-slate-400 px-6">        印</span></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 py-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-center font-bold">
-          <div>総運行回数: <span id="repTotalRuns" class="text-blue-700 font-black text-sm">0 回</span></div>
-          <div>総走行距離: <span id="repTotalKm" class="text-blue-700 font-black text-sm">0.0 km</span></div>
-          <div>実費弁償支給総額: <span id="repTotalYen" class="text-blue-700 font-black text-sm">0 円</span></div>
-        </div>
-
-        <table class="w-full text-left text-xs border-collapse border border-slate-300">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 space-y-4 text-xs">
+        <h2 class="text-center font-black text-base">おでかけサポート事業 運行活動実績報告書</h2>
+        <div>総運行回数: <span id="repTotalRuns">0回</span> | 総走行距離: <span id="repTotalKm">0km</span> | 支給総額: <span id="repTotalYen">0円</span></div>
+        <table class="w-full text-left border-collapse border border-slate-300">
           <thead>
-            <tr class="bg-slate-100 text-slate-800 font-bold">
-              <th class="py-2 px-2 border border-slate-300 text-center w-12">No.</th>
-              <th class="py-2 px-2 border border-slate-300">運行日時</th>
-              <th class="py-2 px-2 border border-slate-300 text-center">案件ID</th>
-              <th class="py-2 px-2 border border-slate-300">担当ドライバー名</th>
-              <th class="py-2 px-2 border border-slate-300">利用者名（同乗者）</th>
-              <th class="py-2 px-2 border border-slate-300 text-center">運行区分</th>
-              <th class="py-2 px-2 border border-slate-300 text-right">往復距離</th>
-              <th class="py-2 px-2 border border-slate-300 text-right">支給実費</th>
+            <tr class="bg-slate-100 font-bold">
+              <th class="border border-slate-300 p-2">No.</th>
+              <th class="border border-slate-300 p-2">運行日時</th>
+              <th class="border border-slate-300 p-2">案件ID</th>
+              <th class="border border-slate-300 p-2">ドライバー</th>
+              <th class="border border-slate-300 p-2">利用者</th>
+              <th class="border border-slate-300 p-2">区分</th>
+              <th class="border border-slate-300 p-2 text-right">距離</th>
+              <th class="border border-slate-300 p-2 text-right">実費</th>
             </tr>
           </thead>
-          <tbody id="annualReportTableBody" class="divide-y divide-slate-200">
-            <!-- 動的挿入 -->
-          </tbody>
+          <tbody id="annualReportTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -470,27 +290,127 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
-    let dashboardData = { quests: [], records: [], drivers: [], users: [], preRegs: [] };
-    let currentSubTabOps = 'ops';
-    let currentOpsStatusFilter = 'all';
-    let currentRosterTab = 'drivers';
+    let quests = [];
+    let records = [];
+    let drivers = [];
+    let users = [];
+    let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
 
     function refreshLucide() {
       if (window.lucide) lucide.createIcons();
     }
 
-    function showBlocking(title, desc) {
-      document.getElementById('blockingTitle').textContent = title;
-      document.getElementById('blockingDesc').textContent = desc;
-      document.getElementById('blockingOverlay').style.display = 'flex';
+    function showBlockingLoading(title, desc) {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        document.getElementById('blockingTitle').textContent = title;
+        document.getElementById('blockingDesc').innerHTML = desc;
+        overlay.style.display = 'flex';
+        refreshLucide();
+      }
+    }
+
+    function hideBlockingLoading() {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+
+    function showToast(msg) {
+      console.log("Toast:", msg);
+    }
+
+    // 正しい関数名 fetchDashboardData で統一
+    async function fetchDashboardData(isRetry = false) {
+      const skeleton = document.getElementById("skeletonLoader");
+      const container = document.getElementById("questListContainer");
+      const empty = document.getElementById("emptyState");
+
+      showBlockingLoading(
+        isRetry ? 'データを再取得中' : 'データを取得中',
+        isRetry ? '接続を再試行しています<br>少々お待ちください' : '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください'
+      );
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      try {
+        const cacheBuster = `&_t=${Date.now()}`;
+        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+
+        if (data.success) {
+          quests = data.quests || [];
+          records = data.records || [];
+          drivers = data.drivers || [];
+          users = data.users || [];
+
+          if (data.metrics) {
+            metrics = {
+              actionRequiredCount: data.metrics.actionRequiredCount || 0,
+              unreportedCount: data.metrics.unreportedCount || 0,
+              todayRunningCount: data.metrics.todayRunningCount || 0,
+              openCount: data.metrics.openCount || 0
+            };
+          }
+
+          updateMetricsUI();
+          renderQuests();
+          renderDrivers();
+          renderUsers();
+          showToast("最新データを取得しました");
+        } else {
+          showToast("取得エラー: " + (data.message || ""));
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (!isRetry) {
+          return await fetchDashboardData(true);
+        }
+        showToast("通信エラー: " + err.message);
+      } finally {
+        hideBlockingLoading();
+        if (skeleton) skeleton.classList.add("hidden");
+      }
+    }
+
+    function updateMetricsUI() {
+      document.getElementById("metricOpenCount").textContent = metrics.openCount + "件";
+      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount + "件";
+      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount + "件";
+      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount + "件";
+    }
+
+    function renderQuests() {
+      const container = document.getElementById("questListContainer");
+      const empty = document.getElementById("emptyState");
+      if (quests.length === 0) {
+        container.innerHTML = "";
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      container.innerHTML = quests.map(q => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+          <div class="flex justify-between font-bold text-sm">
+            <span>#${q.id} [${q.status}]</span>
+            <span>${q.targetDate} ${q.targetTime}</span>
+          </div>
+          <div class="text-xs text-slate-600">
+            <div>📍 ${q.pickup} ➔ ${q.dropoff}</div>
+            <div>👤 利用者: ${q.userName} 様 | 担当: ${q.driverName || '未定'}</div>
+          </div>
+        </div>
+      `).join('');
       refreshLucide();
     }
 
-    function hideBlocking() {
-      document.getElementById('blockingOverlay').style.display = 'none';
-    }
+    function renderDrivers() {}
+    function renderUsers() {}
 
-    // メインタブ切り替え
+    // タブ切替
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.main-tab-btn').forEach(b => {
@@ -505,118 +425,73 @@
 
         if (tab === 'ops') document.getElementById('tabContentOps').classList.remove('hidden');
         if (tab === 'roster') document.getElementById('tabContentRoster').classList.remove('hidden');
-        if (tab === 'finance') {
-          document.getElementById('tabContentFinance').classList.remove('hidden');
-          renderFinanceSummary();
-        }
+        if (tab === 'finance') document.getElementById('tabContentFinance').classList.remove('hidden');
         refreshLucide();
       });
     });
 
-    // 初期データ読み込み（安全フェイルセーフ付き）
-    async function loadAdminData() {
-      showBlocking('データを取得中', '最新の運行状況・名簿マスタを同期しています...');
-      
-      // 万一通信やスクリプトで例外が起きても、5秒後に強制的にローディングを消す安全装置
-      const safetyTimer = setTimeout(() => {
-        hideBlocking();
-        console.warn('【強制解除】通信がタイムアウトしました。');
-      }, 5000);
+    function switchSubTab(type) {}
+    function switchRosterTab(tab) {}
+    function openDriverRegisterModal() {}
 
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData&_t=${Date.now()}`);
-        const data = await res.json();
-        
-        clearTimeout(safetyTimer);
-        hideBlocking();
-
-        if (data.success) {
-          dashboardData.quests = data.quests || [];
-          dashboardData.records = data.records || [];
-          dashboardData.drivers = data.drivers || [];
-          dashboardData.users = data.users || [];
-
-          try {
-            const preRes = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`);
-            const preData = await preRes.json();
-            if (preData.success) {
-              dashboardData.preRegs = preData.preRegistrations || [];
-              if (preData.nextDriverId) {
-                document.getElementById('regDriverId').value = preData.nextDriverId;
-              }
-            }
-          } catch (e) {}
-
-          updateMetrics();
-          renderOpsList();
-          renderRosterList();
-        } else {
-          alert('データ取得エラー: ' + (data.message || '不明なエラー'));
-        }
-      } catch (e) {
-        clearTimeout(safetyTimer);
-        hideBlocking();
-        console.error('通信エラー:', e);
-        alert('通信に失敗しました: ' + e.message + '\n\n※GASのデプロイURLや公開設定をご確認ください。');
+    function printVouchers() {
+      if (records.length === 0) {
+        alert('印刷対象の活動記録がありません。');
+        return;
       }
-    }
-          updateMetrics();
-          renderOpsList();
-          renderRosterList();
-        } else {
-          alert('データ取得エラー: ' + (data.message || '不明なエラー'));
-        }
-      } catch (e) {
-        clearTimeout(timeoutId);
-        hideBlocking();
-        console.error('通信エラー詳細:', e);
-        alert('通信エラーが発生しました: ' + e.message + '\n\n※GAS_API_URLやデプロイ設定をご確認ください。');
-      }
-    }
-
-    function updateMetrics() {
-      const quests = dashboardData.quests;
-      const openCount = quests.filter(q => q.status === '募集中').length;
-      const actionReqCount = quests.filter(q => q.status === '募集中' && (q.isUrgent || q.isWarned)).length;
-      
-      const todayStr = new Date().toISOString().split('T')[0];
-      const todayCount = quests.filter(q => q.targetDate === todayStr && (q.status === '受注済' || q.status === '運行完了')).length;
-      const unreportedCount = quests.filter(q => q.isUnreported).length;
-
-      document.getElementById('metricOpenCount').textContent = openCount + '件';
-      document.getElementById('metricActionRequiredCount').textContent = actionReqCount + '件';
-      document.getElementById('metricTodayCount').textContent = todayCount + '件';
-      document.getElementById('metricUnreportedCount').textContent = unreportedCount + '件';
+      const listArea = document.getElementById('voucherListArea');
+      listArea.innerHTML = records.map(r => `
+        <div class="border-2 border-slate-800 p-5 rounded-2xl mb-6 bg-white" style="page-break-inside: avoid; height: 85mm; box-sizing: border-box;">
+          <div class="flex justify-between font-bold text-xs mb-2">
+            <span>実費弁償受領書</span>
+            <span>案件ID: #${r.questId}</span>
+          </div>
+          <div class="text-xs space-y-1 mb-4">
+            <div>日時: ${r.recordDate}</div>
+            <div>ドライバー: ${r.driverName} 様</div>
+            <div>金額: <strong class="text-base font-black">￥${(r.fuelFee + r.otherExpense).toLocaleString()}-</strong></div>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('printPreviewModal').classList.remove('hidden');
+      refreshLucide();
     }
 
-    // サブタブ切り替え
-    function switchSubTab(type) {
-      currentSubTabOps = type;
-      if (type === 'ops') {
-        document.getElementById('subTabOps').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
-        document.getElementById('subTabLogs').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
-      } else {
-        document.getElementById('subTabLogs').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
-        document.getElementById('subTabOps').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
-      }
-      renderOpsList();
-    }
-
-    function setOpsStatusFilter(status) {
-      currentOpsStatusFilter = status;
-      document.querySelectorAll('.ops-chip').forEach(btn => {
-        btn.className = "ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0";
+    function printAnnualReport() {
+      let totalKm = 0;
+      let totalYen = 0;
+      records.forEach(r => {
+        totalKm += Number(r.roundTripDistance || 0);
+        totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
       });
-      event.target.className = "ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap flex-shrink-0";
-      renderOpsList();
+      document.getElementById('repTotalRuns').textContent = records.length + ' 回';
+      document.getElementById('repTotalKm').textContent = totalKm.toFixed(1) + ' km';
+      document.getElementById('repTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+
+      const tbody = document.getElementById('annualReportTableBody');
+      tbody.innerHTML = records.map((r, i) => `
+        <tr>
+          <td class="border border-slate-300 p-2 text-center">${i + 1}</td>
+          <td class="border border-slate-300 p-2">${r.recordDate}</td>
+          <td class="border border-slate-300 p-2 text-center">#${r.questId}</td>
+          <td class="border border-slate-300 p-2">${r.driverName}</td>
+          <td class="border border-slate-300 p-2">${r.passengers}</td>
+          <td class="border border-slate-300 p-2 text-center">${r.tripType}</td>
+          <td class="border border-slate-300 p-2 text-right">${r.roundTripDistance} km</td>
+          <td class="border border-slate-300 p-2 text-right">${(r.fuelFee + r.otherExpense).toLocaleString()} 円</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('annualReportModal').classList.remove('hidden');
+      refreshLucide();
     }
 
-    function setDateRange(range) {
-      const now = new Date();
-      let start = '', end = '';
-      if (range === 'currentMonth') {
-        start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-      } else if (range === 'nextMonth') {
-        start = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().split('T')[0];
-        end = new Date(now.getFullYear(), now.getMonth
+    document.getElementById('btnRefresh').addEventListener('click', () => fetchDashboardData(false));
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshLucide();
+      fetchDashboardData(false);
+    });
+  </script>
+</body>
+</html>
