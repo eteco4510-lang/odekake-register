@@ -513,18 +513,30 @@
       });
     });
 
-    // 初期データ読み込み
+    // 初期データ読み込み（安全フェイルセーフ付き）
     async function loadAdminData() {
       showBlocking('データを取得中', '最新の運行状況・名簿マスタを同期しています...');
+      
+      // 万一通信が固まった場合でも6秒で強制解除するフェイルセーフタイマー
+      const timeoutId = setTimeout(() => {
+        hideBlocking();
+        console.warn('【警告】データ取得がタイムアウトしました。GASのデプロイURLまたは通信状態を確認してください。');
+      }, 6000);
+
       try {
         const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData&_t=${Date.now()}`);
         const data = await res.json();
+        
+        clearTimeout(timeoutId); // 正常に返ってきたらタイマーをクリア
+        hideBlocking();
+
         if (data.success) {
           dashboardData.quests = data.quests || [];
           dashboardData.records = data.records || [];
           dashboardData.drivers = data.drivers || [];
           dashboardData.users = data.users || [];
 
+          // 事前登録データの取得
           try {
             const preRes = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`);
             const preData = await preRes.json();
@@ -534,18 +546,21 @@
                 document.getElementById('regDriverId').value = preData.nextDriverId;
               }
             }
-          } catch (e) {}
+          } catch (e) {
+            console.warn('事前登録データの取得に失敗しました（無視可能）', e);
+          }
 
           updateMetrics();
           renderOpsList();
           renderRosterList();
         } else {
-          alert('データ取得に失敗しました: ' + (data.message || ''));
+          alert('データ取得エラー: ' + (data.message || '不明なエラー'));
         }
       } catch (e) {
-        alert('通信エラーが発生しました: ' + e.message);
-      } finally {
+        clearTimeout(timeoutId);
         hideBlocking();
+        console.error('通信エラー詳細:', e);
+        alert('通信エラーが発生しました: ' + e.message + '\n\n※GAS_API_URLやデプロイ設定をご確認ください。');
       }
     }
 
