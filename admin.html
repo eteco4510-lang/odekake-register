@@ -19,41 +19,28 @@
     }
     .lucide { stroke-width: 2; }
     input[type="date"] { font-family: inherit; }
-    button, select, .chip-btn, .d-chip, .u-chip { white-space: nowrap !important; }
+    /* ボタンやチップス、選択肢の勝手な折り返しを全面禁止して綺麗に保つ */
+    button, select, .chip-btn, .d-chip, .u-chip, span, a { white-space: nowrap !important; }
+
     @media print {
       body * { visibility: hidden !important; }
-      /* 1. 受領書 印刷モード */
-      body.print-voucher #printPreviewModal,
-      body.print-voucher #printContainer,
-      body.print-voucher #printContainer * { visibility: visible !important; }
-      body.print-voucher #printContainer {
+      
+      #printPreviewModal, #printPreviewModal *, 
+      #annualReportModal, #annualReportModal * {
+        visibility: visible !important;
+      }
+      
+      #printPreviewModal {
         position: absolute !important; left: 0 !important; top: 0 !important;
-        width: 100% !important; margin: 0 !important; padding: 0 !important;
-        background: white !important; color: black !important;
-        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        width: 100% !important; background: white !important; z-index: 999999 !important;
       }
-      body.print-voucher .voucher-ticket {
-        height: 86mm !important; max-height: 87mm !important;
-        box-sizing: border-box !important; page-break-inside: avoid !important; break-inside: avoid !important;
-      }
-      body.print-voucher .voucher-ticket-wrap:nth-child(3n) {
-        page-break-after: always !important; break-after: page !important;
-      }
-      body.print-voucher .denom-summary-sheet {
-        page-break-before: always !important; break-before: page !important;
-        page-break-inside: avoid !important; break-inside: avoid !important;
-      }
-      /* 2. 市提出用実績報告書 印刷モード */
-      body.print-report #annualReportModal,
-      body.print-report #annualReportContainer,
-      body.print-report #annualReportContainer * { visibility: visible !important; }
-      body.print-report #annualReportContainer {
+      
+      #annualReportModal {
         position: absolute !important; left: 0 !important; top: 0 !important;
-        width: 100% !important; margin: 0 !important; padding: 0 !important;
-        background: white !important; color: black !important;
-        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        width: 100% !important; background: white !important; z-index: 999999 !important;
       }
-      body.print-report table { page-break-inside: avoid !important; }
+
+      .print\:hidden { display: none !important; }
       @page { size: A4 portrait; margin: 8mm 10mm; }
     }
   </style>
@@ -64,7 +51,7 @@
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
-      <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">データを取得中</div>
+      <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">統合データを取得中</div>
       <div class="mt-1 text-xs text-slate-500" id="blockingDesc">最新の運行・名簿情報を読み込んでいます<br>少々お待ちください</div>
     </div>
   </div>
@@ -87,17 +74,17 @@
         <button
           type="button"
           id="btnOpenDriverRegister"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition hover:bg-emerald-100 active:scale-95"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-xs transition hover:bg-emerald-100 active:scale-95 flex-shrink-0 whitespace-nowrap"
         >
-          <i data-lucide="user-plus" class="h-3.5 w-3.5 text-emerald-600"></i>
+          <i data-lucide="user-plus" class="h-3.5 w-3.5 text-emerald-600 flex-shrink-0"></i>
           <span>ドライバー登録</span>
         </button>
         <button
           type="button"
           id="btnRefresh"
-          class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 disabled:opacity-50 flex-shrink-0 whitespace-nowrap"
         >
-          <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+          <i data-lucide="refresh-cw" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span class="hidden sm:inline">最新情報に更新</span>
         </button>
       </div>
@@ -111,7 +98,7 @@
           class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0"
           data-tab="ops"
         >
-          <i data-lucide="calendar-check" class="h-3.5 w-3.5"></i>
+          <i data-lucide="calendar-check" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>運行・活動管理</span>
         </button>
         <button
@@ -119,7 +106,7 @@
           class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0"
           data-tab="roster"
         >
-          <i data-lucide="users" class="h-3.5 w-3.5"></i>
+          <i data-lucide="users" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>名簿マスタ</span>
         </button>
         <button
@@ -127,7 +114,7 @@
           class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0"
           data-tab="finance"
         >
-          <i data-lucide="receipt" class="h-3.5 w-3.5"></i>
+          <i data-lucide="receipt" class="h-3.5 w-3.5 flex-shrink-0"></i>
           <span>実費精算・受領書</span>
         </button>
       </div>
@@ -144,7 +131,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">募集中</span>
-            <i data-lucide="users" class="h-4 w-4 text-blue-600"></i>
+            <i data-lucide="users" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
           </div>
           <div id="metricOpenCount" class="mt-2 text-2xl font-black text-slate-900">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">掲示板掲載中の全案件</div>
@@ -152,7 +139,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">要対応</span>
-            <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-500"></i>
+            <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-500 flex-shrink-0"></i>
           </div>
           <div id="metricActionRequiredCount" class="mt-2 text-2xl font-black text-amber-600">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">至急打診・警告中案件</div>
@@ -160,7 +147,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">本日の運行</span>
-            <i data-lucide="car" class="h-4 w-4 text-emerald-600"></i>
+            <i data-lucide="car" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
           </div>
           <div id="metricTodayCount" class="mt-2 text-2xl font-black text-slate-900">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">本日出動・運行完了</div>
@@ -168,7 +155,7 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">実績未報告</span>
-            <i data-lucide="clock" class="h-4 w-4 text-rose-500"></i>
+            <i data-lucide="clock" class="h-4 w-4 text-rose-500 flex-shrink-0"></i>
           </div>
           <div id="metricUnreportedCount" class="mt-2 text-2xl font-black text-rose-600">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">運行翌日以降の未報告</div>
@@ -177,16 +164,16 @@
 
       <!-- サブタブ切り替え (運行予定 vs 活動ログ) -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div class="flex items-center gap-2">
-          <button type="button" id="subTabOps" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs" onclick="switchSubTab('ops')">運行予定・アラート</button>
-          <button type="button" id="subTabLogs" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" onclick="switchSubTab('logs')">活動記録ログ</button>
+        <div class="flex items-center gap-2 overflow-x-auto">
+          <button type="button" id="subTabOps" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('ops')">運行予定・アラート</button>
+          <button type="button" id="subTabLogs" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('logs')">活動記録ログ</button>
         </div>
       </div>
 
       <!-- 検索・フィルターバー -->
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
         <div class="relative">
-          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
           <input
             type="text"
             id="searchInput"
@@ -196,29 +183,29 @@
           />
         </div>
         <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div class="flex items-center gap-2 text-xs text-slate-600">
-            <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+          <div class="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
+            <i data-lucide="calendar" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
             <span class="font-bold">期間指定:</span>
             <input type="date" id="filterStartDate" onchange="renderOpsList()" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none">
             <span>〜</span>
             <input type="date" id="filterEndDate" onchange="renderOpsList()" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none">
           </div>
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="setDateRange('currentMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100">今月</button>
-            <button type="button" onclick="setDateRange('nextMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100">来月</button>
-            <button type="button" onclick="setDateRange('all')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100">全期間</button>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button type="button" onclick="setDateRange('currentMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">今月</button>
+            <button type="button" onclick="setDateRange('nextMonth')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">来月</button>
+            <button type="button" onclick="setDateRange('all')" class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">全期間</button>
           </div>
         </div>
 
         <!-- ステータスチップスフィルター -->
         <div id="opsFilterChips" class="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100">
-          <button type="button" onclick="setOpsStatusFilter('all')" class="ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap">すべて</button>
-          <button type="button" onclick="setOpsStatusFilter('募集中')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">募集中</button>
-          <button type="button" onclick="setOpsStatusFilter('受注済')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">受注済</button>
-          <button type="button" onclick="setOpsStatusFilter('要対応')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">要対応</button>
-          <button type="button" onclick="setOpsStatusFilter('本日の運行')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">本日の運行</button>
-          <button type="button" onclick="setOpsStatusFilter('実績未報告')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">実績未報告</button>
-          <button type="button" onclick="setOpsStatusFilter('完了・中止')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap">完了・中止</button>
+          <button type="button" onclick="setOpsStatusFilter('all')" class="ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap flex-shrink-0">すべて</button>
+          <button type="button" onclick="setOpsStatusFilter('募集中')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">募集中</button>
+          <button type="button" onclick="setOpsStatusFilter('受注済')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">受注済</button>
+          <button type="button" onclick="setOpsStatusFilter('要対応')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">要対応</button>
+          <button type="button" onclick="setOpsStatusFilter('本日の運行')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">本日の運行</button>
+          <button type="button" onclick="setOpsStatusFilter('実績未報告')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">実績未報告</button>
+          <button type="button" onclick="setOpsStatusFilter('完了・中止')" class="ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0">完了・中止</button>
         </div>
       </div>
 
@@ -231,13 +218,13 @@
     <!-- ==================== タブ2: 名簿マスタ ==================== -->
     <div id="tabContentRoster" class="space-y-6 hidden">
       <!-- 名簿サブタブ -->
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div class="flex items-center gap-2">
-          <button type="button" id="subTabDrivers" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs" onclick="switchRosterTab('drivers')">ドライバー名簿</button>
-          <button type="button" id="subTabUsers" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" onclick="switchRosterTab('users')">利用者名簿</button>
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2 overflow-x-auto">
+          <button type="button" id="subTabDrivers" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('drivers')">ドライバー名簿</button>
+          <button type="button" id="subTabUsers" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('users')">利用者名簿</button>
         </div>
-        <button type="button" onclick="openDriverRegisterModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs">
-          <i data-lucide="user-plus" class="h-4 w-4"></i>
+        <button type="button" onclick="openDriverRegisterModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
+          <i data-lucide="user-plus" class="h-4 w-4 flex-shrink-0"></i>
           <span>新規ドライバー登録</span>
         </button>
       </div>
@@ -245,7 +232,7 @@
       <!-- 名簿検索バー -->
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
         <div class="relative">
-          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
           <input
             type="text"
             id="rosterSearchInput"
@@ -270,13 +257,13 @@
             <h2 class="text-base font-bold text-slate-900">実費弁償集計 ＆ A4受領書・報告書出力</h2>
             <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷、および市への提出書類作成を行います。</p>
           </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs">
-              <i data-lucide="printer" class="h-4 w-4"></i>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
+              <i data-lucide="printer" class="h-4 w-4 flex-shrink-0"></i>
               <span>A4受領書を一括印刷</span>
             </button>
-            <button type="button" onclick="printAnnualReport()" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs">
-              <i data-lucide="file-spreadsheet" class="h-4 w-4 text-emerald-600"></i>
+            <button type="button" onclick="printAnnualReport()" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs flex-shrink-0 whitespace-nowrap">
+              <i data-lucide="file-spreadsheet" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
               <span>市提出用実績報告書</span>
             </button>
           </div>
@@ -327,12 +314,12 @@
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
-            <i data-lucide="user-plus" class="h-4 w-4"></i>
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 flex-shrink-0">
+            <i data-lucide="user-plus" class="h-4 w-4 flex-shrink-0"></i>
           </div>
           <h3 class="text-base font-black text-slate-900">ボランティアドライバー対面登録</h3>
         </div>
-        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="h-5 w-5"></i></button>
+        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
       </div>
 
       <!-- 事前登録回答からの選択 -->
@@ -376,10 +363,10 @@
           <textarea id="regNote" rows="2" placeholder="車種、ナンバープレート、稼働可能曜日など" class="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none focus:border-blue-600"></textarea>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">キャンセル</button>
-          <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs">
-            <i data-lucide="check" class="h-4 w-4"></i>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 flex-wrap">
+          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">キャンセル</button>
+          <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
+            <i data-lucide="check" class="h-4 w-4 flex-shrink-0"></i>
             <span>正式に登録する</span>
           </button>
         </div>
@@ -395,7 +382,7 @@
           <span id="modalQidBadge" class="rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-bold text-blue-800">#1001</span>
           <h3 id="modalTitle" class="text-base font-black text-slate-900">案件詳細 & マッチング打診</h3>
         </div>
-        <button type="button" onclick="closeQuestDetailModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="h-5 w-5"></i></button>
+        <button type="button" onclick="closeQuestDetailModal()" class="text-slate-400 hover:text-slate-700 flex-shrink-0"><i data-lucide="x" class="h-5 w-5"></i></button>
       </div>
 
       <div id="modalContentArea" class="space-y-4 text-xs text-slate-700">
@@ -404,10 +391,57 @@
     </div>
   </div>
 
-  <!-- 印刷用コンテナ (受領書用) -->
-  <div id="printContainer" class="hidden"></div>
-  <!-- 印刷用コンテナ (市提出用実績報告書用) -->
-  <div id="annualReportContainer" class="hidden"></div>
+  <!-- 3. A4受領書 印刷プレビュー用モーダル -->
+  <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden">
+        <h3 class="text-base font-black text-slate-900">A4受領書 印刷プレビュー</h3>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.print()" class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
+            <i data-lucide="printer" class="inline h-3.5 w-3.5 mr-1"></i>印刷を実行
+          </button>
+          <button type="button" onclick="document.getElementById('printPreviewModal').classList.add('hidden')" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">閉じる</button>
+        </div>
+      </div>
+      <div id="voucherListArea" class="space-y-4">
+        <!-- 印刷用チケット動的挿入 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 市提出用実績報告書 印刷プレビュー用モーダル -->
+  <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden">
+        <h3 class="text-base font-black text-slate-900">市提出用 実績報告書 プレビュー</h3>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.print()" class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
+            <i data-lucide="printer" class="inline h-3.5 w-3.5 mr-1"></i>印刷を実行
+          </button>
+          <button type="button" onclick="document.getElementById('annualReportModal').classList.add('hidden')" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex-shrink-0 whitespace-nowrap">閉じる</button>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <h2 class="text-center font-bold text-sm sm:text-base">おでかけサポート事業 運行実績報告書</h2>
+        <table class="w-full text-left text-xs border-collapse border border-slate-300">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700">
+              <th class="py-2 px-2 border border-slate-300">運行日時</th>
+              <th class="py-2 px-2 border border-slate-300 text-center">案件ID</th>
+              <th class="py-2 px-2 border border-slate-300">ドライバー名</th>
+              <th class="py-2 px-2 border border-slate-300">利用者名</th>
+              <th class="py-2 px-2 border border-slate-300 text-center">運行区分</th>
+              <th class="py-2 px-2 border border-slate-300 text-right">走行距離</th>
+              <th class="py-2 px-2 border border-slate-300 text-right">支給実費</th>
+            </tr>
+          </thead>
+          <tbody id="annualReportTableBody" class="divide-y divide-slate-200">
+            <!-- 動的挿入 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- スクリプト制御 -->
   <script>
@@ -495,8 +529,6 @@
 
     function updateMetrics() {
       const quests = dashboardData.quests;
-      const records = dashboardData.records;
-
       const openCount = quests.filter(q => q.status === '募集中').length;
       const actionReqCount = quests.filter(q => q.status === '募集中' && (q.isUrgent || q.isWarned)).length;
       
@@ -514,11 +546,11 @@
     function switchSubTab(type) {
       currentSubTabOps = type;
       if (type === 'ops') {
-        document.getElementById('subTabOps').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs";
-        document.getElementById('subTabLogs').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100";
+        document.getElementById('subTabOps').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        document.getElementById('subTabLogs').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
       } else {
-        document.getElementById('subTabLogs').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs";
-        document.getElementById('subTabOps').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100";
+        document.getElementById('subTabLogs').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        document.getElementById('subTabOps').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
       }
       renderOpsList();
     }
@@ -526,9 +558,9 @@
     function setOpsStatusFilter(status) {
       currentOpsStatusFilter = status;
       document.querySelectorAll('.ops-chip').forEach(btn => {
-        btn.className = "ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap";
+        btn.className = "ops-chip rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 whitespace-nowrap flex-shrink-0";
       });
-      event.target.className = "ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap";
+      event.target.className = "ops-chip rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white whitespace-nowrap flex-shrink-0";
       renderOpsList();
     }
 
@@ -558,7 +590,6 @@
       const endDate = document.getElementById('filterEndDate').value;
 
       if (currentSubTabOps === 'logs') {
-        // 活動記録ログ表示
         let logs = dashboardData.records;
         if (search) {
           logs = logs.filter(l => 
@@ -592,10 +623,7 @@
         return;
       }
 
-      // 運行予定・アラート表示
       let quests = dashboardData.quests;
-
-      // 検索フィルター
       if (search) {
         quests = quests.filter(q => 
           q.id.toLowerCase().includes(search) ||
@@ -606,11 +634,9 @@
         );
       }
 
-      // 期間フィルター
       if (startDate) quests = quests.filter(q => q.targetDate >= startDate);
       if (endDate) quests = quests.filter(q => q.targetDate <= endDate);
 
-      // ステータスチップフィルター
       const todayStr = new Date().toISOString().split('T')[0];
       if (currentOpsStatusFilter === '募集中') quests = quests.filter(q => q.status === '募集中');
       else if (currentOpsStatusFilter === '受注済') quests = quests.filter(q => q.status === '受注済');
@@ -632,19 +658,19 @@
         else badgeHtml = `<span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">${q.status}</span>`;
 
         let alertHtml = '';
-        if (q.isUrgent) alertHtml += `<span class="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-100 flex items-center gap-1"><i data-lucide="alert-circle" class="h-3 w-3"></i>至急打診中</span>`;
-        if (q.isUnreported) alertHtml += `<span class="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-100 flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i>実績未報告</span>`;
+        if (q.isUrgent) alertHtml += `<span class="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-100 flex items-center gap-1"><i data-lucide="alert-circle" class="h-3 w-3 flex-shrink-0"></i>至急打診中</span>`;
+        if (q.isUnreported) alertHtml += `<span class="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-100 flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3 flex-shrink-0"></i>実績未報告</span>`;
 
         return `
           <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs space-y-3 transition hover:border-slate-300">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-2.5">
+              <div class="flex items-center gap-2.5 flex-wrap">
                 <span class="font-mono text-sm font-black text-slate-900">#${q.id}</span>
                 ${badgeHtml}
                 ${alertHtml}
               </div>
               <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
-                <i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400"></i>
+                <i data-lucide="calendar" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
                 <span>${q.targetDate} (${q.targetTime || '時刻未定'})</span>
               </div>
             </div>
@@ -666,14 +692,14 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-              <button type="button" onclick="openLineMessageModal('${q.id}')" class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100">
-                <i data-lucide="message-circle" class="h-3.5 w-3.5 text-emerald-600"></i>
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 flex-wrap">
+              <button type="button" onclick="openLineMessageModal('${q.id}')" class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap">
+                <i data-lucide="message-circle" class="h-3.5 w-3.5 text-emerald-600 flex-shrink-0"></i>
                 <span>LINE打診文</span>
               </button>
-              <button type="button" onclick="openQuestDetail('${q.id}')" class="inline-flex items-center gap-1 rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-slate-800">
+              <button type="button" onclick="openQuestDetail('${q.id}')" class="inline-flex items-center gap-1 rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-slate-800 flex-shrink-0 whitespace-nowrap">
                 <span>詳細・マッチング</span>
-                <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                <i data-lucide="chevron-right" class="h-3.5 w-3.5 flex-shrink-0"></i>
               </button>
             </div>
           </div>
@@ -686,11 +712,11 @@
     function switchRosterTab(tab) {
       currentRosterTab = tab;
       if (tab === 'drivers') {
-        document.getElementById('subTabDrivers').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs";
-        document.getElementById('subTabUsers').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100";
+        document.getElementById('subTabDrivers').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        document.getElementById('subTabUsers').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
       } else {
-        document.getElementById('subTabUsers').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs";
-        document.getElementById('subTabDrivers').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100";
+        document.getElementById('subTabUsers').className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        document.getElementById('subTabDrivers').className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
       }
       renderRosterList();
     }
@@ -790,7 +816,6 @@
 
     // ドライバー対面登録モーダル
     function openDriverRegisterModal() {
-      // 事前登録セレクトボックスの構築
       const sel = document.getElementById('preRegSelect');
       sel.innerHTML = '<option value="">-- 事前登録者を選択して自動入力 --</option>';
       dashboardData.preRegs.forEach((p, idx) => {
@@ -856,7 +881,6 @@
       document.getElementById('modalQidBadge').textContent = '#' + q.id;
       const area = document.getElementById('modalContentArea');
 
-      // 最寄りドライバー候補の選定
       let driverOpts = dashboardData.drivers.map(d => `<option value="${d.id}">${d.name} (${d.id}) - ${d.address || '住所未登録'}</option>`).join('');
 
       area.innerHTML = `
@@ -871,12 +895,12 @@
 
         <div class="space-y-2 pt-2">
           <label class="block font-bold text-slate-800">担当ドライバーの割り当て・変更</label>
-          <div class="flex gap-2">
-            <select id="modalAssignDriverSelect" class="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-800 outline-none focus:border-blue-600">
+          <div class="flex gap-2 flex-wrap">
+            <select id="modalAssignDriverSelect" class="w-full sm:w-auto flex-1 h-11 rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-800 outline-none focus:border-blue-600">
               <option value="">-- ドライバーを選択 --</option>
               ${driverOpts}
             </select>
-            <button type="button" onclick="assignDriver('${q.id}')" class="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700">割当決定</button>
+            <button type="button" onclick="assignDriver('${q.id}')" class="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 flex-shrink-0 whitespace-nowrap">割当決定</button>
           </div>
         </div>
       `;
@@ -931,73 +955,58 @@
         alert('印刷対象の活動記録がありません。');
         return;
       }
-      const container = document.getElementById('printContainer');
-      container.innerHTML = `
-        <div style="font-family: sans-serif; padding: 10px;">
-          <h2 style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 20px;">【おでかけサポート】実費弁償金受領書</h2>
-          ${records.map((r, i) => `
-            <div class="voucher-ticket" style="border: 1px dashed #999; padding: 15px; margin-bottom: 15px; height: 80mm; box-sizing: border-box;">
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
-                <span>運行日時: ${r.recordDate}</span>
-                <span>案件 #${r.questId}</span>
-              </div>
-              <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">
-                領収金額: ￥${(r.fuelFee + r.otherExpense).toLocaleString()}-
-              </div>
-              <div style="font-size: 12px; margin-bottom: 12px;">
-                但し: ガソリン代実費弁償金として (${r.roundTripDistance} km)
-              </div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 20px;">
-                <span>受領者: ${r.driverName} 様</span>
-                <span>事務局確認印: [     ]</span>
-              </div>
-            </div>
-          `).join('')}
+      
+      const listArea = document.getElementById('voucherListArea');
+      listArea.innerHTML = records.map((r, i) => `
+        <div class="voucher-ticket border border-slate-300 p-4 rounded-xl mb-4 bg-white" style="page-break-inside: avoid; height: 80mm; box-sizing: border-box;">
+          <div class="flex justify-between text-xs text-slate-500 mb-2">
+            <span>運行日時: ${r.recordDate}</span>
+            <span>案件 #${r.questId}</span>
+          </div>
+          <div class="text-base font-black text-slate-900 mb-2">
+            領収金額: ￥${(r.fuelFee + r.otherExpense).toLocaleString()}-
+          </div>
+          <div class="text-xs text-slate-700 mb-4">
+            但し: ガソリン代実費弁償金として (${r.roundTripDistance} km)
+          </div>
+          <div class="flex justify-between text-xs text-slate-800 pt-4 border-t border-slate-100">
+            <span>受領者: <strong>${r.driverName}</strong> 様</span>
+            <span>事務局確認印: [     ]</span>
+          </div>
         </div>
-      `;
-      document.body.className = 'print-voucher';
-      window.print();
-      setTimeout(() => { document.body.className = ''; }, 1000);
+      `).join('');
+
+      document.getElementById('printPreviewModal').classList.remove('hidden');
+      refreshLucide();
+      
+      setTimeout(() => {
+        window.print();
+      }, 300);
     }
 
     // 市提出用実績報告書印刷
     function printAnnualReport() {
       const records = dashboardData.records;
-      const container = document.getElementById('annualReportContainer');
-      container.innerHTML = `
-        <div style="font-family: sans-serif; padding: 20px;">
-          <h2 style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px;">おでかけサポート事業 運行実績報告書</h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 11px;" border="1">
-            <thead>
-              <tr style="background: #f1f5f9;">
-                <th style="padding: 6px;">運行日時</th>
-                <th style="padding: 6px;">案件ID</th>
-                <th style="padding: 6px;">ドライバー名</th>
-                <th style="padding: 6px;">利用者名</th>
-                <th style="padding: 6px;">運行区分</th>
-                <th style="padding: 6px; text-align: right;">走行距離</th>
-                <th style="padding: 6px; text-align: right;">支給実費</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${records.map(r => `
-                <tr>
-                  <td style="padding: 5px;">${r.recordDate}</td>
-                  <td style="padding: 5px; text-align: center;">#${r.questId}</td>
-                  <td style="padding: 5px;">${r.driverName}</td>
-                  <td style="padding: 5px;">${r.passengers}</td>
-                  <td style="padding: 5px; text-align: center;">${r.tripType}</td>
-                  <td style="padding: 5px; text-align: right;">${r.roundTripDistance} km</td>
-                  <td style="padding: 5px; text-align: right;">${(r.fuelFee + r.otherExpense).toLocaleString()} 円</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-      document.body.className = 'print-report';
-      window.print();
-      setTimeout(() => { document.body.className = ''; }, 1000);
+      const tbody = document.getElementById('annualReportTableBody');
+      
+      tbody.innerHTML = records.map(r => `
+        <tr class="border-b border-slate-200">
+          <td class="py-2 px-2 border border-slate-200">${r.recordDate}</td>
+          <td class="py-2 px-2 border border-slate-200 text-center font-mono">#${r.questId}</td>
+          <td class="py-2 px-2 border border-slate-200 font-bold">${r.driverName}</td>
+          <td class="py-2 px-2 border border-slate-200">${r.passengers}</td>
+          <td class="py-2 px-2 border border-slate-200 text-center">${r.tripType}</td>
+          <td class="py-2 px-2 border border-slate-200 text-right font-mono">${r.roundTripDistance} km</td>
+          <td class="py-2 px-2 border border-slate-200 text-right font-mono font-bold">${(r.fuelFee + r.otherExpense).toLocaleString()} 円</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('annualReportModal').classList.remove('hidden');
+      refreshLucide();
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
     }
 
     document.getElementById('btnRefresh').addEventListener('click', loadAdminData);
