@@ -38,7 +38,7 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-20">
 
-  <!-- 全画面操作ロック用ローディングオーバーレイ（初期状態でflex表示） -->
+  <!-- 全画面操作ロック用ローディングオーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs" style="display: flex;">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
@@ -202,6 +202,21 @@
           <span>新規ドライバー登録</span>
         </button>
       </div>
+
+      <!-- 名簿検索バー -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
+          <input
+            type="text"
+            id="rosterSearchInput"
+            placeholder="名前、登録番号、電話番号で検索..."
+            oninput="renderRosterList()"
+            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
+          />
+        </div>
+      </div>
+
       <div id="rosterListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- 動的描画 -->
       </div>
@@ -286,6 +301,44 @@
     </div>
   </div>
 
+  <!-- ドライバー対面登録モーダル -->
+  <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-black text-slate-900">ボランティアドライバー対面登録</h3>
+        <button type="button" onclick="closeDriverRegisterModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <form id="driverRegisterForm" onsubmit="event.preventDefault(); submitDriverRegister();" class="space-y-3.5">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">登録番号</label>
+            <input type="text" id="regDriverId" readonly class="w-full h-10 rounded-xl border border-slate-200 bg-slate-100 px-3 font-mono text-sm font-bold text-slate-700 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">お名前</label>
+            <input type="text" id="regName" required placeholder="相模 太郎" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-900 outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">お電話番号</label>
+          <input type="tel" id="regPhone" required placeholder="090-1234-5678" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-xs font-bold text-slate-900 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ご住所</label>
+          <input type="text" id="regAddress" placeholder="相模原市緑区中野1-2-3" class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">備考</label>
+          <textarea id="regNote" rows="2" placeholder="車種など" class="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900 outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeDriverRegisterModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700">キャンセル</button>
+          <button type="submit" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">登録する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- スクリプト制御 -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
@@ -295,6 +348,7 @@
     let drivers = [];
     let users = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
+    let currentRosterTab = 'drivers';
 
     function refreshLucide() {
       if (window.lucide) lucide.createIcons();
@@ -319,7 +373,6 @@
       console.log("Toast:", msg);
     }
 
-    // 正しい関数名 fetchDashboardData で統一
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
       const container = document.getElementById("questListContainer");
@@ -356,10 +409,18 @@
             };
           }
 
+          try {
+            const preRes = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`);
+            const preData = await preRes.json();
+            if (preData.success && preData.nextDriverId) {
+              document.getElementById('regDriverId').value = preData.nextDriverId;
+            }
+          } catch (e) {}
+
           updateMetricsUI();
           renderQuests();
-          renderDrivers();
-          renderUsers();
+          renderRosterList();
+          renderFinanceSummary();
           showToast("最新データを取得しました");
         } else {
           showToast("取得エラー: " + (data.message || ""));
@@ -386,13 +447,26 @@
     function renderQuests() {
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
-      if (quests.length === 0) {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+
+      let filtered = quests;
+      if (search) {
+        filtered = quests.filter(q => 
+          q.id.toLowerCase().includes(search) ||
+          q.userName.toLowerCase().includes(search) ||
+          q.pickup.toLowerCase().includes(search) ||
+          q.dropoff.toLowerCase().includes(search) ||
+          (q.driverName && q.driverName.toLowerCase().includes(search))
+        );
+      }
+
+      if (filtered.length === 0) {
         container.innerHTML = "";
         empty.classList.remove("hidden");
         return;
       }
       empty.classList.add("hidden");
-      container.innerHTML = quests.map(q => `
+      container.innerHTML = filtered.map(q => `
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
           <div class="flex justify-between font-bold text-sm">
             <span>#${q.id} [${q.status}]</span>
@@ -407,8 +481,89 @@
       refreshLucide();
     }
 
-    function renderDrivers() {}
-    function renderUsers() {}
+    // 名簿マスタ描画制御
+    function switchRosterTab(tab) {
+      currentRosterTab = tab;
+      const btnDrivers = document.getElementById('subTabDrivers');
+      const btnUsers = document.getElementById('subTabUsers');
+
+      if (tab === 'drivers') {
+        if (btnDrivers) btnDrivers.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnUsers) btnUsers.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      } else {
+        if (btnUsers) btnUsers.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnDrivers) btnDrivers.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      }
+      renderRosterList();
+    }
+
+    function renderRosterList() {
+      const container = document.getElementById("rosterListContainer");
+      const search = document.getElementById("rosterSearchInput") ? document.getElementById("rosterSearchInput").value.toLowerCase() : "";
+      if (!container) return;
+
+      if (currentRosterTab === 'drivers') {
+        let list = drivers;
+        if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || d.id.includes(search) || d.phone.includes(search));
+        if (list.length === 0) {
+          container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録ドライバーがいません</div>`;
+          return;
+        }
+        container.innerHTML = list.map(d => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-slate-500">#${d.id}</span>
+                <span class="text-sm font-black text-slate-900">${d.name} 様</span>
+              </div>
+              <span class="rounded-full px-2 py-0.5 text-[11px] font-bold ${d.hasLine ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+                ${d.hasLine ? '✓ LINE連携済' : 'LINE未連携'}
+              </span>
+            </div>
+            <div class="text-xs text-slate-600 space-y-1 pt-1">
+              <div>📞 電話: <a href="tel:${d.phone}" class="font-bold text-blue-600">${d.phone}</a></div>
+              <div>🏠 住所: ${d.address || '未登録'}</div>
+              <div>🚗 備考: ${d.note || 'なし'}</div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        let list = users;
+        if (search) list = list.filter(u => u.name.toLowerCase().includes(search) || u.id.includes(search) || u.phone.includes(search));
+        if (list.length === 0) {
+          container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録利用者がいません</div>`;
+          return;
+        }
+        container.innerHTML = list.map(u => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-slate-500">#${u.id}</span>
+                <span class="text-sm font-black text-slate-900">${u.name} 様</span>
+              </div>
+              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-100">${u.userType}</span>
+            </div>
+            <div class="text-xs text-slate-600 space-y-1 pt-1">
+              <div>📞 電話: <a href="tel:${u.phone}" class="font-bold text-blue-600">${u.phone}</a></div>
+              <div>🏠 住所: ${u.address || '未登録'}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      refreshLucide();
+    }
+
+    function renderFinanceSummary() {
+      let totalKm = 0;
+      let totalYen = 0;
+      records.forEach(r => {
+        totalKm += Number(r.roundTripDistance || 0);
+        totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
+      });
+      document.getElementById('finTotalRuns').textContent = records.length + ' 回';
+      document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
+      document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+    }
 
     // タブ切替
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
@@ -424,15 +579,56 @@
         document.getElementById('tabContentFinance').classList.add('hidden');
 
         if (tab === 'ops') document.getElementById('tabContentOps').classList.remove('hidden');
-        if (tab === 'roster') document.getElementById('tabContentRoster').classList.remove('hidden');
-        if (tab === 'finance') document.getElementById('tabContentFinance').classList.remove('hidden');
+        if (tab === 'roster') {
+          document.getElementById('tabContentRoster').classList.remove('hidden');
+          renderRosterList();
+        }
+        if (tab === 'finance') {
+          document.getElementById('tabContentFinance').classList.remove('hidden');
+          renderFinanceSummary();
+        }
         refreshLucide();
       });
     });
 
-    function switchSubTab(type) {}
-    function switchRosterTab(tab) {}
-    function openDriverRegisterModal() {}
+    function openDriverRegisterModal() {
+      document.getElementById('driverRegisterModal').classList.remove('hidden');
+      refreshLucide();
+    }
+    function closeDriverRegisterModal() {
+      document.getElementById('driverRegisterModal').classList.add('hidden');
+    }
+
+    async function submitDriverRegister() {
+      showBlockingLoading('登録中', 'ドライバーを正式に登録しています...');
+      const payload = {
+        action: 'registerDriver',
+        driverId: document.getElementById('regDriverId').value,
+        name: document.getElementById('regName').value,
+        phone: document.getElementById('regPhone').value,
+        address: document.getElementById('regAddress').value,
+        note: document.getElementById('regNote').value
+      };
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        hideBlockingLoading();
+        if (data.success) {
+          alert('正式ドライバーとして登録しました！');
+          closeDriverRegisterModal();
+          fetchDashboardData(false);
+        } else {
+          alert('登録失敗: ' + data.message);
+        }
+      } catch (e) {
+        hideBlockingLoading();
+        alert('通信エラー: ' + e.message);
+      }
+    }
 
     function printVouchers() {
       if (records.length === 0) {
@@ -487,6 +683,7 @@
     }
 
     document.getElementById('btnRefresh').addEventListener('click', () => fetchDashboardData(false));
+    document.getElementById('btnOpenDriverRegister').addEventListener('click', openDriverRegisterModal);
 
     window.addEventListener('DOMContentLoaded', () => {
       refreshLucide();
