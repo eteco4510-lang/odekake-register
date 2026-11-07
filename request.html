@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>送迎お申込み | おでかけサポート</title>
+  <title>運行お申し込み | おでかけサポート</title>
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -18,160 +20,165 @@
     *, ::before, ::after { box-sizing: border-box !important; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-28 text-base">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-28 text-base">
 
-  <!-- 操作ロック用ブロッキングローディングオーバーレイ -->
-  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs hidden">
+  <!-- 操作ロック・ローディング用オーバーレイ -->
+  <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
     <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
       <i data-lucide="loader-2" class="h-10 w-10 animate-spin text-blue-600 mx-auto"></i>
-      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">処理中</div>
-      <div id="blockingDesc" class="mt-1 text-xs text-slate-500">しばらくお待ちください...</div>
+      <div id="blockingTitle" class="mt-3 text-base font-bold text-slate-900">予約を送信中</div>
+      <div id="blockingDesc" class="mt-1 text-sm text-slate-500">配車システムへ登録しています...</div>
     </div>
   </div>
 
-  <!-- iOS風カスタムアラートダイアログ -->
-  <div id="customDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+  <!-- iOS風カスタムアラート/確認ダイアログ -->
+  <div id="customDialogOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden" onclick="handleDialogOverlayClick(event)">
     <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
-      <div id="dialogIconArea" class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+      <div id="customDialogIconArea" class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
         <i data-lucide="info" class="h-6 w-6"></i>
       </div>
-      <h3 id="dialogTitle" class="text-lg font-black text-slate-900">確認</h3>
-      <p id="dialogMessage" class="mt-2 text-sm text-slate-600 leading-relaxed">メッセージ</p>
-      <div id="dialogButtons" class="mt-5 flex items-center justify-center gap-2">
-        <button type="button" id="dialogBtnOk" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700" onclick="document.getElementById('customDialog').classList.add('hidden')">OK</button>
+      <h3 id="customDialogTitle" class="text-lg font-black text-slate-900">お知らせ</h3>
+      <p id="customDialogMessage" class="mt-2 text-sm text-slate-600 leading-relaxed">メッセージ</p>
+      <div class="mt-6 flex items-center gap-2">
+        <button type="button" id="btnDialogCancel" class="flex-1 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hidden" onclick="closeCustomDialog(false)">いいえ</button>
+        <button type="button" id="btnDialogOk" class="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700" onclick="closeCustomDialog(true)">OK</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 申込完了モーダル -->
+  <div id="completeModalOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center space-y-4">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        <i data-lucide="check-circle-2" class="h-8 w-8"></i>
+      </div>
+      <h3 class="text-xl font-black text-slate-900">運行お申し込み完了</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        お申し込みが正常に完了しました。<br>公式LINEへ確認メッセージをお送りしましたのでご確認ください。
+      </p>
+      <div class="rounded-xl bg-slate-50 p-4 border border-slate-200">
+        <div class="text-xs text-slate-500 font-bold">発行された案件番号</div>
+        <div id="issuedQuestId" class="text-2xl font-black font-mono text-blue-600 mt-1">#----</div>
+      </div>
+      <button
+        type="button"
+        onclick="handleCloseWindow()"
+        class="w-full rounded-xl bg-slate-900 py-3.5 text-base font-bold text-white shadow-sm hover:bg-slate-800"
+      >
+        画面を閉じる
+      </button>
     </div>
   </div>
 
   <!-- スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
-    <div class="mx-auto flex max-w-xl items-center justify-between px-4 py-3.5 sm:px-6">
+    <div class="mx-auto flex max-w-lg items-center justify-between px-4 py-3.5 sm:px-6">
       <div class="flex items-center gap-2.5">
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
-          <i data-lucide="calendar-plus" class="h-5 w-5"></i>
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+          <i data-lucide="car" class="h-6 w-6"></i>
         </div>
-        <h1 class="text-lg font-black tracking-tight text-slate-900">送迎お申込み</h1>
+        <h1 class="text-lg font-black tracking-tight text-slate-900">おでかけサポート</h1>
       </div>
-      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 border border-slate-200">
-        おでかけサポート
-      </span>
+      <div class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+        運行お申し込み
+      </div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-xl px-4 pt-4 sm:px-6 space-y-4">
+  <!-- メインお申し込みフォーム -->
+  <main class="mx-auto max-w-lg px-4 pt-5 sm:px-6">
+    <form id="questRequestForm" onsubmit="event.preventDefault(); showConfirmModal();" class="space-y-5">
 
-    <!-- 案内バナー -->
-    <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs text-blue-900 leading-relaxed space-y-1">
-      <div class="font-black text-sm text-blue-800 flex items-center gap-1.5">
-        <i data-lucide="info" class="h-4 w-4"></i>
-        <span>ご利用にあたって</span>
-      </div>
-      <p>ご登録の「5桁の登録番号」をご入力いただくと、お名前とお電話番号が自動で呼び出されます。必要事項をご記入の上、お申込みください。</p>
-    </div>
-
-    <form id="requestForm" class="space-y-4" onsubmit="event.preventDefault(); openConfirmModal();">
-
-      <!-- STEP 1: 依頼主情報 -->
+      <!-- STEP 1: 利用者情報確認 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
-            <h2 class="text-base font-bold text-slate-900">利用者情報の確認</h2>
+            <h2 class="text-base font-bold text-slate-900">利用者（ご依頼主）情報</h2>
           </div>
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">登録番号（5桁）</label>
-          <div class="flex gap-2">
-            <input
-              type="tel"
-              id="userNumInput"
-              maxlength="5"
-              placeholder="例: 20101"
-              oninput="handleUserNumInput()"
-              required
-              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-mono text-lg font-bold text-slate-900 outline-none transition focus:border-blue-600"
-            />
-            <button
-              type="button"
-              onclick="manualFetchUser()"
-              class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 whitespace-nowrap active:scale-95"
-            >
-              読込確認
-            </button>
+        <div class="space-y-3.5 text-base">
+          <div>
+            <label class="block font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+              <span>利用者登録番号</span>
+              <a href="user-register.html" target="_blank" class="text-xs font-bold text-blue-600 hover:underline">番号をお持ちでない方へ</a>
+            </label>
+            <div class="relative">
+              <input
+                type="tel"
+                id="userRegId"
+                placeholder="例: 20101"
+                oninput="handleUserNumberInput()"
+                required
+                class="w-full h-14 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 font-mono font-bold text-slate-900 text-lg outline-none focus:border-blue-600 focus:bg-white"
+              />
+              <div id="userLoadingSpinner" class="absolute right-3.5 top-1/2 -translate-y-1/2 hidden">
+                <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-blue-600"></i>
+              </div>
+            </div>
+            <div id="userResultBadge" class="mt-1.5 text-xs font-bold text-slate-500">登録番号を入力すると自動で氏名が確認されます</div>
           </div>
-          <p id="userFetchStatus" class="text-xs text-slate-400 mt-1">※5桁の登録番号を入力してください</p>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3 pt-1">
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">お名前</label>
-            <input
-              type="text"
-              id="userNameDisplay"
-              readonly
-              placeholder="自動取得されます"
-              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700 outline-none"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">お電話番号</label>
-            <input
-              type="text"
-              id="userPhoneDisplay"
-              readonly
-              placeholder="自動取得されます"
-              class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm font-bold text-slate-700 outline-none"
-            />
+          <!-- 確認済利用者カード -->
+          <div id="verifiedUserCard" class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5 hidden space-y-1">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+              <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+              <span>登録者確認完了</span>
+            </div>
+            <div id="verifiedUserName" class="text-base font-black text-slate-900">-- 様</div>
           </div>
         </div>
       </section>
 
-      <!-- STEP 2: 運行日時・プラン -->
+      <!-- STEP 2: 日時と往復・片道 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
-            <h2 class="text-base font-bold text-slate-900">日時と利用プラン</h2>
+            <h2 class="text-base font-bold text-slate-900">日時と往復・片道</h2>
           </div>
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
-            <input
-              type="date"
-              id="targetDate"
-              required
-              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-            />
+        <div class="space-y-4 text-base">
+          <!-- ★修正: 希望日と集合時間を完全に縦並び (grid-cols-1) にして重なりを解消 -->
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
+              <input
+                type="date"
+                id="targetDate"
+                required
+                class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
+              <input
+                type="time"
+                id="targetTime"
+                value="09:00"
+                required
+                class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+              />
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
-            <input
-              type="time"
-              id="targetTime"
-              value="09:00"
-              required
-              class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-            />
-          </div>
-        </div>
 
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">利用プラン（運行区分）</label>
-          <select
-            id="tripPlan"
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-          >
-            <option value="往復（待機目安: 1時間〜2時間）">往復（待機目安: 1時間〜2時間）</option>
-            <option value="往復（待機目安: 30分〜1時間）">往復（待機目安: 30分〜1時間）</option>
-            <option value="往復（待機目安: 2時間以上）">往復（待機目安: 2時間以上）</option>
-            <option value="片道（送り届けのみ）">片道（送り届けのみ）</option>
-            <option value="片道（お迎えのみ）">片道（お迎えのみ）</option>
-          </select>
+          <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1.5">利用プラン（運行区分）</label>
+            <select
+              id="tripPlan"
+              class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+            >
+              <option value="往復（待機目安: 1時間〜2時間）">往復（待機目安: 1時間〜2時間）</option>
+              <option value="往復（待機目安: 30分〜1時間）">往復（待機目安: 30分〜1時間）</option>
+              <option value="往復（待機目安: 2時間以上）">往復（待機目安: 2時間以上）</option>
+              <option value="片道（送り届けのみ）">片道（送り届けのみ）</option>
+              <option value="片道（お迎えのみ）">片道（お迎えのみ）</option>
+            </select>
+          </div>
         </div>
       </section>
 
@@ -185,247 +192,262 @@
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <!-- お迎え先 -->
-        <div class="space-y-1.5">
-          <label class="block text-sm font-bold text-slate-800">お迎え先（ご自宅など）</label>
-          <input
-            type="text"
-            id="pickupLocation"
-            placeholder="例: 相模原市緑区中野1-2-3 自宅"
-            required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-          />
-        </div>
-
-        <!-- 行先 -->
-        <div class="space-y-1.5">
-          <label class="block text-sm font-bold text-slate-800">行き先（病院・店舗・施設など）</label>
-          <input
-            type="text"
-            id="dropoffLocation"
-            placeholder="例: 津久井赤十字病院"
-            required
-            class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-          />
+        <div class="space-y-4 text-base">
+          <div>
+            <label class="block font-bold text-slate-800 mb-1.5">お迎え先（ご自宅など）</label>
+            <input
+              type="text"
+              id="pickupLocation"
+              placeholder="例: 相模原市緑区中野1-2-3 自宅"
+              required
+              class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-800 mb-1.5">行き先（病院・店舗・施設など）</label>
+            <input
+              type="text"
+              id="dropoffLocation"
+              placeholder="例: 津久井赤十字病院"
+              required
+              class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+          </div>
         </div>
       </section>
 
-      <!-- STEP 4: 備考・特記事項 -->
+      <!-- STEP 4: 同乗人数・備考 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">4</span>
-            <h2 class="text-base font-bold text-slate-900">備考・特記事項</h2>
+            <h2 class="text-base font-bold text-slate-900">同乗人数 と 特記事項</h2>
           </div>
-          <span class="text-xs font-bold text-slate-500">任意</span>
+          <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">任意</span>
         </div>
 
-        <div>
-          <label class="block text-sm font-bold text-slate-800 mb-1.5">車椅子利用、杖歩行、お荷物などのご要望</label>
-          <textarea
-            id="noteInput"
-            rows="3"
-            placeholder="例: 折りたたみ車椅子をトランクに積載します。付き添い1名あり。"
-            class="w-full rounded-xl border-2 border-slate-200 bg-white p-3 text-sm font-medium text-slate-900 outline-none focus:border-blue-600"
-          ></textarea>
+        <div class="space-y-4 text-base">
+          <div>
+            <label class="block font-bold text-slate-800 mb-1.5">同乗人数（ご本人含む）</label>
+            <select
+              id="passengersCount"
+              class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
+            >
+              <option value="1名">1名（ご本人のみ）</option>
+              <option value="2名">2名（付き添い1名含む）</option>
+              <option value="3名">3名</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-800 mb-1.5">備考（車椅子、荷物、介助要件など）</label>
+            <textarea
+              id="requestNote"
+              rows="3"
+              placeholder="折りたたみ車椅子あり、杖使用など"
+              class="w-full rounded-xl border-2 border-slate-200 bg-white p-3.5 text-base text-slate-900 outline-none focus:border-blue-600"
+            ></textarea>
+          </div>
         </div>
       </section>
 
       <!-- 送信ボタン -->
-      <div class="pt-2">
-        <button
-          type="submit"
-          id="btnSubmit"
-          disabled
-          class="inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition"
-        >
-          <i data-lucide="send" class="h-5 w-5"></i>
-          <span>送迎をお申込みする</span>
-        </button>
-        <p id="submitGuide" class="text-xs text-center text-slate-400 mt-2 font-semibold">
-          ※登録番号の確認、希望日、お迎え先、行き先をすべて入力してください。
-        </p>
-      </div>
+      <button
+        type="submit"
+        id="btnSubmitPreview"
+        class="w-full h-16 rounded-xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition flex items-center justify-center gap-2.5"
+      >
+        <i data-lucide="send" class="h-6 w-6"></i>
+        <span>内容を確認して申し込む</span>
+      </button>
 
     </form>
   </main>
 
-  <!-- 完了モーダル -->
-  <div id="completeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
-      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
-        <i data-lucide="badge-check" class="h-8 w-8"></i>
+  <!-- 確認モーダル -->
+  <div id="confirmModalOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-black text-slate-900">運行お申し込みの確認</h3>
+        <button type="button" onclick="closeConfirmModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="h-6 w-6"></i></button>
       </div>
-      <h3 class="text-xl font-black text-slate-900">お申込みを受け付けました</h3>
-      
-      <div class="my-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-left text-xs space-y-2 text-emerald-900 leading-relaxed">
-        <div class="font-bold text-sm text-emerald-800 flex items-center gap-1">
-          <i data-lucide="message-circle" class="h-4 w-4"></i>
-          <span>受付が完了しました</span>
+      <p class="text-sm text-slate-500">以下の内容で運行を依頼します。よろしいですか？</p>
+
+      <div class="rounded-xl bg-slate-50 p-4 space-y-3 text-sm text-slate-700 border border-slate-200 font-medium">
+        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+          <span class="text-slate-500 font-bold">依頼者名:</span>
+          <strong id="confUserName" class="text-slate-900 text-base">--</strong>
         </div>
-        <p>ボランティアドライバーの募集を開始いたしました。マッチングが成立次第、ご連絡いたします。</p>
+        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+          <span class="text-slate-500 font-bold">希望日時:</span>
+          <strong id="confDateTime" class="text-slate-900 text-base">--</strong>
+        </div>
+        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+          <span class="text-slate-500 font-bold">利用プラン:</span>
+          <strong id="confTripPlan" class="text-slate-900">--</strong>
+        </div>
+        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+          <span class="text-slate-500 font-bold">お迎え先:</span>
+          <strong id="confPickup" class="text-slate-900 truncate max-w-[200px]">--</strong>
+        </div>
+        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+          <span class="text-slate-500 font-bold">行き先:</span>
+          <strong id="confDropoff" class="text-slate-900 truncate max-w-[200px]">--</strong>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-bold">人数・備考:</span>
+          <span id="confNote" class="text-slate-900 text-right truncate max-w-[180px]">--</span>
+        </div>
       </div>
 
-      <div class="mt-5">
-        <button type="button" class="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800 transition" onclick="handleCloseWindow()">
-          画面を閉じる
-        </button>
+      <div class="flex items-center gap-2 pt-2">
+        <button type="button" onclick="closeConfirmModal()" class="flex-1 rounded-xl border border-slate-200 bg-white py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-50">修正する</button>
+        <button type="button" onclick="executeSubmitQuest()" class="flex-1 rounded-xl bg-blue-600 py-3.5 text-sm font-black text-white shadow-xs hover:bg-blue-700">この内容で確定する</button>
       </div>
     </div>
   </div>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
-
-    let isUserValid = false;
+    const REQUEST_LIFF_ID = "2011784961-QoryA7zc";
+    let verifiedUserData = null;
+    let lineUserId = '';
 
     function refreshLucide() {
       if (window.lucide) lucide.createIcons();
     }
 
-    function showCustomAlert(title, message, callback = null) {
-      const dialog = document.getElementById('customDialog');
-      document.getElementById('dialogTitle').textContent = title;
-      document.getElementById('dialogMessage').textContent = message;
-      document.getElementById('dialogBtnOk').onclick = () => {
-        dialog.classList.add('hidden');
-        if (callback) callback();
-      };
-      dialog.classList.remove('hidden');
-      refreshLucide();
+    function showCustomAlert(message, title = 'お知らせ', iconName = 'info', iconColor = 'text-blue-600') {
+      return new Promise((resolve) => {
+        document.getElementById('customDialogIconArea').innerHTML = `<i data-lucide="${iconName}" class="h-6 w-6 ${iconColor}"></i>`;
+        document.getElementById('customDialogTitle').textContent = title;
+        document.getElementById('customDialogMessage').textContent = message;
+        document.getElementById('btnDialogCancel').classList.add('hidden');
+        document.getElementById('btnDialogOk').textContent = '閉じる';
+        window._customDialogResolve = resolve;
+        document.getElementById('customDialogOverlay').classList.remove('hidden');
+        refreshLucide();
+      });
     }
 
-    function showBlockingLoading(title, desc) {
-      document.getElementById('blockingTitle').textContent = title;
-      document.getElementById('blockingDesc').textContent = desc;
-      document.getElementById('blockingOverlay').classList.remove('hidden');
-      refreshLucide();
-    }
-
-    function hideBlockingLoading() {
-      document.getElementById('blockingOverlay').classList.add('hidden');
-    }
-
-    function handleUserNumInput() {
-      const val = document.getElementById('userNumInput').value.trim();
-      if (/^\d{5}$/.test(val)) {
-        fetchUserData(val);
-      } else {
-        isUserValid = false;
-        document.getElementById('userNameDisplay').value = '';
-        document.getElementById('userPhoneDisplay').value = '';
-        document.getElementById('userFetchStatus').textContent = "※5桁の登録番号を入力してください";
-        document.getElementById('userFetchStatus').className = "text-xs text-slate-400 mt-1";
-        checkSubmitRequirement();
+    function closeCustomDialog(result) {
+      document.getElementById('customDialogOverlay').classList.add('hidden');
+      if (window._customDialogResolve) {
+        const cb = window._customDialogResolve;
+        window._customDialogResolve = null;
+        cb(result);
       }
     }
 
-    function manualFetchUser() {
-      const val = document.getElementById('userNumInput').value.trim();
-      if (val) {
-        fetchUserData(val);
-      } else {
-        showCustomAlert('入力エラー', '5桁の登録番号を入力してください。');
+    function handleUserNumberInput() {
+      const val = document.getElementById("userRegId").value.trim();
+      const card = document.getElementById("verifiedUserCard");
+      const nameEl = document.getElementById("verifiedUserName");
+      const spinner = document.getElementById("userLoadingSpinner");
+
+      if (val.length < 5) {
+        verifiedUserData = null;
+        card.classList.add("hidden");
+        return;
       }
-    }
 
-    async function fetchUserData(userNum) {
-      showBlockingLoading('確認中', '登録番号を照合しています...');
-      const statusEl = document.getElementById('userFetchStatus');
-      
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getUserDetail&userNum=${encodeURIComponent(userNum)}&_t=${Date.now()}`);
-        const data = await res.json();
-        hideBlockingLoading();
+      if (window._userFetchTimer) clearTimeout(window._userFetchTimer);
+      spinner.classList.remove("hidden");
 
-        if (data && data.success && data.user) {
-          const u = data.user;
-          document.getElementById('userNameDisplay').value = u.name || '';
-          document.getElementById('userPhoneDisplay').value = u.phone || '';
-          if (u.address && !document.getElementById('pickupLocation').value) {
-            document.getElementById('pickupLocation').value = u.address;
+      window._userFetchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`${GAS_API_URL}?action=getUserDetail&userNum=${encodeURIComponent(val)}&_t=${Date.now()}`);
+          const data = await res.json();
+          spinner.classList.add("hidden");
+          if (data.success && data.user) {
+            verifiedUserData = data.user;
+            nameEl.textContent = `${data.user.name} 様 (${data.user.userType || '一般'})`;
+            card.classList.remove("hidden");
+          } else {
+            verifiedUserData = null;
+            card.classList.add("hidden");
           }
-          isUserValid = true;
-          statusEl.textContent = `✓ ${u.name} 様を確認しました`;
-          statusEl.className = "text-xs font-bold text-emerald-600 mt-1";
-        } else {
-          isUserValid = false;
-          document.getElementById('userNameDisplay').value = '';
-          document.getElementById('userPhoneDisplay').value = '';
-          statusEl.textContent = "⚠ 該当する登録番号が見つかりません";
-          statusEl.className = "text-xs font-bold text-amber-600 mt-1";
+        } catch (e) {
+          spinner.classList.add("hidden");
+          verifiedUserData = null;
+          card.classList.add("hidden");
         }
-      } catch (e) {
-        hideBlockingLoading();
-        isUserValid = false;
-        statusEl.textContent = "⚠ 通信エラーが発生しました";
-        statusEl.className = "text-xs font-bold text-red-600 mt-1";
-      }
-      checkSubmitRequirement();
+      }, 400);
     }
 
-    function checkSubmitRequirement() {
-      const submitBtn = document.getElementById('btnSubmit');
-      const submitGuide = document.getElementById('submitGuide');
-      const pickup = document.getElementById('pickupLocation').value.trim();
-      const dropoff = document.getElementById('dropoffLocation').value.trim();
+    function showConfirmModal() {
+      if (!verifiedUserData) {
+        showCustomAlert('有効な利用者登録番号を入力してください。登録がお済みでない場合は「番号をお持ちでない方へ」よりご登録ください。', '確認エラー', 'alert-circle', 'text-red-600');
+        return;
+      }
+
       const date = document.getElementById('targetDate').value;
+      const time = document.getElementById('targetTime').value;
+      const plan = document.getElementById('tripPlan').value;
+      const pickup = document.getElementById('pickupLocation').value;
+      const dropoff = document.getElementById('dropoffLocation').value;
+      const passengers = document.getElementById('passengersCount').value;
+      const note = document.getElementById('requestNote').value;
 
-      if (isUserValid && pickup && dropoff && date) {
-        submitBtn.disabled = false;
-        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-98 transition cursor-pointer";
-        submitGuide.textContent = "✓ お申込み内容が揃いました。送信ボタンを押してください。";
-        submitGuide.className = "text-xs text-center text-emerald-600 mt-2 font-bold";
-      } else {
-        submitBtn.disabled = true;
-        submitBtn.className = "inline-flex w-full h-14 items-center justify-center gap-2 rounded-2xl bg-slate-300 text-lg font-black text-white shadow-xs cursor-not-allowed transition";
-        submitGuide.textContent = "※登録番号の確認、希望日、お迎え先、行き先をすべて入力してください。";
-        submitGuide.className = "text-xs text-center text-slate-400 mt-2 font-semibold";
+      if (!date || !pickup || !dropoff) {
+        showCustomAlert('必須項目をすべて入力してください。', '入力不足', 'alert-circle', 'text-red-600');
+        return;
       }
+
+      document.getElementById('confUserName').textContent = verifiedUserData.name + ' 様';
+      document.getElementById('confDateTime').textContent = `${date} (${time})`;
+      document.getElementById('confTripPlan').textContent = plan;
+      document.getElementById('confPickup').textContent = pickup;
+      document.getElementById('confDropoff').textContent = dropoff;
+      document.getElementById('confNote').textContent = `${passengers} / ${note || '特記事項なし'}`;
+
+      document.getElementById('confirmModalOverlay').classList.remove('hidden');
+      refreshLucide();
     }
 
-    ['pickupLocation', 'dropoffLocation', 'targetDate'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', checkSubmitRequirement);
-        el.addEventListener('change', checkSubmitRequirement);
-      }
-    });
+    function closeConfirmModal() {
+      document.getElementById('confirmModalOverlay').classList.add('hidden');
+    }
 
-    async function openConfirmModal() {
-      showBlockingLoading('お申込み送信中', '送迎予約データを送信しています...');
+    async function executeSubmitQuest() {
+      closeConfirmModal();
+      const overlay = document.getElementById('blockingOverlay');
+      document.getElementById('blockingTitle').textContent = "予約を送信中";
+      document.getElementById('blockingDesc').textContent = "配車システムへ登録しています...";
+      overlay.classList.remove('hidden');
+      refreshLucide();
 
       const payload = {
-        action: "createQuest",
-        userNum: document.getElementById('userNumInput').value.trim(),
+        action: 'createQuest',
+        userNum: document.getElementById('userRegId').value.trim(),
+        userName: verifiedUserData ? verifiedUserData.name : '',
         targetDate: document.getElementById('targetDate').value,
         targetTime: document.getElementById('targetTime').value,
         tripPlan: document.getElementById('tripPlan').value,
         pickup: document.getElementById('pickupLocation').value.trim(),
         dropoff: document.getElementById('dropoffLocation').value.trim(),
-        passengers: "1名",
-        note: document.getElementById('noteInput').value.trim(),
-        lineUserId: '' // LINE自動連携を廃止し登録番号ベースに統合
+        passengers: document.getElementById('passengersCount').value,
+        note: document.getElementById('requestNote').value.trim(),
+        lineUserId: lineUserId
       };
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=createQuest`, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
+        const res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        hideBlockingLoading();
+        overlay.classList.add('hidden');
 
-        if (data.success) {
-          document.getElementById('completeModal').classList.remove('hidden');
+        if (data.success && data.questId) {
+          document.getElementById('issuedQuestId').textContent = `#${data.questId}`;
+          document.getElementById('completeModalOverlay').classList.remove('hidden');
           refreshLucide();
         } else {
-          showCustomAlert('送信エラー', data.message || 'お申込みの送信に失敗しました。');
+          showCustomAlert(data.message || 'お申し込みに失敗しました。', '登録エラー', 'alert-circle', 'text-red-600');
         }
       } catch (e) {
-        hideBlockingLoading();
-        showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
+        overlay.classList.add('hidden');
+        showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'alert-circle', 'text-red-600');
       }
     }
 
@@ -437,15 +459,25 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
+      try {
+        if (window.liff) {
+          await liff.init({ liffId: REQUEST_LIFF_ID });
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            lineUserId = profile.userId || '';
+          }
+        }
+      } catch (e) {}
 
-      // 明日をデフォルトの日付に設定
+      // 明日の日付をデフォルト設定
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      document.getElementById('targetDate').value = tomorrow.toISOString().split('T')[0];
-
-      checkSubmitRequirement();
+      const dateEl = document.getElementById('targetDate');
+      if (dateEl) {
+        dateEl.value = tomorrow.toISOString().split('T')[0];
+      }
     });
   </script>
 </body>
