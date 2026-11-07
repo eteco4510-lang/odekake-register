@@ -159,7 +159,7 @@
         <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
       </div>
 
-      <!-- サブタブ切り替え (運行予定 vs 活動記録ログ) -->
+      <!-- サブタブ切り替え (運行予定 vs 活動ログ) -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2 overflow-x-auto">
           <button type="button" id="subTabOps" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('ops')">運行予定・アラート</button>
@@ -181,7 +181,7 @@
         </div>
       </div>
 
-      <!-- 運行案件 / 活動ログリスト -->
+      <!-- リストコンテナ -->
       <div id="questListContainer" class="space-y-3">
         <!-- 動的描画 -->
       </div>
@@ -224,15 +224,36 @@
     <!-- ==================== タブ3: 実費精算・受領書 ==================== -->
     <div id="tabContentFinance" class="space-y-6 hidden">
       <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+        <!-- 期間指定コントロールバー -->
+        <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
+            <span class="flex items-center gap-1 text-slate-500 whitespace-nowrap">
+              <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
+              <span>集計対象期間:</span>
+            </span>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <input type="date" id="settleStartDate" onchange="renderFinanceSummary()" class="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 outline-none focus:border-blue-600" />
+              <span class="text-slate-400">〜</span>
+              <input type="date" id="settleEndDate" onchange="renderFinanceSummary()" class="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 outline-none focus:border-blue-600" />
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <button type="button" onclick="setSettleRange('currentMonth')" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">今月</button>
+            <button type="button" onclick="setSettleRange('lastMonth')" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">先月</button>
+            <button type="button" onclick="setSettleRange('fiscalYear')" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 hover:bg-blue-100 font-bold transition whitespace-nowrap flex-shrink-0">今年度</button>
+            <button type="button" onclick="setSettleRange('all')" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">全期間</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4 pt-2">
           <div>
             <h2 class="text-base font-bold text-slate-900">実費弁償集計 ＆ A4受領書・報告書出力</h2>
-            <p class="text-xs text-slate-500 mt-0.5">ドライバーへのガソリン代支給額の計算、受領書の印刷、および市への提出書類作成を行います。</p>
+            <p class="text-xs text-slate-500 mt-0.5">指定期間内のドライバー別ガソリン代支給額の計算、受領書および市提出用報告書の印刷を行います。</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
               <i data-lucide="printer" class="h-4 w-4 flex-shrink-0"></i>
-              <span>A4受領書を一括印刷</span>
+              <span>受領書印刷(A4)</span>
             </button>
             <button type="button" onclick="printAnnualReport()" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs flex-shrink-0 whitespace-nowrap">
               <i data-lucide="file-spreadsheet" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
@@ -280,7 +301,7 @@
 
   <!-- ==================== モーダル群 ==================== -->
 
-  <!-- 1. ボランティアドライバー対面登録モーダル (事前登録参照付き) -->
+  <!-- 1. ボランティアドライバー対面登録モーダル -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -326,13 +347,13 @@
     </div>
   </div>
 
-  <!-- 2. A4受領書 印刷プレビュー用モーダル (正規チケットフォーマット) -->
+  <!-- 2. A4受領書 印刷プレビュー用モーダル (正式チケットフォーマット + 金種別集計表) -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
         <div>
           <h3 class="text-base font-bold text-slate-900">ボランティア実費弁償 受領書印刷プレビュー</h3>
-          <p class="text-xs text-slate-500">※A4用紙1枚につき正式受領書フォーマットが収まります。</p>
+          <p class="text-xs text-slate-500">※対象期間内の受領書および末尾に金種別集計表が自動添付されます。</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
@@ -440,6 +461,44 @@
       console.log("Toast:", msg);
     }
 
+    // 初期日付範囲設定（デフォルト：今年度 4/1 〜 翌3/31 または 全期間）
+    function initDefaultDateRange() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth() + 1;
+      const startYear = (m >= 4) ? y : y - 1;
+      
+      const startEl = document.getElementById('settleStartDate');
+      const endEl = document.getElementById('settleEndDate');
+      if (startEl && !startEl.value) startEl.value = `${startYear}-04-01`;
+      if (endEl && !endEl.value) endEl.value = `${startYear + 1}-03-31`;
+    }
+
+    function setSettleRange(type) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      let start = '', end = '';
+
+      if (type === 'currentMonth') {
+        start = new Date(y, m, 1).toISOString().split('T')[0];
+        end = new Date(y, m + 1, 0).toISOString().split('T')[0];
+      } else if (type === 'lastMonth') {
+        start = new Date(y, m - 1, 1).toISOString().split('T')[0];
+        end = new Date(y, m, 0).toISOString().split('T')[0];
+      } else if (type === 'fiscalYear') {
+        const fy = (m + 1 >= 4) ? y : y - 1;
+        start = `${fy}-04-01`;
+        end = `${fy + 1}-03-31`;
+      } else if (type === 'all') {
+        start = '2025-04-01';
+        end = '2030-03-31';
+      }
+      document.getElementById('settleStartDate').value = start;
+      document.getElementById('settleEndDate').value = end;
+      renderFinanceSummary();
+    }
+
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
 
@@ -485,6 +544,7 @@
             }
           } catch (e) {}
 
+          initDefaultDateRange();
           updateMetricsUI();
           renderOpsList();
           renderRosterList();
@@ -560,7 +620,7 @@
               <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName}</strong> (#${l.driverId})</div>
               <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers}</strong></div>
               <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance} km</strong></div>
-              <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${(l.fuelFee || 0) + (l.otherExpense || 0)} 円</strong></div>
+              <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${((l.fuelFee || 0) + (l.otherExpense || 0)).toLocaleString()} 円</strong></div>
             </div>
           </div>
         `).join('');
@@ -672,25 +732,42 @@
       refreshLucide();
     }
 
+    // 期間指定に対応した実費精算集計
+    function getFilteredRecords() {
+      const startStr = document.getElementById('settleStartDate').value;
+      const endStr = document.getElementById('settleEndDate').value;
+      if (!startStr || !endStr) return records;
+
+      return records.filter(r => {
+        if (!r.recordDate) return false;
+        // recordDate形式 "YYYY/MM/DD HH:mm" または "YYYY-MM-DD" に対応
+        const dPart = r.recordDate.split(' ')[0].replace(/\//g, '-');
+        return dPart >= startStr && dPart <= endStr;
+      });
+    }
+
     function renderFinanceSummary() {
-      let totalRuns = records.length;
+      const targetRecords = getFilteredRecords();
+      let totalRuns = targetRecords.length;
       let totalKm = 0;
       let totalYen = 0;
-      records.forEach(r => {
+
+      targetRecords.forEach(r => {
         totalKm += Number(r.roundTripDistance || 0);
         totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
       });
+
       document.getElementById('finTotalRuns').textContent = totalRuns + ' 回';
       document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
       document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
 
       const tbody = document.getElementById('financeTableBody');
       if (!tbody) return;
-      if (records.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">集計対象の運行実績ログがありません</td></tr>`;
+      if (targetRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">指定期間内の運行実績ログがありません</td></tr>`;
         return;
       }
-      tbody.innerHTML = records.map(r => `
+      tbody.innerHTML = targetRecords.map(r => `
         <tr class="hover:bg-slate-50">
           <td class="py-3 px-3 font-semibold">${r.recordDate}</td>
           <td class="py-3 px-3 font-mono font-bold">#${r.questId || '----'}</td>
@@ -788,14 +865,15 @@
       }
     }
 
-    // 正式版受領書印刷
+    // 正式版受領書印刷 (指定期間の対象レコードに基づく)
     function printVouchers() {
-      if (records.length === 0) {
-        alert('印刷対象の活動記録がありません。');
+      const targetRecords = getFilteredRecords();
+      if (targetRecords.length === 0) {
+        alert('印刷対象の活動記録（指定期間内）がありません。');
         return;
       }
       const listArea = document.getElementById('voucherListArea');
-      listArea.innerHTML = records.map(r => `
+      listArea.innerHTML = targetRecords.map(r => `
         <div class="border-2 border-slate-800 p-5 rounded-2xl mb-6 bg-white shadow-sm" style="page-break-inside: avoid; height: 85mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div class="flex justify-between items-center border-b border-slate-300 pb-2 mb-3">
@@ -829,20 +907,26 @@
       refreshLucide();
     }
 
-    // 正式版市提出用実績報告書印刷
+    // 正式版市提出用実績報告書印刷 (指定期間の対象レコードに基づく)
     function printAnnualReport() {
+      const targetRecords = getFilteredRecords();
       let totalKm = 0;
       let totalYen = 0;
-      records.forEach(r => {
+      targetRecords.forEach(r => {
         totalKm += Number(r.roundTripDistance || 0);
         totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
       });
-      document.getElementById('repTotalRuns').textContent = records.length + ' 回';
+      
+      const startStr = document.getElementById('settleStartDate').value;
+      const endStr = document.getElementById('settleEndDate').value;
+      document.getElementById('reportPeriodText').textContent = (startStr && endStr) ? `${startStr} 〜 ${endStr}` : '全期間集計';
+
+      document.getElementById('repTotalRuns').textContent = targetRecords.length + ' 回';
       document.getElementById('repTotalKm').textContent = totalKm.toFixed(1) + ' km';
       document.getElementById('repTotalYen').textContent = totalYen.toLocaleString() + ' 円';
 
       const tbody = document.getElementById('annualReportTableBody');
-      tbody.innerHTML = records.map((r, i) => `
+      tbody.innerHTML = targetRecords.map((r, i) => `
         <tr class="hover:bg-slate-50">
           <td class="py-2 px-2 border border-slate-300 text-center font-bold">${i + 1}</td>
           <td class="py-2 px-2 border border-slate-300">${r.recordDate}</td>
