@@ -473,15 +473,14 @@
     }
 
     function initDefaultDateRange() {
+      // デフォルトは「今月」を設定
       const now = new Date();
       const y = now.getFullYear();
-      const m = now.getMonth() + 1;
-      const startYear = (m >= 4) ? y : y - 1;
-      
+      const m = now.getMonth();
       const startEl = document.getElementById('settleStartDate');
       const endEl = document.getElementById('settleEndDate');
-      if (startEl && !startEl.value) startEl.value = `${startYear}-04-01`;
-      if (endEl && !endEl.value) endEl.value = `${startYear + 1}-03-31`;
+      if (startEl && !startEl.value) startEl.value = new Date(y, m, 1).toISOString().split('T')[0];
+      if (endEl && !endEl.value) endEl.value = new Date(y, m + 1, 0).toISOString().split('T')[0];
     }
 
     function setSettleRange(type) {
@@ -496,19 +495,27 @@
       } else if (type === 'lastMonth') {
         start = new Date(y, m - 1, 1).toISOString().split('T')[0];
         end = new Date(y, m, 0).toISOString().split('T')[0];
-      } else if (type === 'fiscalYear') {
-        const fy = (m + 1 >= 4) ? y : y - 1;
-        start = `${fy}-04-01`;
-        end = `${fy + 1}-03-31`;
       } else if (type === 'all') {
-        start = '2025-04-01';
-        end = '2030-03-31';
+        start = '';
+        end = '';
       }
       document.getElementById('settleStartDate').value = start;
       document.getElementById('settleEndDate').value = end;
       renderFinanceSummary();
     }
 
+    // 全期間（空欄）のときのエッジケースを考慮したフィルター関数
+    function getFilteredRecords() {
+      const startStr = document.getElementById('settleStartDate').value;
+      const endStr = document.getElementById('settleEndDate').value;
+      if (!startStr || !endStr) return records;
+
+      return records.filter(r => {
+        if (!r.recordDate) return false;
+        const dPart = r.recordDate.split(' ')[0].replace(/\//g, '-');
+        return dPart >= startStr && dPart <= endStr;
+      });
+    }
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
 
