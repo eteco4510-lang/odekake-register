@@ -367,6 +367,7 @@
   </div>
 
   <!-- 3. 市提出用 実績報告書プレビュー用モーダル -->
+  <!-- 3. 市提出用 実績報告書プレビュー用モーダル (様式第1号正式フォーマット) -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
@@ -382,10 +383,14 @@
         </div>
       </div>
       
-      <div class="bg-white p-6 rounded-xl border border-slate-200 space-y-4 text-slate-900 text-xs">
+      <!-- 市提出用正式報告書レイアウト本体 (A4縦完結) -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 space-y-4 text-slate-900 text-xs" style="font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;">
         <div class="text-center space-y-1">
           <div class="text-[11px] font-semibold text-slate-600">様式第1号（関係機関提出用）</div>
-          <h2 class="text-lg font-black tracking-wider">おでかけサポート事業 運行活動実績報告書</h2>
+          <h2 class="text-lg font-black tracking-wider" style="font-family: 'Hiragino Kaku Gothic ProN', sans-serif;">
+            <span id="repTitleYearText">令和8</span>年度 地域おけかけサポート推進事業 事業活動実績報告書
+          </h2>
+          <p class="text-[10px] text-slate-500">（相模原市地域おけかけサポート推進事業費補助金 提出添付資料）</p>
         </div>
 
         <div class="flex justify-between items-end border-b border-slate-300 pb-2 pt-2 text-xs">
@@ -393,38 +398,39 @@
             <span class="text-slate-500">報告対象期間:</span> <strong id="reportPeriodText">全期間集計</strong>
           </div>
           <div class="text-right space-y-0.5">
-            <div>申請（報告）団体名: <span class="border-b border-slate-400 px-4 font-bold">おでかけサポート事務局</span></div>
-            <div>代表者氏名: <span class="border-b border-slate-400 px-6">        印</span></div>
+            <div>申請団体名: <span class="border-b border-slate-400 px-4 font-bold">おでかけサポート事務局</span></div>
+            <div>代表者氏名: <span class="border-b border-slate-400 px-6 font-bold">代表 相模 太郎 印</span></div>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 py-2 bg-slate-50 p-3 rounded-lg border border-slate-200 text-center font-bold">
-          <div>総運行回数: <span id="repTotalRuns" class="text-blue-700 font-black text-sm">0 回</span></div>
-          <div>総走行距離: <span id="repTotalKm" class="text-blue-700 font-black text-sm">0.0 km</span></div>
-          <div>実費弁償支給総額: <span id="repTotalYen" class="text-blue-700 font-black text-sm">0 円</span></div>
+        <!-- 補助金枠判定サマリーボックス -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2.5 bg-slate-50 p-3 rounded-lg border border-slate-200 text-center font-bold">
+          <div>総運行回数<br><span id="repSummaryTrips" class="text-slate-900 font-black text-sm">0 回</span></div>
+          <div>延べ乗車人数<br><span id="repSummaryPassengers" class="text-blue-700 font-black text-sm">0 人回</span></div>
+          <div>補助金上限区分<br><span id="repSummaryCap" class="text-slate-800 font-bold text-[11px]">300,000円枠</span></div>
+          <div>実費支給総額<br><span id="repSummaryExpense" class="text-blue-700 font-black text-sm">0 円</span></div>
         </div>
 
+        <!-- 月別実績テーブル (4月〜3月) -->
         <table class="w-full text-left text-xs border-collapse border border-slate-300">
           <thead>
-            <tr class="bg-slate-100 text-slate-800 font-bold">
-              <th class="py-2 px-2 border border-slate-300 text-center w-12">No.</th>
-              <th class="py-2 px-2 border border-slate-300">運行日時</th>
-              <th class="py-2 px-2 border border-slate-300 text-center">案件ID</th>
-              <th class="py-2 px-2 border border-slate-300">担当ドライバー名</th>
-              <th class="py-2 px-2 border border-slate-300">利用者名（同乗者）</th>
-              <th class="py-2 px-2 border border-slate-300 text-center">運行区分</th>
-              <th class="py-2 px-2 border border-slate-300 text-right">往復距離</th>
-              <th class="py-2 px-2 border border-slate-300 text-right">支給実費</th>
+            <tr class="bg-slate-100 text-slate-800 font-bold text-center">
+              <th class="py-2 px-1.5 border border-slate-300 w-12">月度</th>
+              <th class="py-2 px-2 border border-slate-300">運行回数</th>
+              <th class="py-2 px-2 border border-slate-300">延べ乗車人数</th>
+              <th class="py-2 px-2 border border-slate-300">実走距離</th>
+              <th class="py-2 px-2 border border-slate-300">実費弁償額</th>
+              <th class="py-2 px-2 border border-slate-300">主な目的地（通院・買物等）</th>
             </tr>
           </thead>
-          <tbody id="annualReportTableBody" class="divide-y divide-slate-200">
+          <tbody id="reportMonthlyTableBody" class="divide-y divide-slate-200">
             <!-- 動的挿入 -->
           </tbody>
         </table>
       </div>
     </div>
   </div>
-
+  
   <!-- スクリプト制御 -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
@@ -1069,42 +1075,94 @@
       refreshLucide();
     }
 
-    // 市提出用実績報告書印刷 (指定期間の対象レコードに基づく)
+    // 市提出用 事業活動実績報告書 印刷プレビュー (正式仕様)
     function printAnnualReport() {
-      const targetRecords = getFilteredRecords();
-      let totalKm = 0;
-      let totalYen = 0;
-      targetRecords.forEach(r => {
-        totalKm += Number(r.roundTripDistance || 0);
-        totalYen += Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
+      const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect") ? document.getElementById("reportFiscalYearSelect").value : "2026", 10) || 2026;
+      const reiwaYear = selectedYear - 2018;
+      document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
+
+      // 案件の目的地マップを作成
+      const questDestMap = {};
+      quests.forEach(q => {
+        if (q.id && q.dropoff) questDestMap[q.id] = q.dropoff;
       });
-      
-      const startStr = document.getElementById('settleStartDate').value;
-      const endStr = document.getElementById('settleEndDate').value;
-      document.getElementById('reportPeriodText').textContent = (startStr && endStr) ? `${startStr} 〜 ${endStr}` : '全期間集計';
 
-      document.getElementById('repTotalRuns').textContent = targetRecords.length + ' 回';
-      document.getElementById('repTotalKm').textContent = totalKm.toFixed(1) + ' km';
-      document.getElementById('repTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+      // 年度月配列 (4月〜翌3月)
+      const fyMonths = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
+      const monthlyData = {};
+      fyMonths.forEach(m => {
+        monthlyData[m] = { trips: 0, passengers: 0, distance: 0, expense: 0, destinations: [] };
+      });
 
-      const tbody = document.getElementById('annualReportTableBody');
-      tbody.innerHTML = targetRecords.map((r, i) => `
-        <tr class="hover:bg-slate-50">
-          <td class="py-2 px-2 border border-slate-300 text-center font-bold">${i + 1}</td>
-          <td class="py-2 px-2 border border-slate-300">${r.recordDate}</td>
-          <td class="py-2 px-2 border border-slate-300 text-center font-mono font-bold">#${r.questId || '----'}</td>
-          <td class="py-2 px-2 border border-slate-300 font-semibold">${r.driverName}</td>
-          <td class="py-2 px-2 border border-slate-300">${r.passengers}</td>
-          <td class="py-2 px-2 border border-slate-300 text-center">${r.tripType}</td>
-          <td class="py-2 px-2 border border-slate-300 text-right font-mono">${r.roundTripDistance} km</td>
-          <td class="py-2 px-2 border border-slate-300 text-right font-mono font-bold text-blue-700">${((r.fuelFee || 0) + (r.otherExpense || 0)).toLocaleString()} 円</td>
-        </tr>
-      `).join('');
+      let totalPassengersAnnual = 0, totalTripsAnnual = 0, totalDistanceAnnual = 0, totalExpenseAnnual = 0;
+
+      // 指定年度のレコードを集計
+      records.forEach(r => {
+        if (!r.recordDate) return;
+        const dPart = r.recordDate.split(' ')[0].replace(/\//g, '-');
+        const parts = dPart.split('-');
+        if (parts.length < 3) return;
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+
+        const recordFY = (m >= 4) ? y : y - 1;
+        if (recordFY !== selectedYear) return;
+
+        // 片道・往復に応じた乗車人数・距離の算出
+        const pCount = Number(r.passengers ? r.passengers.replace(/[^0-9]/g, '') : 1) || 1;
+        const dist = Number(r.roundTripDistance || 0);
+        const exp = Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
+
+        if (monthlyData[m]) {
+          monthlyData[m].trips += 1;
+          monthlyData[m].passengers += pCount;
+          monthlyData[m].distance += dist;
+          monthlyData[m].expense += exp;
+          if (r.questId && questDestMap[r.questId]) {
+            monthlyData[m].destinations.push(questDestMap[r.questId]);
+          }
+        }
+        totalPassengersAnnual += pCount;
+        totalTripsAnnual += 1;
+        totalDistanceAnnual += dist;
+        totalExpenseAnnual += exp;
+      });
+
+      // サマリーUIへの反映
+      document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString() + " 回";
+      document.getElementById("repSummaryPassengers").textContent = totalPassengersAnnual.toLocaleString() + " 人回";
+      document.getElementById("repSummaryExpense").textContent = totalExpenseAnnual.toLocaleString() + " 円";
+
+      // 補助金上限区分の自動判定 (引き継ぎ書に基づく基準)
+      let capText = "300,000円枠 (延べ100人まで)";
+      if (totalPassengersAnnual >= 301) capText = "500,000円枠 (延べ301人以上)";
+      else if (totalPassengersAnnual >= 101) capText = "400,000円枠 (延べ101〜300人)";
+      document.getElementById("repSummaryCap").textContent = capText;
+
+      document.getElementById("reportPeriodText").textContent = `令和${reiwaYear}年4月1日 〜 令和${reiwaYear + 1}年3月31日`;
+
+      // 月別テーブル行の生成
+      const tbody = document.getElementById("reportMonthlyTableBody");
+      tbody.innerHTML = fyMonths.map(m => {
+        const item = monthlyData[m];
+        const dests = [...new Set(item.destinations)];
+        let destText = dests.length > 0 ? (dests.slice(0, 2).join('、') + (dests.length > 2 ? ' 等' : '')) : (item.trips > 0 ? "通院・買物支援等" : "―");
+        
+        return `
+          <tr class="hover:bg-slate-50 text-center">
+            <td class="py-2 px-1.5 border border-slate-300 font-bold">${m}月</td>
+            <td class="py-2 px-2 border border-slate-300 font-mono">${item.trips} 回</td>
+            <td class="py-2 px-2 border border-slate-300 font-mono">${item.passengers} 人回</td>
+            <td class="py-2 px-2 border border-slate-300 font-mono text-right">${item.distance.toFixed(1)} km</td>
+            <td class="py-2 px-2 border border-slate-300 font-mono text-right font-bold text-blue-700">${item.expense.toLocaleString()} 円</td>
+            <td class="py-2 px-2 border border-slate-300 text-left text-slate-700 truncate max-w-[200px]">${destText}</td>
+          </tr>
+        `;
+      }).join('');
 
       document.getElementById('annualReportModal').classList.remove('hidden');
       refreshLucide();
     }
-
     document.getElementById('btnRefresh').addEventListener('click', () => fetchDashboardData(false));
     document.getElementById('btnOpenDriverRegister').addEventListener('click', openDriverRegisterModal);
 
