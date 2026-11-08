@@ -144,18 +144,18 @@
 
   <div class="space-y-4 text-base">
     <div class="grid grid-cols-1 gap-3">
-      <!-- 希望日 -->
+      <!-- 希望日（中央揃え） -->
       <div class="w-full">
         <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
         <input
           type="date"
           id="targetDate"
           required
-          class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 outline-none focus:border-blue-600 box-border block"
-          style="max-width: 100%;"
+          class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
+          style="max-width: 100%; text-align: center; text-align-last: center;"
         />
       </div>
-      <!-- 集合時間 -->
+      <!-- 集合時間（中央揃え） -->
       <div class="w-full">
         <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
         <input
@@ -163,18 +163,19 @@
           id="targetTime"
           value="09:00"
           required
-          class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 outline-none focus:border-blue-600 box-border block"
-          style="max-width: 100%;"
+          class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
+          style="max-width: 100%; text-align: center; text-align-last: center;"
         />
       </div>
     </div>
 
+    <!-- 片道・往復プルダウンも必要であれば中央揃え -->
     <div>
       <label class="block text-sm font-bold text-slate-800 mb-1.5">片道・往復</label>
       <select
         id="tripPlan"
-        class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600 box-border block"
-        style="max-width: 100%;"
+        class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
+        style="max-width: 100%; text-align-last: center;"
       >
         <option value="片道">片道</option>
         <option value="往復 待機:約15分">往復 待機:約15分</option>
