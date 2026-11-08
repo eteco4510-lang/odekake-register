@@ -48,40 +48,52 @@
   </div>
 
   <!-- スティッキーヘッダー -->
-    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
-      <div class="mx-auto flex max-w-xl items-center justify-between px-3 py-3 sm:px-6 gap-2">
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs flex-shrink-0">
-            <i data-lucide="car" class="h-5 w-5"></i>
-          </div>
-          <h1 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 whitespace-nowrap">運行掲示板</h1>
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 gap-2.5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs flex-shrink-0">
+          <i data-lucide="car" class="h-5 w-5"></i>
         </div>
-        
-        <div class="flex items-center gap-1.5 min-w-0 flex-shrink">
-          <div class="flex items-center gap-1 rounded-xl bg-slate-100 px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-900 border border-slate-200 min-w-0">
-            <i data-lucide="user-check" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
-            <span id="driverBadgeText" class="truncate">-- (ID:----)</span>
-          </div>
-          <button
-            type="button"
-            onclick="logoutDriver()"
-            class="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-50 whitespace-nowrap flex-shrink-0"
-            title="ログアウト"
-          >
-            解除
-          </button>
-        </div>
+        <h1 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 whitespace-nowrap">事務局管理コックピット</h1>
       </div>
-    </header>
+      
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" onclick="openDriverRegisterModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0">
+          <i data-lucide="user-plus" class="h-4 w-4"></i>
+          <span>ドライバー登録</span>
+        </button>
+        <button type="button" id="btnRefresh" onclick="fetchDashboardData(false)" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs flex-shrink-0">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          <span>最新情報に更新</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- メインタブバー (引き継ぎ書準拠の4タブ) -->
+    <div class="mx-auto max-w-6xl px-4 pb-3 flex items-center gap-2 overflow-x-auto border-t border-slate-100 pt-2.5">
+      <button type="button" class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0" data-tab="ops">
+        <i data-lucide="clipboard-list" class="h-4 w-4"></i><span>① 運行管理</span>
+      </button>
+      <button type="button" class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-tab="logs">
+        <i data-lucide="file-text" class="h-4 w-4"></i><span>② 活動記録ログ</span>
+      </button>
+      <button type="button" class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-tab="finance">
+        <i data-lucide="wallet" class="h-4 w-4"></i><span>③ 精算・受領書印刷</span>
+      </button>
+      <button type="button" class="main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0" data-tab="roster">
+        <i data-lucide="users" class="h-4 w-4"></i><span>④ マスタ・年間累計</span>
+      </button>
+    </div>
+  </header>
 
   <!-- メインコンテンツ領域 -->
   <main class="mx-auto max-w-6xl px-4 pt-4 sm:px-6 space-y-6">
 
-    <!-- ==================== タブ1: 運行・活動管理 ==================== -->
+    <!-- ==================== タブ1: 運行管理 ==================== -->
     <div id="tabContentOps" class="space-y-6">
       <!-- KPI サマリーカード -->
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs cursor-pointer hover:border-blue-400 transition" onclick="setOpsFilter('open')">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">募集中</span>
             <i data-lucide="users" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
@@ -89,7 +101,7 @@
           <div id="metricOpenCount" class="mt-2 text-2xl font-black text-slate-900">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">掲示板掲載中の全案件</div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs cursor-pointer hover:border-amber-400 transition" onclick="setOpsFilter('action_required')">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">要対応</span>
             <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-500 flex-shrink-0"></i>
@@ -97,7 +109,7 @@
           <div id="metricActionRequiredCount" class="mt-2 text-2xl font-black text-amber-600">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">至急打診・警告中案件</div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs cursor-pointer hover:border-emerald-400 transition" onclick="setOpsFilter('today')">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">本日の運行</span>
             <i data-lucide="car" class="h-4 w-4 text-emerald-600 flex-shrink-0"></i>
@@ -105,7 +117,7 @@
           <div id="metricTodayCount" class="mt-2 text-2xl font-black text-slate-900">0件</div>
           <div class="mt-1 text-[11px] text-slate-400">本日出動・運行完了</div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs cursor-pointer hover:border-rose-400 transition" onclick="setOpsFilter('unreported')">
           <div class="flex items-center justify-between text-slate-500">
             <span class="text-xs font-bold">実績未報告</span>
             <i data-lucide="clock" class="h-4 w-4 text-rose-500 flex-shrink-0"></i>
@@ -119,14 +131,6 @@
       <div id="skeletonLoader" class="space-y-3">
         <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
         <div class="h-24 rounded-2xl bg-slate-200 animate-pulse"></div>
-      </div>
-
-      <!-- サブタブ切り替え (運行予定 vs 活動ログ) -->
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div class="flex items-center gap-2 overflow-x-auto">
-          <button type="button" id="subTabOps" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('ops')">運行予定・アラート</button>
-          <button type="button" id="subTabLogs" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap" onclick="switchSubTab('logs')">活動記録ログ</button>
-        </div>
       </div>
 
       <!-- 検索・フィルターバー ＆ ソートボタン群 -->
@@ -159,38 +163,26 @@
       </div>
     </div>
 
-    <!-- ==================== タブ2: 名簿マスタ ==================== -->
-    <div id="tabContentRoster" class="space-y-6 hidden">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
-        <div class="flex items-center gap-2 overflow-x-auto">
-          <button type="button" id="subTabDrivers" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('drivers')">ドライバー名簿</button>
-          <button type="button" id="subTabUsers" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('users')">利用者名簿</button>
+    <!-- ==================== タブ2: 活動記録ログ ==================== -->
+    <div id="tabContentLogs" class="space-y-6 hidden">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">ドライバー活動記録ログ一覧</h2>
+            <p class="text-xs text-slate-500 mt-0.5">ドライバーが運行後に送信した実走距離・実費・乗車人数の実績ログを確認します。</p>
+          </div>
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-3 h-3.5 w-3.5 text-slate-400"></i>
+            <input type="text" id="logSearchInput" placeholder="案件番号、ドライバー名で検索..." oninput="renderLogsList()" class="h-9 rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs outline-none focus:border-blue-600" />
+          </div>
         </div>
-        <button type="button" onclick="openDriverRegisterModal()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs flex-shrink-0 whitespace-nowrap">
-          <i data-lucide="user-plus" class="h-4 w-4 flex-shrink-0"></i>
-          <span>新規ドライバー登録</span>
-        </button>
-      </div>
-
-      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
-        <div class="relative">
-          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
-          <input
-            type="text"
-            id="rosterSearchInput"
-            placeholder="名前、登録番号、電話番号で検索..."
-            oninput="renderRosterList()"
-            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
-          />
+        <div id="logsListContainer" class="space-y-3">
+          <!-- 動的描画 -->
         </div>
-      </div>
-
-      <div id="rosterListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <!-- 動的描画 -->
       </div>
     </div>
 
-    <!-- ==================== タブ3: 実費精算・受領書 ==================== -->
+    <!-- ==================== タブ3: 精算・受領書印刷 ==================== -->
     <div id="tabContentFinance" class="space-y-6 hidden">
       <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <!-- 期間指定コントロールバー -->
@@ -215,8 +207,8 @@
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4 pt-2">
           <div>
-            <h2 class="text-base font-bold text-slate-900">ドライバー別実費弁償集計 ＆ 受領書発行</h2>
-            <p class="text-xs text-slate-500 mt-0.5">指定期間内の各ドライバーの運行回数、走行距離、実費支給合計額の計算および受領書の発行を行います。</p>
+            <h2 class="text-base font-bold text-slate-900">ドライバー別実費弁償集計 ＆ 受領書・報告書発行</h2>
+            <p class="text-xs text-slate-500 mt-0.5">指定期間内の各ドライバーの運行回数、走行距離、実費支給合計額の計算およびA4受領書・行政報告書の出力を行います。</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <button type="button" onclick="printVouchers()" class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs flex-shrink-0 whitespace-nowrap">
@@ -262,6 +254,50 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ==================== タブ4: マスタ・年間累計 ==================== -->
+    <div id="tabContentRoster" class="space-y-6 hidden">
+      <!-- 補助金進捗メーター -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">相模原市補助金 上限・進捗メーター</h3>
+          <span id="subsidyCapBadge" class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 border border-blue-100">300,000円枠</span>
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-bold text-slate-600">
+            <span>年間延べ乗車人数: <strong id="annualPassengersCount" class="text-slate-900 text-sm">0 人回</strong></span>
+            <span id="subsidyLimitText" class="text-slate-500">上限: 100人まで (30万円)</span>
+          </div>
+          <div class="w-full h-3 rounded-full bg-slate-100 overflow-hidden">
+            <div id="subsidyProgressBar" class="h-full bg-blue-600 transition-all duration-500" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2 overflow-x-auto">
+          <button type="button" id="subTabDrivers" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('drivers')">ドライバー名簿</button>
+          <button type="button" id="subTabUsers" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap" onclick="switchRosterTab('users')">利用者名簿</button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
+          <input
+            type="text"
+            id="rosterSearchInput"
+            placeholder="名前、登録番号、電話番号で検索..."
+            oninput="renderRosterList()"
+            class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
+          />
+        </div>
+      </div>
+
+      <div id="rosterListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- 動的描画 -->
       </div>
     </div>
 
@@ -414,7 +450,7 @@
     let users = [];
     let preRegList = [];
     let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
-    let currentSubTabOps = 'ops';
+    let currentOpsFilter = 'open';
     let currentRosterTab = 'drivers';
 
     function refreshLucide() {
@@ -495,7 +531,6 @@
       );
 
       const controller = new AbortController();
-      // 万が一レスポンスがない場合に15秒でタイムアウトさせる安全設計
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
@@ -544,8 +579,10 @@
           initDefaultDateRange();
           updateMetricsUI();
           renderOpsList();
+          renderLogsList();
           renderRosterList();
           renderFinanceSummary();
+          updateSubsidyMeter();
           showToast("最新データを取得しました");
         } else {
           const errMsg = data ? data.message : "不明なレスポンス構造";
@@ -561,7 +598,6 @@
         }
         showToast("通信エラーが発生しました。コンソールをご確認ください。");
       } finally {
-        // どんな状況（成功・失敗・例外）であっても絶対にローディングを消す安全機構
         hideBlockingLoading();
         if (skeleton) skeleton.classList.add("hidden");
       }
@@ -574,17 +610,15 @@
       document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount + "件";
     }
 
-    function switchSubTab(type) {
-      currentSubTabOps = type;
-      const btnOps = document.getElementById('subTabOps');
-      const btnLogs = document.getElementById('subTabLogs');
-      if (type === 'ops') {
-        if (btnOps) btnOps.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
-        if (btnLogs) btnLogs.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
-      } else {
-        if (btnLogs) btnLogs.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
-        if (btnOps) btnOps.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
-      }
+    function setOpsFilter(filterType) {
+      currentOpsFilter = filterType;
+      document.querySelectorAll('.ops-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-filter') === filterType) {
+          btn.className = "ops-filter-btn rounded-xl px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0";
+        } else {
+          btn.className = "ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0";
+        }
+      });
       renderOpsList();
     }
 
@@ -593,45 +627,18 @@
       const empty = document.getElementById("emptyState");
       const search = document.getElementById("searchInput").value.toLowerCase();
 
-      if (currentSubTabOps === 'logs') {
-        let logs = getFilteredRecords();
-        if (search) {
-          logs = logs.filter(l => 
-            (l.questId && l.questId.toLowerCase().includes(search)) ||
-            (l.driverName && l.driverName.toLowerCase().includes(search)) ||
-            (l.passengers && l.passengers.toLowerCase().includes(search))
-          );
-        }
-        if (logs.length === 0) {
-          container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">指定期間内の活動記録ログがありません</div>`;
-          empty.classList.add("hidden");
-          return;
-        }
-        empty.classList.add("hidden");
-        container.innerHTML = logs.map(l => `
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
-                <span class="text-xs font-bold text-slate-800">${l.recordDate}</span>
-              </div>
-              <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">${l.tripType}</span>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 text-slate-600">
-              <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName}</strong> (#${l.driverId})</div>
-              <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers}</strong></div>
-              <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance} km</strong></div>
-              <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${((l.fuelFee || 0) + (l.otherExpense || 0)).toLocaleString()} 円</strong></div>
-            </div>
-          </div>
-        `).join('');
-        refreshLucide();
-        return;
-      }
+      let filtered = quests.filter(q => {
+        const status = q.status || '';
+        if (currentOpsFilter === 'open') return status === '募集中';
+        if (currentOpsFilter === 'action_required') return status === '募集中' && (q.isUrgent || q.isWarning);
+        if (currentOpsFilter === 'today') return status === '受注済' || status === '運行完了';
+        if (currentOpsFilter === 'unreported') return status === '運行完了' && !q.hasReported;
+        if (currentOpsFilter === 'unestablished') return status === 'マッチング不成立';
+        return true;
+      });
 
-      let filtered = quests;
       if (search) {
-        filtered = quests.filter(q => 
+        filtered = filtered.filter(q => 
           q.id.toLowerCase().includes(search) ||
           q.userName.toLowerCase().includes(search) ||
           q.pickup.toLowerCase().includes(search) ||
@@ -650,11 +657,53 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
           <div class="flex justify-between font-bold text-sm">
             <span>#${q.id} [${q.status}]</span>
-            <span>${q.targetDate} ${q.targetTime}</span>
+            <span>${q.targetDate || ''} ${q.targetTime || ''}</span>
           </div>
           <div class="text-xs text-slate-600">
-            <div>📍 ${q.pickup} ➔ ${q.dropoff}</div>
-            <div>👤 利用者: ${q.userName} 様 | 担当: ${q.driverName || '未定'}</div>
+            <div>📍 ${q.pickup || ''} ➔ ${q.dropoff || ''}</div>
+            <div>👤 利用者: ${q.userName || ''} 様 | 担当: ${q.driverName || '未定'}</div>
+          </div>
+        </div>
+      `).join('');
+      refreshLucide();
+    }
+
+    function renderLogsList() {
+      const container = document.getElementById("logsListContainer");
+      const search = document.getElementById("logSearchInput") ? document.getElementById("logSearchInput").value.toLowerCase() : "";
+      if (!container) return;
+
+      let logs = records;
+      if (search) {
+        logs = logs.filter(l => 
+          (l.questId && l.questId.toLowerCase().includes(search)) ||
+          (l.driverName && l.driverName.toLowerCase().includes(search)) ||
+          (l.passengers && l.passengers.toLowerCase().includes(search))
+        );
+      }
+
+      if (logs.length === 0) {
+        container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">活動記録ログがありません</div>`;
+        return;
+      }
+
+      container.innerHTML = logs.map(l => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
+              <span class="text-xs font-bold text-slate-800">${l.recordDate || ''}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              ${(Number(l.otherExpense || 0) > 0) ? '<span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">要レシート照合</span>' : ''}
+              <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">${l.tripType || '往復'}</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 text-slate-600">
+            <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName || ''}</strong> (#${l.driverId || ''})</div>
+            <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers || ''}</strong></div>
+            <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance || 0} km</strong></div>
+            <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${((Number(l.fuelFee || 0)) + Number(l.otherExpense || 0)).toLocaleString()} 円</strong></div>
           </div>
         </div>
       `).join('');
@@ -683,7 +732,7 @@
 
       if (currentRosterTab === 'drivers') {
         let list = drivers;
-        if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || d.id.includes(search) || d.phone.includes(search));
+        if (search) list = list.filter(d => (d.name && d.name.toLowerCase().includes(search)) || (d.id && d.id.includes(search)) || (d.phone && d.phone.includes(search)));
         if (list.length === 0) {
           container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録ドライバーがいません</div>`;
           return;
@@ -708,7 +757,7 @@
         `).join('');
       } else {
         let list = users;
-        if (search) list = list.filter(u => u.name.toLowerCase().includes(search) || u.id.includes(search) || u.phone.includes(search));
+        if (search) list = list.filter(u => (u.name && u.name.toLowerCase().includes(search)) || (u.id && u.id.includes(search)) || (u.phone && u.phone.includes(search)));
         if (list.length === 0) {
           container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録利用者がいません</div>`;
           return;
@@ -720,7 +769,7 @@
                 <span class="font-mono text-xs font-bold text-slate-500">#${u.id}</span>
                 <span class="text-sm font-black text-slate-900">${u.name} 様</span>
               </div>
-              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-100">${u.userType}</span>
+              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-100">${u.userType || '本人申請'}</span>
             </div>
             <div class="text-xs text-slate-600 space-y-1 pt-1">
               <div>📞 電話: <a href="tel:${u.phone}" class="font-bold text-blue-600">${u.phone}</a></div>
@@ -730,6 +779,39 @@
         `).join('');
       }
       refreshLucide();
+    }
+
+    function updateSubsidyMeter() {
+      let totalPassengers = 0;
+      records.forEach(r => {
+        const pCount = Number(r.passengers ? r.passengers.replace(/[^0-9]/g, '') : 1) || 1;
+        totalPassengers += pCount;
+      });
+
+      const countEl = document.getElementById("annualPassengersCount");
+      const badgeEl = document.getElementById("subsidyCapBadge");
+      const limitEl = document.getElementById("subsidyLimitText");
+      const barEl = document.getElementById("subsidyProgressBar");
+
+      if (countEl) countEl.textContent = totalPassengers.toLocaleString() + " 人回";
+
+      let capText = "300,000円枠";
+      let limitDesc = "上限: 100人まで (30万円)";
+      let percent = Math.min(100, (totalPassengers / 100) * 100);
+
+      if (totalPassengers >= 301) {
+        capText = "500,000円枠";
+        limitDesc = "上限: 301人以上 (50万円)";
+        percent = 100;
+      } else if (totalPassengers >= 101) {
+        capText = "400,000円枠";
+        limitDesc = "上限: 101〜300人 (40万円)";
+        percent = Math.min(100, ((totalPassengers - 100) / 200) * 100);
+      }
+
+      if (badgeEl) badgeEl.textContent = capText;
+      if (limitEl) limitEl.textContent = limitDesc;
+      if (barEl) barEl.style.width = percent + "%";
     }
 
     function renderFinanceSummary() {
@@ -1026,7 +1108,7 @@
     }
 
     function printAnnualReport() {
-      const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect") ? document.getElementById("reportFiscalYearSelect").value : "2026", 10) || 2026;
+      const selectedYear = 2026;
       const reiwaYear = selectedYear - 2018;
       document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
 
@@ -1102,10 +1184,12 @@
         `;
       }).join('');
 
+      document.getElementById('annualReportModal').classList.add('hidden'); // bug fix: remove hidden
       document.getElementById('annualReportModal').classList.remove('hidden');
       refreshLucide();
     }
 
+    // タブ切替イベントリスナー (引き継ぎ書準拠の4タブ対応)
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.main-tab-btn').forEach(b => {
@@ -1115,17 +1199,23 @@
 
         const tab = btn.getAttribute('data-tab');
         document.getElementById('tabContentOps').classList.add('hidden');
-        document.getElementById('tabContentRoster').classList.add('hidden');
+        document.getElementById('tabContentLogs').classList.add('hidden');
         document.getElementById('tabContentFinance').classList.add('hidden');
+        document.getElementById('tabContentRoster').classList.add('hidden');
 
         if (tab === 'ops') document.getElementById('tabContentOps').classList.remove('hidden');
-        if (tab === 'roster') {
-          document.getElementById('tabContentRoster').classList.remove('hidden');
-          renderRosterList();
+        if (tab === 'logs') {
+          document.getElementById('tabContentLogs').classList.remove('hidden');
+          renderLogsList();
         }
         if (tab === 'finance') {
           document.getElementById('tabContentFinance').classList.remove('hidden');
           renderFinanceSummary();
+        }
+        if (tab === 'roster') {
+          document.getElementById('tabContentRoster').classList.remove('hidden');
+          updateSubsidyMeter();
+          renderRosterList();
         }
         refreshLucide();
       });
