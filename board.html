@@ -450,11 +450,11 @@
               <strong class="text-slate-900 text-right">${escapeHtml(q.passengers)}</strong>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-bold whitespace-nowrap">利用プラン:</span>
+              <span class="text-slate-500 font-bold whitespace-nowrap">片道•往復:</span>
               <strong class="text-slate-900 text-right">${escapeHtml(q.tripPlan)}</strong>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-bold whitespace-nowrap">ご依頼主:</span>
+              <span class="text-slate-500 font-bold whitespace-nowrap">依頼者名:</span>
               <strong class="text-slate-900 text-right truncate max-w-[180px]">${escapeHtml(q.userNameMasked)}</strong>
             </div>
             ${q.note ? `<div class="pt-2 text-slate-600 border-t border-slate-200 leading-snug break-words">備考: ${escapeHtml(q.note)}</div>` : ''}
@@ -464,7 +464,7 @@
             ${navUrl ? `
               <a href="${escapeHtml(navUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-4 text-base font-bold text-slate-800 hover:bg-slate-50 shadow-2xs whitespace-nowrap flex-shrink-0">
                 <i data-lucide="navigation" class="h-5 w-5 text-blue-600 flex-shrink-0"></i>
-                <span>地図ルート</span>
+                <span>目安ルート</span>
               </a>
             ` : ''}
             <button
