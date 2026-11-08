@@ -20,7 +20,7 @@
     *, ::before, ::after { box-sizing: border-box !important; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-32 text-lg">
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased pb-32 text-lg overflow-x-hidden">
 
   <!-- 操作ロック・ローディング用オーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
@@ -40,7 +40,7 @@
       <h3 id="dialogTitle" class="text-xl font-black text-slate-900">確認</h3>
       <p id="dialogMessage" class="text-base text-slate-700 leading-relaxed">メッセージ</p>
       <div id="dialogButtons" class="pt-2 flex items-center justify-center gap-2">
-        <button type="button" id="dialogBtnOk" class="w-full rounded-xl bg-blue-600 py-3.5 text-base font-bold text-white shadow-xs hover:bg-blue-700">OK</button>
+        <button type="button" id="dialogBtnOk" class="w-full rounded-2xl bg-blue-600 py-3.5 text-base font-bold text-white shadow-xs hover:bg-blue-700">OK</button>
       </div>
     </div>
   </div>
@@ -115,9 +115,9 @@
         </div>
         
         <div class="flex items-center gap-2 flex-shrink-0">
-          <div class="flex items-center gap-1.5 rounded-xl bg-slate-100 px-3.5 py-2 text-base font-bold text-slate-900 border border-slate-200">
+          <div class="flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-sm sm:text-base font-bold text-slate-900 border border-slate-200">
             <i data-lucide="user-check" class="h-5 w-5 text-blue-600 flex-shrink-0"></i>
-            <span id="driverBadgeText" class="truncate max-w-[140px] sm:max-w-xs">-- (ID:----)</span>
+            <span id="driverBadgeText" class="truncate max-w-[110px] sm:max-w-xs">-- (ID:----)</span>
           </div>
           <button
             type="button"
@@ -425,14 +425,14 @@
         }
 
         card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-base font-bold text-slate-500">#${escapeHtml(q.id)}</span>
-            <span class="rounded-full bg-blue-50 px-3.5 py-1.5 text-base font-extrabold text-blue-900 border border-blue-100">${escapeHtml(q.dateText)}</span>
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-mono text-base font-bold text-slate-500 whitespace-nowrap">#${escapeHtml(q.id)}</span>
+            <span class="rounded-full bg-blue-50 px-3.5 py-1.5 text-sm sm:text-base font-extrabold text-blue-900 border border-blue-100 text-right truncate">${escapeHtml(q.dateText)}</span>
           </div>
 
           <div class="space-y-1 pt-1">
             <div class="text-sm font-bold text-slate-500">出発地</div>
-            <div class="text-lg font-black text-slate-900">${escapeHtml(cleanPickup)}</div>
+            <div class="text-lg font-black text-slate-900 leading-snug break-words">${escapeHtml(cleanPickup)}</div>
           </div>
 
           <div class="flex justify-center py-0.5 text-slate-400">
@@ -441,38 +441,38 @@
 
           <div class="space-y-1">
             <div class="text-sm font-bold text-slate-500">行き先</div>
-            <div class="text-lg font-black text-blue-700">${escapeHtml(cleanDropoff)}</div>
+            <div class="text-lg font-black text-blue-700 leading-snug break-words">${escapeHtml(cleanDropoff)}</div>
           </div>
 
-          <div class="rounded-2xl bg-slate-50 p-4 text-base space-y-2 border border-slate-200 text-slate-800 font-medium">
-            <div class="flex justify-between">
-              <span class="text-slate-500 font-bold">乗車人数:</span>
-              <strong class="text-slate-900">${escapeHtml(q.passengers)}</strong>
+          <div class="rounded-2xl bg-slate-50 p-4 text-base space-y-2.5 border border-slate-200 text-slate-800 font-medium">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500 font-bold whitespace-nowrap">乗車人数:</span>
+              <strong class="text-slate-900 text-right">${escapeHtml(q.passengers)}</strong>
             </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500 font-bold">利用プラン:</span>
-              <strong class="text-slate-900">${escapeHtml(q.tripPlan)}</strong>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500 font-bold whitespace-nowrap">利用プラン:</span>
+              <strong class="text-slate-900 text-right">${escapeHtml(q.tripPlan)}</strong>
             </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500 font-bold">ご依頼主:</span>
-              <strong class="text-slate-900">${escapeHtml(q.userNameMasked)}</strong>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500 font-bold whitespace-nowrap">ご依頼主:</span>
+              <strong class="text-slate-900 text-right truncate max-w-[180px]">${escapeHtml(q.userNameMasked)}</strong>
             </div>
-            ${q.note ? `<div class="pt-1 text-slate-600 border-t border-slate-200">備考: ${escapeHtml(q.note)}</div>` : ''}
+            ${q.note ? `<div class="pt-2 text-slate-600 border-t border-slate-200 leading-snug break-words">備考: ${escapeHtml(q.note)}</div>` : ''}
           </div>
 
-          <div class="flex items-center gap-3 pt-2">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
             ${navUrl ? `
-              <a href="${escapeHtml(navUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-4 text-base font-bold text-slate-800 hover:bg-slate-50 shadow-2xs">
-                <i data-lucide="navigation" class="h-5 w-5 text-blue-600"></i>
+              <a href="${escapeHtml(navUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-5 py-4 text-base font-bold text-slate-800 hover:bg-slate-50 shadow-2xs whitespace-nowrap flex-shrink-0">
+                <i data-lucide="navigation" class="h-5 w-5 text-blue-600 flex-shrink-0"></i>
                 <span>地図ルート</span>
               </a>
             ` : ''}
             <button
               type="button"
-              class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl bg-blue-600 py-4 text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-95 transition"
+              class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl bg-blue-600 py-4 text-base sm:text-lg font-black text-white shadow-md hover:bg-blue-700 active:scale-95 transition whitespace-nowrap flex-shrink-0"
               onclick="acceptQuest('${escapeHtml(q.id)}')"
             >
-              <i data-lucide="check" class="h-6 w-6"></i>
+              <i data-lucide="check" class="h-6 w-6 flex-shrink-0"></i>
               <span>この案件を受託する</span>
             </button>
           </div>
