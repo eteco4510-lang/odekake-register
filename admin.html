@@ -40,12 +40,12 @@
 
   <!-- 全画面操作ロック用ローディングオーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs" style="display: flex;">
-  <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
-    <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
-    <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">データを取得中</div>
-    <div class="mt-1 text-xs text-slate-500" id="blockingDesc">最新の運行・名簿情報を読み込んでいます<br>少々お待ちください</div>
+    <div class="w-full max-w-xs rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl text-center">
+      <i data-lucide="loader-2" class="h-9 w-9 animate-spin text-blue-600 mx-auto"></i>
+      <div class="mt-3 text-sm font-bold text-slate-900" id="blockingTitle">データを取得中</div>
+      <div class="mt-1 text-xs text-slate-500" id="blockingDesc">最新の運行・名簿情報を読み込んでいます<br>少々お待ちください</div>
+    </div>
   </div>
-</div>
 
   <!-- スティッキーヘッダー -->
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
@@ -141,7 +141,6 @@
             class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
           />
         </div>
-        <!-- ご指定の5つのソート・フィルターボタン -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1">
           <button type="button" class="ops-filter-btn rounded-xl px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0" data-filter="open" onclick="setOpsFilter('open')">募集中</button>
           <button type="button" class="ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0" data-filter="action_required" onclick="setOpsFilter('action_required')">要対応</button>
@@ -316,7 +315,7 @@
     </div>
   </div>
 
-  <!-- 2. A4受領書 印刷プレビュー用モーダル (ドライバー受領書フォーマット + 末尾に金種別集計表) -->
+  <!-- 2. A4受領書 印刷プレビュー用モーダル -->
   <div id="printPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
@@ -336,7 +335,6 @@
   </div>
 
   <!-- 3. 市提出用 実績報告書プレビュー用モーダル -->
-  <!-- 3. 市提出用 実績報告書プレビュー用モーダル (様式第1号正式フォーマット) -->
   <div id="annualReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
       <div class="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
@@ -407,33 +405,380 @@
   </div>
   
   <!-- スクリプト制御 -->
-    // タブ切替
-    document.querySelectorAll('.main-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.main-tab-btn').forEach(b => {
-          b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0";
-        });
-        btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0";
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
 
-        const tab = btn.getAttribute('data-tab');
-        document.getElementById('tabContentOps').classList.add('hidden');
-        document.getElementById('tabContentRoster').classList.add('hidden');
-        document.getElementById('tabContentFinance').classList.add('hidden');
+    let quests = [];
+    let records = [];
+    let drivers = [];
+    let users = [];
+    let preRegList = [];
+    let metrics = { actionRequiredCount: 0, unreportedCount: 0, todayRunningCount: 0, openCount: 0 };
+    let currentSubTabOps = 'ops';
+    let currentRosterTab = 'drivers';
 
-        if (tab === 'ops') document.getElementById('tabContentOps').classList.remove('hidden');
-        if (tab === 'roster') {
-          document.getElementById('tabContentRoster').classList.remove('hidden');
-          renderRosterList();
-        }
-        if (tab === 'finance') {
-          document.getElementById('tabContentFinance').classList.remove('hidden');
-          renderFinanceSummary();
-        }
+    function refreshLucide() {
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showBlockingLoading(title, desc) {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) {
+        document.getElementById('blockingTitle').textContent = title;
+        document.getElementById('blockingDesc').innerHTML = desc;
+        overlay.style.display = 'flex';
         refreshLucide();
-      });
-    });
+      }
+    }
 
-    // ドライバー対面登録関連 (事前登録参照付き)
+    function hideBlockingLoading() {
+      const overlay = document.getElementById('blockingOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+
+    function showToast(msg) {
+      console.log("Toast:", msg);
+    }
+
+    function initDefaultDateRange() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      const startEl = document.getElementById('settleStartDate');
+      const endEl = document.getElementById('settleEndDate');
+      if (startEl && !startEl.value) startEl.value = new Date(y, m, 1).toISOString().split('T')[0];
+      if (endEl && !endEl.value) endEl.value = new Date(y, m + 1, 0).toISOString().split('T')[0];
+    }
+
+    function setSettleRange(type) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      let start = '', end = '';
+
+      if (type === 'currentMonth') {
+        start = new Date(y, m, 1).toISOString().split('T')[0];
+        end = new Date(y, m + 1, 0).toISOString().split('T')[0];
+      } else if (type === 'lastMonth') {
+        start = new Date(y, m - 1, 1).toISOString().split('T')[0];
+        end = new Date(y, m, 0).toISOString().split('T')[0];
+      } else if (type === 'all') {
+        start = '';
+        end = '';
+      }
+      document.getElementById('settleStartDate').value = start;
+      document.getElementById('settleEndDate').value = end;
+      renderFinanceSummary();
+    }
+
+    function getFilteredRecords() {
+      const startStr = document.getElementById('settleStartDate').value;
+      const endStr = document.getElementById('settleEndDate').value;
+      if (!startStr || !endStr) return records;
+
+      return records.filter(r => {
+        if (!r.recordDate) return false;
+        const dPart = r.recordDate.split(' ')[0].replace(/\//g, '-');
+        return dPart >= startStr && dPart <= endStr;
+      });
+    }
+
+    // ==========================================
+    // 🛡️ 安全対策強化版データ取得関数
+    // ==========================================
+    async function fetchDashboardData(isRetry = false) {
+      const skeleton = document.getElementById("skeletonLoader");
+
+      showBlockingLoading(
+        isRetry ? 'データを再取得中' : 'データを取得中',
+        isRetry ? '接続を再試行しています<br>少々お待ちください' : '最新の運行・名簿情報を読み込んでいます<br>少々お待ちください'
+      );
+
+      const controller = new AbortController();
+      // 万が一レスポンスがない場合に15秒でタイムアウトさせる安全設計
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const cacheBuster = `&_t=${Date.now()}`;
+        const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        const textRes = await res.text();
+        let data;
+        try {
+          data = JSON.parse(textRes);
+        } catch (parseErr) {
+          throw new Error("サーバーからJSON以外の無効な応答が返されました: " + textRes.substring(0, 100));
+        }
+
+        if (data && data.success) {
+          quests = data.quests || [];
+          records = data.records || [];
+          drivers = data.drivers || [];
+          users = data.users || [];
+
+          if (data.metrics) {
+            metrics = {
+              actionRequiredCount: data.metrics.actionRequiredCount || 0,
+              unreportedCount: data.metrics.unreportedCount || 0,
+              todayRunningCount: data.metrics.todayRunningCount || 0,
+              openCount: data.metrics.openCount || 0
+            };
+          }
+
+          try {
+            const preRes = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`);
+            const preData = await preRes.json();
+            if (preData && preData.success) {
+              preRegList = preData.preRegistrations || [];
+              if (preData.nextDriverId) {
+                document.getElementById('regDriverId').value = preData.nextDriverId;
+              }
+            }
+          } catch (e) {
+            console.warn("事前登録データの取得に失敗しました:", e);
+          }
+
+          initDefaultDateRange();
+          updateMetricsUI();
+          renderOpsList();
+          renderRosterList();
+          renderFinanceSummary();
+          showToast("最新データを取得しました");
+        } else {
+          const errMsg = data ? data.message : "不明なレスポンス構造";
+          console.error("API取得エラー:", errMsg);
+          showToast("取得エラー: " + errMsg);
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        console.error("通信・処理例外エラー:", err);
+        if (!isRetry) {
+          console.log("接続を再試行します...");
+          return await fetchDashboardData(true);
+        }
+        showToast("通信エラーが発生しました。コンソールをご確認ください。");
+      } finally {
+        // どんな状況（成功・失敗・例外）であっても絶対にローディングを消す安全機構
+        hideBlockingLoading();
+        if (skeleton) skeleton.classList.add("hidden");
+      }
+    }
+
+    function updateMetricsUI() {
+      document.getElementById("metricOpenCount").textContent = metrics.openCount + "件";
+      document.getElementById("metricActionRequiredCount").textContent = metrics.actionRequiredCount + "件";
+      document.getElementById("metricTodayCount").textContent = metrics.todayRunningCount + "件";
+      document.getElementById("metricUnreportedCount").textContent = metrics.unreportedCount + "件";
+    }
+
+    function switchSubTab(type) {
+      currentSubTabOps = type;
+      const btnOps = document.getElementById('subTabOps');
+      const btnLogs = document.getElementById('subTabLogs');
+      if (type === 'ops') {
+        if (btnOps) btnOps.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnLogs) btnLogs.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      } else {
+        if (btnLogs) btnLogs.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnOps) btnOps.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      }
+      renderOpsList();
+    }
+
+    function renderOpsList() {
+      const container = document.getElementById("questListContainer");
+      const empty = document.getElementById("emptyState");
+      const search = document.getElementById("searchInput").value.toLowerCase();
+
+      if (currentSubTabOps === 'logs') {
+        let logs = getFilteredRecords();
+        if (search) {
+          logs = logs.filter(l => 
+            (l.questId && l.questId.toLowerCase().includes(search)) ||
+            (l.driverName && l.driverName.toLowerCase().includes(search)) ||
+            (l.passengers && l.passengers.toLowerCase().includes(search))
+          );
+        }
+        if (logs.length === 0) {
+          container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">指定期間内の活動記録ログがありません</div>`;
+          empty.classList.add("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+        container.innerHTML = logs.map(l => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
+                <span class="text-xs font-bold text-slate-800">${l.recordDate}</span>
+              </div>
+              <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">${l.tripType}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 text-slate-600">
+              <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName}</strong> (#${l.driverId})</div>
+              <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers}</strong></div>
+              <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance} km</strong></div>
+              <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${((l.fuelFee || 0) + (l.otherExpense || 0)).toLocaleString()} 円</strong></div>
+            </div>
+          </div>
+        `).join('');
+        refreshLucide();
+        return;
+      }
+
+      let filtered = quests;
+      if (search) {
+        filtered = quests.filter(q => 
+          q.id.toLowerCase().includes(search) ||
+          q.userName.toLowerCase().includes(search) ||
+          q.pickup.toLowerCase().includes(search) ||
+          q.dropoff.toLowerCase().includes(search) ||
+          (q.driverName && q.driverName.toLowerCase().includes(search))
+        );
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = "";
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      container.innerHTML = filtered.map(q => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+          <div class="flex justify-between font-bold text-sm">
+            <span>#${q.id} [${q.status}]</span>
+            <span>${q.targetDate} ${q.targetTime}</span>
+          </div>
+          <div class="text-xs text-slate-600">
+            <div>📍 ${q.pickup} ➔ ${q.dropoff}</div>
+            <div>👤 利用者: ${q.userName} 様 | 担当: ${q.driverName || '未定'}</div>
+          </div>
+        </div>
+      `).join('');
+      refreshLucide();
+    }
+
+    function switchRosterTab(tab) {
+      currentRosterTab = tab;
+      const btnDrivers = document.getElementById('subTabDrivers');
+      const btnUsers = document.getElementById('subTabUsers');
+
+      if (tab === 'drivers') {
+        if (btnDrivers) btnDrivers.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnUsers) btnUsers.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      } else {
+        if (btnUsers) btnUsers.className = "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs flex-shrink-0 whitespace-nowrap";
+        if (btnDrivers) btnDrivers.className = "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 flex-shrink-0 whitespace-nowrap";
+      }
+      renderRosterList();
+    }
+
+    function renderRosterList() {
+      const container = document.getElementById("rosterListContainer");
+      const search = document.getElementById("rosterSearchInput") ? document.getElementById("rosterSearchInput").value.toLowerCase() : "";
+      if (!container) return;
+
+      if (currentRosterTab === 'drivers') {
+        let list = drivers;
+        if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || d.id.includes(search) || d.phone.includes(search));
+        if (list.length === 0) {
+          container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録ドライバーがいません</div>`;
+          return;
+        }
+        container.innerHTML = list.map(d => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-slate-500">#${d.id}</span>
+                <span class="text-sm font-black text-slate-900">${d.name} 様</span>
+              </div>
+              <span class="rounded-full px-2 py-0.5 text-[11px] font-bold ${d.hasLine ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+                ${d.hasLine ? '✓ LINE連携済' : 'LINE未連携'}
+              </span>
+            </div>
+            <div class="text-xs text-slate-600 space-y-1 pt-1">
+              <div>📞 電話: <a href="tel:${d.phone}" class="font-bold text-blue-600">${d.phone}</a></div>
+              <div>🏠 住所: ${d.address || '未登録'}</div>
+              <div>🚗 備考: ${d.note || 'なし'}</div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        let list = users;
+        if (search) list = list.filter(u => u.name.toLowerCase().includes(search) || u.id.includes(search) || u.phone.includes(search));
+        if (list.length === 0) {
+          container.innerHTML = `<div class="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">登録利用者がいません</div>`;
+          return;
+        }
+        container.innerHTML = list.map(u => `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-slate-500">#${u.id}</span>
+                <span class="text-sm font-black text-slate-900">${u.name} 様</span>
+              </div>
+              <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-100">${u.userType}</span>
+            </div>
+            <div class="text-xs text-slate-600 space-y-1 pt-1">
+              <div>📞 電話: <a href="tel:${u.phone}" class="font-bold text-blue-600">${u.phone}</a></div>
+              <div>🏠 住所: ${u.address || '未登録'}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      refreshLucide();
+    }
+
+    function renderFinanceSummary() {
+      const targetRecords = getFilteredRecords();
+      let totalRuns = targetRecords.length;
+      let totalKm = 0;
+      let totalYen = 0;
+
+      const driverMap = {};
+      targetRecords.forEach(r => {
+        const dId = r.driverId || 'UNKNOWN';
+        const dName = r.driverName || '不明ドライバー';
+        if (!driverMap[dId]) {
+          driverMap[dId] = { id: dId, name: dName, trips: 0, distance: 0, totalAmt: 0 };
+        }
+        driverMap[dId].trips += 1;
+        driverMap[dId].distance += Number(r.roundTripDistance || 0);
+        driverMap[dId].totalAmt += (Number(r.fuelFee || 0) + Number(r.otherExpense || 0));
+
+        totalKm += Number(r.roundTripDistance || 0);
+        totalYen += (Number(r.fuelFee || 0) + Number(r.otherExpense || 0));
+      });
+
+      document.getElementById('finTotalRuns').textContent = totalRuns + ' 回';
+      document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
+      document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+
+      const tbody = document.getElementById('financeTableBody');
+      if (!tbody) return;
+      const driverKeys = Object.keys(driverMap);
+      if (driverKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">指定期間内の実費精算対象データはありません</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = driverKeys.map(k => {
+        const d = driverMap[k];
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-3 font-mono font-bold">#${d.id}</td>
+            <td class="py-3 px-3 font-bold text-slate-900">${d.name} 様</td>
+            <td class="py-3 px-3 text-right font-mono">${d.trips} 回</td>
+            <td class="py-3 px-3 text-right font-mono">${d.distance.toFixed(1)} km</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-blue-600">${d.totalAmt.toLocaleString()} 円</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
     function openDriverRegisterModal() {
       const sel = document.getElementById('preRegSelect');
       if (sel) {
@@ -480,20 +825,20 @@
         });
         const data = await res.json();
         hideBlockingLoading();
-        if (data.success) {
+        if (data && data.success) {
           alert('正式ドライバーとして登録しました！');
           closeDriverRegisterModal();
           fetchDashboardData(false);
         } else {
-          alert('登録失敗: ' + data.message);
+          alert('登録失敗: ' + (data ? data.message : '不明なエラー'));
         }
       } catch (e) {
         hideBlockingLoading();
+        console.error("ドライバー登録通信エラー:", e);
         alert('通信エラー: ' + e.message);
       }
     }
 
-    // 金種別内訳計算用ヘルパー
     function getEnvelopeBreakdown(amount) {
       let rem = amount;
       const b = { 10000: 0, 5000: 0, 1000: 0, 500: 0, 100: 0, 50: 0, 10: 0 };
@@ -516,7 +861,6 @@
       return parts.length > 0 ? parts.join(' / ') : 'なし';
     }
 
-    // 正式版受領書印刷（指定期間のドライバー別集計に基づき、ドライバーが受け取った証明としての自署受領書を生成。末尾に銀行両替用金種別集計表を添付）
     function printVouchers() {
       const targetRecords = getFilteredRecords();
       if (targetRecords.length === 0) {
@@ -528,7 +872,6 @@
       const endStr = document.getElementById('settleEndDate').value;
       const periodText = (startStr && endStr) ? `${startStr} 〜 ${endStr}` : '全期間';
 
-      // ドライバーごとにグループ化
       const driverMap = {};
       targetRecords.forEach(r => {
         const dId = r.driverId || 'UNKNOWN';
@@ -595,7 +938,6 @@
         listArea.appendChild(ticket);
       });
 
-      // 末尾に金種別集計表（銀行両替・準備用控え）を添付
       if (driverKeys.length > 0) {
         const denomSheet = document.createElement("div");
         denomSheet.className = "denom-summary-sheet border border-slate-300 rounded-lg p-6 bg-white mt-6";
@@ -617,7 +959,6 @@
             <div>支給総額合計: <strong class="font-mono text-xl font-black text-slate-900 ml-2">¥ ${grandTotalPayout.toLocaleString()} -</strong></div>
           </div>
 
-          <!-- 金種別 必要枚数表 -->
           <div class="mb-5">
             <h3 class="text-xs font-bold text-slate-800 mb-2">■ 銀行両替・準備 必要枚数</h3>
             <table class="w-full text-center text-xs border-collapse border border-slate-300">
@@ -648,7 +989,6 @@
             </table>
           </div>
 
-          <!-- ドライバー別 金種内訳明細一覧 -->
           <div>
             <h3 class="text-xs font-bold text-slate-800 mb-2">■ 各自封筒 封入内訳明細</h3>
             <table class="w-full text-left text-[11px] border-collapse border border-slate-300">
@@ -685,19 +1025,16 @@
       refreshLucide();
     }
 
-    // 市提出用 事業活動実績報告書 印刷プレビュー (正式仕様)
     function printAnnualReport() {
       const selectedYear = parseInt(document.getElementById("reportFiscalYearSelect") ? document.getElementById("reportFiscalYearSelect").value : "2026", 10) || 2026;
       const reiwaYear = selectedYear - 2018;
       document.getElementById("repTitleYearText").textContent = `令和${reiwaYear}`;
 
-      // 案件の目的地マップを作成
       const questDestMap = {};
       quests.forEach(q => {
         if (q.id && q.dropoff) questDestMap[q.id] = q.dropoff;
       });
 
-      // 年度月配列 (4月〜翌3月)
       const fyMonths = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
       const monthlyData = {};
       fyMonths.forEach(m => {
@@ -706,7 +1043,6 @@
 
       let totalPassengersAnnual = 0, totalTripsAnnual = 0, totalDistanceAnnual = 0, totalExpenseAnnual = 0;
 
-      // 指定年度のレコードを集計
       records.forEach(r => {
         if (!r.recordDate) return;
         const dPart = r.recordDate.split(' ')[0].replace(/\//g, '-');
@@ -718,7 +1054,6 @@
         const recordFY = (m >= 4) ? y : y - 1;
         if (recordFY !== selectedYear) return;
 
-        // 片道・往復に応じた乗車人数・距離の算出
         const pCount = Number(r.passengers ? r.passengers.replace(/[^0-9]/g, '') : 1) || 1;
         const dist = Number(r.roundTripDistance || 0);
         const exp = Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
@@ -738,12 +1073,10 @@
         totalExpenseAnnual += exp;
       });
 
-      // サマリーUIへの反映
       document.getElementById("repSummaryTrips").textContent = totalTripsAnnual.toLocaleString() + " 回";
       document.getElementById("repSummaryPassengers").textContent = totalPassengersAnnual.toLocaleString() + " 人回";
       document.getElementById("repSummaryExpense").textContent = totalExpenseAnnual.toLocaleString() + " 円";
 
-      // 補助金上限区分の自動判定 (引き継ぎ書に基づく基準)
       let capText = "300,000円枠 (延べ100人まで)";
       if (totalPassengersAnnual >= 301) capText = "500,000円枠 (延べ301人以上)";
       else if (totalPassengersAnnual >= 101) capText = "400,000円枠 (延べ101〜300人)";
@@ -751,7 +1084,6 @@
 
       document.getElementById("reportPeriodText").textContent = `令和${reiwaYear}年4月1日 〜 令和${reiwaYear + 1}年3月31日`;
 
-      // 月別テーブル行の生成
       const tbody = document.getElementById("reportMonthlyTableBody");
       tbody.innerHTML = fyMonths.map(m => {
         const item = monthlyData[m];
@@ -773,8 +1105,31 @@
       document.getElementById('annualReportModal').classList.remove('hidden');
       refreshLucide();
     }
-    document.getElementById('btnRefresh').addEventListener('click', () => fetchDashboardData(false));
-    document.getElementById('btnOpenDriverRegister').addEventListener('click', openDriverRegisterModal);
+
+    document.querySelectorAll('.main-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.main-tab-btn').forEach(b => {
+          b.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap flex-shrink-0";
+        });
+        btn.className = "main-tab-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0";
+
+        const tab = btn.getAttribute('data-tab');
+        document.getElementById('tabContentOps').classList.add('hidden');
+        document.getElementById('tabContentRoster').classList.add('hidden');
+        document.getElementById('tabContentFinance').classList.add('hidden');
+
+        if (tab === 'ops') document.getElementById('tabContentOps').classList.remove('hidden');
+        if (tab === 'roster') {
+          document.getElementById('tabContentRoster').classList.remove('hidden');
+          renderRosterList();
+        }
+        if (tab === 'finance') {
+          document.getElementById('tabContentFinance').classList.remove('hidden');
+          renderFinanceSummary();
+        }
+        refreshLucide();
+      });
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       refreshLucide();
