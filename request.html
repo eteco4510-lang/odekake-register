@@ -20,7 +20,7 @@
     *, ::before, ::after { box-sizing: border-box !important; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-28 text-base">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-28 text-base overflow-x-hidden">
 
   <!-- 操作ロック・ローディング用オーバーレイ -->
   <div id="blockingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs hidden">
@@ -73,13 +73,13 @@
   <!-- スティッキーヘッダー -->
   <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md">
     <div class="mx-auto flex max-w-lg items-center justify-between px-4 py-3.5 sm:px-6">
-      <div class="flex items-center gap-2.5">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs flex-shrink-0">
           <i data-lucide="car" class="h-6 w-6"></i>
         </div>
-        <h1 class="text-lg font-black tracking-tight text-slate-900">おでかけサポート</h1>
+        <h1 class="text-lg font-black tracking-tight text-slate-900 truncate">おでかけサポート</h1>
       </div>
-      <div class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+      <div class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 whitespace-nowrap flex-shrink-0">
         運行お申し込み
       </div>
     </div>
@@ -93,17 +93,17 @@
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">1</span>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">1</span>
             <h2 class="text-base font-bold text-slate-900">利用者（ご依頼主）情報</h2>
           </div>
-          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 whitespace-nowrap flex-shrink-0">必須</span>
         </div>
 
         <div class="space-y-3.5 text-base">
           <div>
-            <label class="block font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-              <span>利用者登録番号</span>
-              <a href="user-register.html" target="_blank" class="text-xs font-bold text-blue-600 hover:underline">番号をお持ちでない方へ</a>
+            <label class="block font-bold text-slate-800 mb-1.5 flex items-center justify-between gap-2">
+              <span class="truncate">利用者登録番号</span>
+              <a href="user-register.html" target="_blank" class="text-xs font-bold text-blue-600 hover:underline whitespace-nowrap flex-shrink-0">番号をお持ちでない方へ</a>
             </label>
             <div class="relative">
               <input
@@ -132,18 +132,18 @@
         </div>
       </section>
 
-      <!-- STEP 2: 日時と往復・片道 -->
+      <!-- STEP 2: 日時と片道・往復 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
-            <h2 class="text-base font-bold text-slate-900">日時と往復・片道</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">2</span>
+            <h2 class="text-base font-bold text-slate-900">日時と片道・往復</h2>
           </div>
-          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 whitespace-nowrap flex-shrink-0">必須</span>
         </div>
 
         <div class="space-y-4 text-base">
-          <!-- ★修正: 希望日と集合時間を完全に縦並び (grid-cols-1) にして重なりを解消 -->
+          <!-- 希望日と集合時間を縦並びにしてスマホのはみ出しを完全に解消 -->
           <div class="grid grid-cols-1 gap-4">
             <div>
               <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
@@ -167,16 +167,15 @@
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-slate-800 mb-1.5">利用プラン（運行区分）</label>
+            <label class="block text-sm font-bold text-slate-800 mb-1.5">利用プラン（片道・往復）</label>
             <select
               id="tripPlan"
               class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
             >
+              <option value="片道（送り届けのみ）">片道（送り届けのみ）</option>
+              <option value="往復（待機目安: 2時間以上）">往復（待機目安: 2時間以上）</option>
               <option value="往復（待機目安: 1時間〜2時間）">往復（待機目安: 1時間〜2時間）</option>
               <option value="往復（待機目安: 30分〜1時間）">往復（待機目安: 30分〜1時間）</option>
-              <option value="往復（待機目安: 2時間以上）">往復（待機目安: 2時間以上）</option>
-              <option value="片道（送り届けのみ）">片道（送り届けのみ）</option>
-              <option value="片道（お迎えのみ）">片道（お迎えのみ）</option>
             </select>
           </div>
         </div>
@@ -186,29 +185,29 @@
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">3</span>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">3</span>
             <h2 class="text-base font-bold text-slate-900">お迎え先 と 行き先</h2>
           </div>
-          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
+          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 whitespace-nowrap flex-shrink-0">必須</span>
         </div>
 
         <div class="space-y-4 text-base">
           <div>
-            <label class="block font-bold text-slate-800 mb-1.5">お迎え先（ご自宅など）</label>
+            <label class="block font-bold text-slate-800 mb-1.5">お迎え先（なるべく住所でご入力ください）</label>
             <input
               type="text"
               id="pickupLocation"
-              placeholder="例: 相模原市緑区中野1-2-3 自宅"
+              placeholder="例: 相模原市緑区中野1-2-3"
               required
               class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
             />
           </div>
           <div>
-            <label class="block font-bold text-slate-800 mb-1.5">行き先（病院・店舗・施設など）</label>
+            <label class="block font-bold text-slate-800 mb-1.5">行き先（住所または〇〇店などを必ずご記入ください）</label>
             <input
               type="text"
               id="dropoffLocation"
-              placeholder="例: 津久井赤十字病院"
+              placeholder="例: 津久井赤十字病院 または 相模原市緑区中野123 (〇〇店)"
               required
               class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
             />
@@ -220,10 +219,10 @@
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
-            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">4</span>
-            <h2 class="text-base font-bold text-slate-900">同乗人数 と 特記事項</h2>
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">4</span>
+            <h2 class="text-base font-bold text-slate-900">同乗人数 と 備考</h2>
           </div>
-          <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">任意</span>
+          <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded whitespace-nowrap flex-shrink-0">任意</span>
         </div>
 
         <div class="space-y-4 text-base">
@@ -233,9 +232,11 @@
               id="passengersCount"
               class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
             >
-              <option value="1名">1名（ご本人のみ）</option>
-              <option value="2名">2名（付き添い1名含む）</option>
-              <option value="3名">3名</option>
+              <option value="1人">1人</option>
+              <option value="2人">2人</option>
+              <option value="3人">3人</option>
+              <option value="4人">4人</option>
+              <option value="5人">5人</option>
             </select>
           </div>
           <div>
