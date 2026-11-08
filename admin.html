@@ -167,8 +167,8 @@
         </div>
       </div>
 
-      <!-- 検索・フィルターバー -->
-      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+      <!-- 検索・フィルターバー ＆ ソートボタン群 -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3.5">
         <div class="relative">
           <i data-lucide="search" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 flex-shrink-0"></i>
           <input
@@ -179,8 +179,16 @@
             class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-blue-600 focus:bg-white"
           />
         </div>
+        <!-- ご指定の5つのソート・フィルターボタン -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+          <button type="button" class="ops-filter-btn rounded-xl px-3.5 py-1.5 text-xs font-bold transition shadow-xs bg-slate-900 text-white whitespace-nowrap flex-shrink-0" data-filter="open" onclick="setOpsFilter('open')">募集中</button>
+          <button type="button" class="ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0" data-filter="action_required" onclick="setOpsFilter('action_required')">要対応</button>
+          <button type="button" class="ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0" data-filter="today" onclick="setOpsFilter('today')">本日の運行</button>
+          <button type="button" class="ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0" data-filter="unreported" onclick="setOpsFilter('unreported')">実績未報告</button>
+          <button type="button" class="ops-filter-btn rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0" data-filter="unestablished" onclick="setOpsFilter('unestablished')">不成立</button>
+        </div>
       </div>
-
+      
       <!-- リストコンテナ -->
       <div id="questListContainer" class="space-y-3">
         <!-- 動的描画 -->
