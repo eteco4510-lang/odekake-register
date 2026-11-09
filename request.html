@@ -461,13 +461,13 @@
         const data = await res.json();
         overlay.classList.add('hidden');
 
-        if (data.success && data.questId) {
-          document.getElementById('issuedQuestId').textContent = `#${data.questId}`;
-          document.getElementById('completeModalOverlay').classList.remove('hidden');
-          refreshLucide();
-        } else {
-          showCustomAlert(data.message || 'お申し込みに失敗しました。', '登録エラー', 'alert-circle', 'text-red-600');
+        // 修正後：登録名（〇〇 様）だけを出すように修正
+        if (data.success && data.user) {
+        verifiedUserData = data.user;
+        nameEl.textContent = `${data.user.name} 様`; // 名前の後ろに「様」だけを表示
+        card.classList.remove("hidden");
         }
+
       } catch (e) {
         overlay.classList.add('hidden');
         showCustomAlert('通信エラーが発生しました: ' + e.message, '通信エラー', 'alert-circle', 'text-red-600');
