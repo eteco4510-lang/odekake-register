@@ -519,9 +519,6 @@
       });
     }
 
-    // ==========================================
-    // 🛡️ 安全対策強化版データ取得関数
-    // ==========================================
     async function fetchDashboardData(isRetry = false) {
       const skeleton = document.getElementById("skeletonLoader");
 
@@ -637,10 +634,10 @@
         return true;
       });
 
-      // ★追加：募集中や各フィルターリストを日付・時刻順（古い順＝直近順）にしっかりソート
+      // ★追加：希望日時の近い順（日付順・昇順）にソート
       filtered.sort((a, b) => {
-        const timeA = a.sortTime || new Date(`${a.targetDate || '2026-01-01'} ${a.targetTime || '00:00'}`).getTime() || 0;
-        const timeB = b.sortTime || new Date(`${b.targetDate || '2026-01-01'} ${b.targetTime || '00:00'}`).getTime() || 0;
+        const timeA = a.sortTime || (a.targetDate ? new Date(a.targetDate + ' ' + (a.targetTime || '00:00')).getTime() : 0);
+        const timeB = b.sortTime || (b.targetDate ? new Date(b.targetDate + ' ' + (b.targetTime || '00:00')).getTime() : 0);
         return timeA - timeB;
       });
 
@@ -653,6 +650,7 @@
           (q.driverName && q.driverName.toLowerCase().includes(search))
         );
       }
+
       if (filtered.length === 0) {
         container.innerHTML = "";
         empty.classList.remove("hidden");
@@ -1190,7 +1188,6 @@
         `;
       }).join('');
 
-      document.getElementById('annualReportModal').classList.add('hidden'); // bug fix: remove hidden
       document.getElementById('annualReportModal').classList.remove('hidden');
       refreshLucide();
     }
