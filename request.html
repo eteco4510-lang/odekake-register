@@ -145,6 +145,7 @@
 
         <div class="space-y-4 text-base">
           <div class="grid grid-cols-1 gap-3">
+            <!-- 希望日（上下中央揃え・中央配置を適用） -->
             <div class="w-full">
               <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
               <input
@@ -152,22 +153,44 @@
                 id="targetDate"
                 required
                 class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
-                style="max-width: 100%; text-align: center; text-align-last: center;"
+                style="max-width: 100%; text-align: center; text-align-last: center; line-height: normal;"
               />
             </div>
+            <!-- 集合時間（8:30〜17:00 30分刻みのプルダウンに変更・中央配置） -->
             <div class="w-full">
               <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
-              <input
-                type="time"
-                id="targetTime"
-                value="09:00"
-                required
-                class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
-                style="max-width: 100%; text-align: center; text-align-last: center;"
-              />
+              <div class="relative flex items-center">
+                <select
+                  id="targetTime"
+                  required
+                  class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block appearance-none font-mono"
+                  style="max-width: 100%; text-align-last: center;"
+                >
+                  <option value="08:30">08:30</option>
+                  <option value="09:00" selected>09:00</option>
+                  <option value="09:30">09:30</option>
+                  <option value="10:00">10:00</option>
+                  <option value="10:30">10:30</option>
+                  <option value="11:00">11:00</option>
+                  <option value="11:30">11:30</option>
+                  <option value="12:00">12:00</option>
+                  <option value="12:30">12:30</option>
+                  <option value="13:00">13:00</option>
+                  <option value="13:30">13:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="14:30">14:30</option>
+                  <option value="15:00">15:00</option>
+                  <option value="15:30">15:30</option>
+                  <option value="16:00">16:00</option>
+                  <option value="16:30">16:30</option>
+                  <option value="17:00">17:00</option>
+                </select>
+                <i data-lucide="chevron-down" class="pointer-events-none absolute right-4 h-5 w-5 text-slate-400"></i>
+              </div>
             </div>
           </div>
 
+          <!-- 片道・往復 -->
           <div>
             <label class="block text-sm font-bold text-slate-800 mb-1.5">片道・往復</label>
             <select
@@ -184,7 +207,6 @@
           </div>
         </div>
       </section>
-
       <!-- STEP 3: お迎え先・行先 -->
       <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
