@@ -16,10 +16,56 @@
       font-variant-numeric: tabular-nums;
       -webkit-tap-highlight-color: transparent;
     }
-    .lucide { stroke-width: 2.2; }
-    *, ::before, ::after { box-sizing: border-box !important; }
+
+    .lucide {
+      stroke-width: 2.2;
+    }
+
+    *, ::before, ::after {
+      box-sizing: border-box !important;
+    }
+
+    /* 日付・セレクト入力欄の横幅を親要素内に収める */
+    input[type="date"],
+    select {
+      box-sizing: border-box !important;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    /* 希望日入力欄 */
+    input[type="date"] {
+      display: block;
+      height: 56px;
+      min-height: 56px;
+      margin: 0;
+      padding: 0 12px;
+      line-height: normal;
+      text-align: center;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* iPhone・Safariの日付表示を上下左右中央に配置 */
+    input[type="date"]::-webkit-date-and-time-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    input[type="date"]::-webkit-datetime-edit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
   </style>
 </head>
+
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased pb-28 text-base overflow-x-hidden">
 
   <!-- 操作ロック・ローディング用オーバーレイ -->
@@ -86,11 +132,11 @@
   </header>
 
   <!-- メインお申し込みフォーム -->
-  <main class="mx-auto max-w-lg px-4 pt-5 sm:px-6">
-    <form id="questRequestForm" onsubmit="event.preventDefault(); showConfirmModal();" class="space-y-5">
+  <main class="mx-auto w-full max-w-lg min-w-0 px-4 pt-5 sm:px-6">
+    <form id="questRequestForm" onsubmit="event.preventDefault(); showConfirmModal();" class="w-full min-w-0 space-y-5">
 
       <!-- STEP 1: 利用者情報確認 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      <section class="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">1</span>
@@ -103,7 +149,6 @@
           <div>
             <label class="block font-bold text-slate-800 mb-1.5 flex items-center justify-between gap-2">
               <span class="truncate">利用者登録番号</span>
-              <!-- 修正点：「番号をお持ちでない方へ」のリンク先をindex.htmlに設定 -->
               <a href="index.html" target="_blank" class="text-xs font-bold text-blue-600 hover:underline whitespace-nowrap flex-shrink-0">番号をお持ちでない方へ</a>
             </label>
             <div class="relative">
@@ -134,7 +179,7 @@
       </section>
 
       <!-- STEP 2: 日時と往復・片道 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+      <section class="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">2</span>
@@ -143,28 +188,33 @@
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 whitespace-nowrap flex-shrink-0">必須</span>
         </div>
 
-        <div class="space-y-4 text-base">
-          <div class="grid grid-cols-1 gap-3">
-            <!-- 希望日（上下中央揃え・中央配置を適用） -->
-            <div class="w-full">
-              <label class="block text-sm font-bold text-slate-800 mb-1.5">希望日</label>
+        <div class="w-full min-w-0 space-y-4 text-base">
+          <div class="grid grid-cols-1 min-w-0 gap-3">
+
+            <!-- 希望日 -->
+            <div class="w-full min-w-0">
+              <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                希望日
+              </label>
               <input
                 type="date"
                 id="targetDate"
                 required
-                class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
-                style="max-width: 100%; text-align: center; text-align-last: center; line-height: normal;"
+                class="block w-full min-w-0 max-w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-3 text-base font-bold text-slate-900 outline-none focus:border-blue-600"
               />
             </div>
-            <!-- 集合時間（8:30〜17:00 30分刻みのプルダウンに変更・中央配置） -->
-            <div class="w-full">
-              <label class="block text-sm font-bold text-slate-800 mb-1.5">集合時間</label>
-              <div class="relative flex items-center">
+
+            <!-- 集合時間 -->
+            <div class="w-full min-w-0">
+              <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                集合時間
+              </label>
+              <div class="relative flex items-center w-full min-w-0">
                 <select
                   id="targetTime"
                   required
-                  class="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block appearance-none font-mono"
-                  style="max-width: 100%; text-align-last: center;"
+                  class="block w-full min-w-0 max-w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 pr-10 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 appearance-none font-mono"
+                  style="text-align-last: center;"
                 >
                   <option value="08:30">08:30</option>
                   <option value="09:00" selected>09:00</option>
@@ -185,18 +235,23 @@
                   <option value="16:30">16:30</option>
                   <option value="17:00">17:00</option>
                 </select>
-                <i data-lucide="chevron-down" class="pointer-events-none absolute right-4 h-5 w-5 text-slate-400"></i>
+                <i
+                  data-lucide="chevron-down"
+                  class="pointer-events-none absolute right-4 h-5 w-5 text-slate-400"
+                ></i>
               </div>
             </div>
           </div>
 
           <!-- 片道・往復 -->
-          <div>
-            <label class="block text-sm font-bold text-slate-800 mb-1.5">片道・往復</label>
+          <div class="w-full min-w-0">
+            <label class="block text-sm font-bold text-slate-800 mb-1.5">
+              片道・往復
+            </label>
             <select
               id="tripPlan"
-              class="w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 box-border block"
-              style="max-width: 100%; text-align-last: center;"
+              class="block w-full min-w-0 max-w-full h-14 rounded-xl border-2 border-slate-200 bg-white px-4 text-base font-bold text-slate-900 text-center outline-none focus:border-blue-600 appearance-none"
+              style="text-align-last: center;"
             >
               <option value="片道">片道</option>
               <option value="往復 待機:約15分">往復 待機:約15分</option>
@@ -207,8 +262,9 @@
           </div>
         </div>
       </section>
+
       <!-- STEP 3: お迎え先・行先 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      <section class="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">3</span>
@@ -242,7 +298,7 @@
       </section>
 
       <!-- STEP 4: 同乗人数・備考 -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      <section class="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white flex-shrink-0">4</span>
