@@ -637,6 +637,13 @@
         return true;
       });
 
+      // ★追加：募集中や各フィルターリストを日付・時刻順（古い順＝直近順）にしっかりソート
+      filtered.sort((a, b) => {
+        const timeA = a.sortTime || new Date(`${a.targetDate || '2026-01-01'} ${a.targetTime || '00:00'}`).getTime() || 0;
+        const timeB = b.sortTime || new Date(`${b.targetDate || '2026-01-01'} ${b.targetTime || '00:00'}`).getTime() || 0;
+        return timeA - timeB;
+      });
+
       if (search) {
         filtered = filtered.filter(q => 
           q.id.toLowerCase().includes(search) ||
@@ -646,7 +653,6 @@
           (q.driverName && q.driverName.toLowerCase().includes(search))
         );
       }
-
       if (filtered.length === 0) {
         container.innerHTML = "";
         empty.classList.remove("hidden");
