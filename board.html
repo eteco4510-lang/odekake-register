@@ -158,6 +158,19 @@
             <strong id="bannerRoute" class="text-slate-900 font-bold truncate max-w-[240px]">----</strong>
           </div>
         </div>
+
+        <!-- カレンダー追加ボタン -->
+        <div>
+          <button
+            type="button"
+            onclick="addToDeviceCalendar(activeQuestData)"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-emerald-300 bg-white py-3 text-base font-bold text-emerald-800 hover:bg-emerald-50 active:scale-95 transition shadow-2xs"
+          >
+            <i data-lucide="calendar-plus" class="h-5 w-5 text-emerald-600 flex-shrink-0"></i>
+            <span>スマホのカレンダーに予定を追加する</span>
+          </button>
+        </div>
+
         <div class="flex items-center gap-3 pt-1">
           <a
             id="btnGoRecord"
@@ -530,6 +543,51 @@
           showCustomAlert('通信エラー', '通信に失敗しました: ' + e.message);
         }
       });
+    }
+
+    /**
+     * スマホの標準カレンダーへ予定を追加する関数
+     * @param {Object} quest - 案件データオブジェクト (id, dateText, targetTime, pickup, dropoff, userNameMasked, note)
+     */
+    function addToDeviceCalendar(quest) {
+      if (!quest) {
+        showCustomAlert('エラー', '案件データが見つかりませんでした。');
+        return;
+      }
+
+      const rawDate = quest.dateText || quest.targetDate || '';
+      const dateMatch = rawDate.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      
+      let dateStr = '';
+      if (dateMatch) {
+        const y = dateMatch[1];
+        const m = String(dateMatch[2]).padStart(2, '0');
+        const d = String(dateMatch[3]).padStart(2, '0');
+        dateStr = `${y}-${m}-${d}`;
+      } else {
+        dateStr = new Date().toISOString().split('T')[0];
+      }
+
+      const timeStr = quest.targetTime || '09:00';
+      const startDateTime = new Date(`${dateStr}T${timeStr}:00`);
+      const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000);
+
+      const formatGCalTime = (date) => {
+        return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      };
+
+      const startTimeFormatted = formatGCalTime(startDateTime);
+      const endTimeFormatted = formatGCalTime(endDateTime);
+
+      const title = encodeURIComponent(`【おでかけ送迎】#${quest.id} ${quest.userNameMasked || '利用者'} 様`);
+      const location = encodeURIComponent(quest.pickup || '指定場所');
+      const details = encodeURIComponent(
+        `行先: ${quest.dropoff}\n片道・往復: ${quest.tripPlan || '往復'}\n乗車人数: ${quest.passengers || '1名'}\n備考: ${quest.note || '特になし'}\n\nおでかけサポート運行管理`
+      );
+
+      const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTimeFormatted}/${endTimeFormatted}&location=${location}&details=${details}`;
+
+      window.open(gcalUrl, '_blank', 'noopener,noreferrer');
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
