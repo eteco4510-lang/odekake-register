@@ -369,6 +369,8 @@
         console.error("Auth execution error:", err);
         showCustomAlert('通信エラー', 'サーバーとの通信に失敗しました。\n電波状況をご確認のうえ、再度お試しください。\n(' + err.message + ')');
       }
+    }
+
     function logoutDriver() {
       showCustomAlert('ログアウト確認', 'この端末のドライバー認証を解除しますか？', false, () => {
         localStorage.removeItem('odekake_driver');
