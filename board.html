@@ -392,6 +392,35 @@
       });
     }
 
+    // 日付・時刻文字列を共通でパースする独立関数（どの関数からも参照可能）
+    function parseDateTime(q) {
+      if (!q) return 9999999999999;
+      if (q.sortTime) return Number(q.sortTime);
+      const raw = String(q.dateText || q.targetDate || '').trim();
+      
+      let y = new Date().getFullYear();
+      let m = 0, d = 0;
+
+      const matchYMD = raw.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
+      const matchMD = raw.match(/(\d{1,2})[\/\-月](\d{1,2})/);
+
+      if (matchYMD) {
+        y = Number(matchYMD[1]);
+        m = Number(matchYMD[2]);
+        d = Number(matchYMD[3]);
+      } else if (matchMD) {
+        m = Number(matchMD[1]);
+        d = Number(matchMD[2]);
+      } else {
+        return 9999999999999;
+      }
+
+      const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
+      const t = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : (q.targetTime || '00:00');
+
+      return new Date(y, m - 1, d, ...t.split(':').map(Number)).getTime();
+    }
+
     async function fetchBoardQuests(isManualRefresh = false) {
       if (!currentDriver) return;
       const statusBar = document.getElementById('syncStatusBar');
@@ -402,37 +431,9 @@
         const data = await res.json();
         currentQuests = (data && data.success) ? (data.quests || []) : [];
         
-        // ★西暦の有無や多様な日付表記（例: 2026/11/10, 11/10(火), 11月10日）に柔軟対応して昇順ソート
-        const parseDateTime = (q) => {
-          if (q.sortTime) return Number(q.sortTime);
-          const raw = String(q.dateText || q.targetDate || '').trim();
-          
-          let y = new Date().getFullYear(); // デフォルトは今年（2026）
-          let m = 0, d = 0;
-
-          // 2026/11/10 や 2026-11-10
-          const matchYMD = raw.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
-          // 11/10 や 11月10日（西暦なし）
-          const matchMD = raw.match(/(\d{1,2})[\/\-月](\d{1,2})/);
-
-          if (matchYMD) {
-            y = Number(matchYMD[1]);
-            m = Number(matchYMD[2]);
-            d = Number(matchYMD[3]);
-          } else if (matchMD) {
-            m = Number(matchMD[1]);
-            d = Number(matchMD[2]);
-          } else {
-            return 9999999999999;
-          }
-
-          const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
-          const t = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : (q.targetTime || '00:00');
-
-          return new Date(y, m - 1, d, ...t.split(':').map(Number)).getTime();
-        };
-
+        // 共通関数 parseDateTime を使って昇順ソート
         currentQuests.sort((a, b) => parseDateTime(a) - parseDateTime(b));
+
         renderQuests(currentQuests);
 
         await checkActiveQuestForDriver();
