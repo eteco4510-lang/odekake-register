@@ -483,26 +483,28 @@
       quests.forEach(q => {
         const card = document.createElement('div');
         
-        // ★GASフラグに加え、備考欄のキーワードや文言からも自動判別
+        // ★要対応（至急）の自動判定：
+        // 1. GAS側のフラグがある場合
+        // 2. 備考・日付テキストに「至急」「要対応」「警告」が含まれる場合
+        // 3. 運行日時が【現在から48時間以内（今日・明日など直近2日以内）】の場合
+        const questTime = parseDateTime(q);
+        const nowTime = Date.now();
+        const diffHours = (questTime - nowTime) / (1000 * 60 * 60);
+        const isNearDeadline = (diffHours >= -6 && diffHours <= 48); // 運行終了直後〜48時間前以内
+
         const noteText = String(q.note || '');
         const dateText = String(q.dateText || '');
-        const isUrgent = Boolean(
-          q.isUrgent || 
-          q.isWarning || 
-          noteText.includes('至急') || 
-          noteText.includes('要対応') || 
-          noteText.includes('警告') ||
-          dateText.includes('至急')
-        );
+        const isTextUrgent = noteText.includes('至急') || noteText.includes('要対応') || noteText.includes('警告') || dateText.includes('至急');
+
+        const isUrgent = Boolean(q.isUrgent || q.isWarning || isNearDeadline || isTextUrgent);
         
-        // 要対応時は背景色と枠線を目立つアンバー（警告）トーンに変更
+        // 要対応時ははっきりと目立つアンバー背景（bg-amber-50）と太めの枠線（border-amber-400）に変更
         card.className = isUrgent
-          ? "rounded-3xl border-2 border-amber-300 bg-amber-50/50 p-6 shadow-sm space-y-4 transition hover:shadow-md"
+          ? "rounded-3xl border-2 border-amber-400 bg-amber-50 p-6 shadow-sm space-y-4 transition hover:shadow-md"
           : "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 transition hover:shadow-md";
 
         const cleanPickup = formatLocationText(q.pickup);
         const cleanDropoff = formatLocationText(q.dropoff);
-
 
         let navUrl = '';
         if (q.pickup && q.dropoff && q.pickup !== '未指定' && q.dropoff !== '未指定') {
