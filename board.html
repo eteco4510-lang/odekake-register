@@ -337,14 +337,19 @@
           action: 'authDriver',
           driverId: dId,
           phone4: p4,
-          lineUserId: lineUserId
+          lineUserId: lineUserId || ''
         };
 
         const res = await fetch(`${GAS_API_URL}?action=authDriver`, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
+
+        if (!res.ok) {
+          throw new Error(`HTTPエラー: ${res.status}`);
+        }
+
         const result = await res.json();
 
         if (result.success && result.driver) {
@@ -357,14 +362,13 @@
           }
         } else {
           hideBlockingLoading();
-          showCustomAlert('認証エラー', result.message || '登録情報と一致しませんでした。');
+          showCustomAlert('認証エラー', result.message || '登録番号または電話番号の下4桁が一致しませんでした。');
         }
       } catch (err) {
         hideBlockingLoading();
-        showCustomAlert('通信エラー', 'サーバーとの通信に失敗しました: ' + err.message);
+        console.error("Auth execution error:", err);
+        showCustomAlert('通信エラー', 'サーバーとの通信に失敗しました。\n電波状況をご確認のうえ、再度お試しください。\n(' + err.message + ')');
       }
-    }
-
     function logoutDriver() {
       showCustomAlert('ログアウト確認', 'この端末のドライバー認証を解除しますか？', false, () => {
         localStorage.removeItem('odekake_driver');
@@ -610,6 +614,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
 
+      // 1. LINE LIFF初期化（失敗しても処理を継続）
       try {
         if (window.liff) {
           await liff.init({ liffId: BOARD_LIFF_ID });
@@ -618,27 +623,39 @@
             lineUserId = profile.userId || '';
           }
         }
-      } catch (e) {}
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlDriverId = urlParams.get('authDriverId');
-      const urlPhone4 = urlParams.get('phone4');
-      if (urlDriverId && urlPhone4) {
-        executeAuth(urlDriverId.trim(), urlPhone4.trim());
-        return;
+      } catch (e) {
+        console.warn("LIFF init bypassed/failed:", e);
       }
 
-      const savedDriver = localStorage.getItem('odekake_driver');
-      if (savedDriver) {
-        try {
+      // 2. URLパラメータでの自動認証
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlDriverId = urlParams.get('authDriverId');
+        const urlPhone4 = urlParams.get('phone4');
+        if (urlDriverId && urlPhone4) {
+          await executeAuth(urlDriverId.trim(), urlPhone4.trim());
+          return;
+        }
+      } catch (e) {
+        console.warn("URL auth check failed:", e);
+      }
+
+      // 3. ローカルストレージからの復元
+      try {
+        const savedDriver = localStorage.getItem('odekake_driver');
+        if (savedDriver) {
           currentDriver = JSON.parse(savedDriver);
           if (currentDriver && currentDriver.id) {
             showBoardView();
             return;
           }
-        } catch (e) {}
+        }
+      } catch (e) {
+        console.warn("Storage parse error, clearing:", e);
+        localStorage.removeItem('odekake_driver');
       }
 
+      // 4. 未認証時は確実に認証画面を表示
       showAuthView();
     });
   </script>
