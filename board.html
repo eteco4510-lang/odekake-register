@@ -424,7 +424,7 @@
       } catch (e) {}
     }
 
-    function renderQuests(quests) {
+        function renderQuests(quests) {
       const area = document.getElementById('questListArea');
       const emptyState = document.getElementById('questEmptyState');
       const badge = document.getElementById('openCountBadge');
@@ -440,10 +440,18 @@
 
       quests.forEach(q => {
         const card = document.createElement('div');
-        card.className = "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 transition hover:shadow-md";
+        
+        // ★追加：要対応・至急案件の判定（GAS側から isUrgent や isWarning、または直近フラグがある場合）
+        const isUrgent = q.isUrgent || q.isWarning || false;
+        
+        // 要対応時は背景色と枠線を目立つアンバー（警告）トーンに変更
+        card.className = isUrgent
+          ? "rounded-3xl border-2 border-amber-300 bg-amber-50/50 p-6 shadow-sm space-y-4 transition hover:shadow-md"
+          : "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 transition hover:shadow-md";
 
         const cleanPickup = formatLocationText(q.pickup);
         const cleanDropoff = formatLocationText(q.dropoff);
+
 
         let navUrl = '';
         if (q.pickup && q.dropoff && q.pickup !== '未指定' && q.dropoff !== '未指定') {
