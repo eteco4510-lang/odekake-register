@@ -667,11 +667,25 @@
       const container = document.getElementById("questListContainer");
       const empty = document.getElementById("emptyState");
       const search = document.getElementById("searchInput").value.toLowerCase();
+      const nowMs = Date.now();
+
+      // 運行予定3日前（72時間以内）かどうかを判定するヘルパー
+      const checkWithin72h = (q) => {
+        if (!q.targetDate) return false;
+        const targetTimeMs = new Date(q.targetDate + ' ' + (q.targetTime || '00:00')).getTime();
+        if (isNaN(targetTimeMs)) return false;
+        const diffHours = (targetTimeMs - nowMs) / (1000 * 60 * 60);
+        return diffHours <= 72;
+      };
 
       let filtered = quests.filter(q => {
         const status = q.status || '';
-        if (currentOpsFilter === 'open') return status === '募集中';
-        if (currentOpsFilter === 'action_required') return status === '募集中' && (q.isUrgent || q.isWarning);
+        // 募集中タブ：通常の募集中および要対応の案件を含める
+        if (currentOpsFilter === 'open') return status === '募集中' || status === '要対応';
+        // 要対応タブ：ステータスが要対応、または募集中で3日前(72時間以内)・緊急フラグあり
+        if (currentOpsFilter === 'action_required') {
+          return status === '要対応' || ((status === '募集中') && (checkWithin72h(q) || q.isUrgent || q.isWarning));
+        }
         if (currentOpsFilter === 'today') return status === '受注済' || status === '運行完了';
         if (currentOpsFilter === 'unreported') return status === '運行完了' && !q.hasReported;
         if (currentOpsFilter === 'unestablished') return status === 'マッチング不成立';
@@ -701,9 +715,11 @@
         return;
       }
       empty.classList.add("hidden");
-            container.innerHTML = filtered.map(q => {
-        // 要対応案件（要対応フィルター中、または緊急・警告フラグがある場合）かどうかを判定
-        const isActionRequired = (currentOpsFilter === 'action_required') || (q.status === '募集中' && (q.isUrgent || q.isWarning));
+      container.innerHTML = filtered.map(q => {
+        // 要対応案件の判定（ステータスが要対応、要対応フィルター中、または3日前(72時間以内)）
+        const isActionRequired = (q.status === '要対応') || 
+                                 (currentOpsFilter === 'action_required') || 
+                                 (q.status === '募集中' && (checkWithin72h(q) || q.isUrgent || q.isWarning));
         
         // 要対応時は枠線と背景色を注意喚起トーンに変更
         const cardBorderBg = isActionRequired
