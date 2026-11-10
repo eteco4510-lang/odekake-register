@@ -398,19 +398,28 @@
       if (statusBar && isManualRefresh) statusBar.textContent = '最新情報を取得中...';
 
       try {
-                const res = await fetch(`${GAS_API_URL}?action=getOpenQuests&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=getOpenQuests&_t=${Date.now()}`);
         const data = await res.json();
         currentQuests = (data && data.success) ? (data.quests || []) : [];
         
-        // ★追加：案件の表示順を日付が近い順（昇順）にソート
-        currentQuests.sort((a, b) => {
-          const timeA = a.sortTime || (a.targetDate ? new Date(a.targetDate + ' ' + (a.targetTime || '00:00')).getTime() : 0);
-          const timeB = b.sortTime || (b.targetDate ? new Date(b.targetDate + ' ' + (b.targetTime || '00:00')).getTime() : 0);
-          return timeA - timeB;
-        });
+        // ★確実に日付・時刻をパースして直近順（昇順）にソート
+        const parseDateTime = (q) => {
+          if (q.sortTime) return Number(q.sortTime);
+          const raw = q.dateText || q.targetDate || '';
+          const match = String(raw).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+          if (match) {
+            const y = match[1];
+            const m = match[2].padStart(2, '0');
+            const d = match[3].padStart(2, '0');
+            const t = q.targetTime || '00:00';
+            return new Date(`${y}-${m}-${d}T${t}:00`).getTime();
+          }
+          return 9999999999999; // 日付不明時は末尾へ
+        };
+
+        currentQuests.sort((a, b) => parseDateTime(a) - parseDateTime(b));
 
         renderQuests(currentQuests);
-
 
         await checkActiveQuestForDriver();
 
