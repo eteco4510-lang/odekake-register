@@ -490,10 +490,18 @@
 
         card.innerHTML = `
           <div class="flex items-center justify-between gap-2">
-            <span class="font-mono text-base font-bold text-slate-500 whitespace-nowrap">#${escapeHtml(q.id)}</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-mono text-base font-bold text-slate-500 whitespace-nowrap">#${escapeHtml(q.id)}</span>
+              ${isUrgent ? `
+              <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs sm:text-sm font-black text-amber-900 border border-amber-300 shadow-2xs">
+                <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-700 flex-shrink-0"></i>
+                <span>【至急】要対応</span>
+              </span>
+              ` : ''}
+            </div>
             <span class="rounded-full bg-blue-50 px-3.5 py-1.5 text-sm sm:text-base font-extrabold text-blue-900 border border-blue-100 text-right truncate">${escapeHtml(q.dateText)}</span>
           </div>
-
+          
           <div class="space-y-1 pt-1">
             <div class="text-sm font-bold text-slate-500">出発地</div>
             <div class="text-lg font-black text-slate-900 leading-snug break-words">${escapeHtml(cleanPickup)}</div>
