@@ -201,7 +201,7 @@
           <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
             <button type="button" onclick="setSettleRange('currentMonth')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">今月</button>
             <button type="button" onclick="setSettleRange('lastMonth')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">先月</button>
-            <button type="button" onclick="setSettleRange('all')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">全期間</button>
+            <button type="button" onclick="setSettleRange('all')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">今年度</button>
           </div>
         </div>
 
@@ -496,9 +496,13 @@
         start = new Date(y, m - 1, 1).toISOString().split('T')[0];
         end = new Date(y, m, 0).toISOString().split('T')[0];
       } else if (type === 'all') {
-        start = '';
-        end = '';
+        // 「今年度」（4月1日〜翌3月31日）をセット
+        const curM = now.getMonth();
+        const fyStartYear = (curM >= 3) ? y : y - 1;
+        start = `${fyStartYear}-04-01`;
+        end = `${fyStartYear + 1}-03-31`;
       }
+      
       document.getElementById('settleStartDate').value = start;
       document.getElementById('settleEndDate').value = end;
       renderFinanceSummary();
