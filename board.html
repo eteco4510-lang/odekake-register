@@ -402,23 +402,37 @@
         const data = await res.json();
         currentQuests = (data && data.success) ? (data.quests || []) : [];
         
-        // ★確実に日付・時刻をパースして直近順（昇順）にソート
+        // ★西暦の有無や多様な日付表記（例: 2026/11/10, 11/10(火), 11月10日）に柔軟対応して昇順ソート
         const parseDateTime = (q) => {
           if (q.sortTime) return Number(q.sortTime);
-          const raw = q.dateText || q.targetDate || '';
-          const match = String(raw).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-          if (match) {
-            const y = match[1];
-            const m = match[2].padStart(2, '0');
-            const d = match[3].padStart(2, '0');
-            const t = q.targetTime || '00:00';
-            return new Date(`${y}-${m}-${d}T${t}:00`).getTime();
+          const raw = String(q.dateText || q.targetDate || '').trim();
+          
+          let y = new Date().getFullYear(); // デフォルトは今年（2026）
+          let m = 0, d = 0;
+
+          // 2026/11/10 や 2026-11-10
+          const matchYMD = raw.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
+          // 11/10 や 11月10日（西暦なし）
+          const matchMD = raw.match(/(\d{1,2})[\/\-月](\d{1,2})/);
+
+          if (matchYMD) {
+            y = Number(matchYMD[1]);
+            m = Number(matchYMD[2]);
+            d = Number(matchYMD[3]);
+          } else if (matchMD) {
+            m = Number(matchMD[1]);
+            d = Number(matchMD[2]);
+          } else {
+            return 9999999999999;
           }
-          return 9999999999999; // 日付不明時は末尾へ
+
+          const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
+          const t = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : (q.targetTime || '00:00');
+
+          return new Date(y, m - 1, d, ...t.split(':').map(Number)).getTime();
         };
 
         currentQuests.sort((a, b) => parseDateTime(a) - parseDateTime(b));
-
         renderQuests(currentQuests);
 
         await checkActiveQuestForDriver();
