@@ -486,11 +486,11 @@
         // ★要対応（至急）の自動判定：
         // 1. GAS側のフラグがある場合
         // 2. 備考・日付テキストに「至急」「要対応」「警告」が含まれる場合
-        // 3. 運行日時が【現在から48時間以内（今日・明日など直近2日以内）】の場合
+        // 3. 運行日時が【現在から72時間以内（直近3日以内）】の場合
         const questTime = parseDateTime(q);
         const nowTime = Date.now();
         const diffHours = (questTime - nowTime) / (1000 * 60 * 60);
-        const isNearDeadline = (diffHours >= -6 && diffHours <= 48); // 運行終了直後〜48時間前以内
+        const isNearDeadline = (diffHours >= -6 && diffHours <= 72); // 運行終了直後〜72時間前（3日前）以内
 
         const noteText = String(q.note || '');
         const dateText = String(q.dateText || '');
