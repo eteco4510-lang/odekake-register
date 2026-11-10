@@ -631,7 +631,7 @@
         return true;
       });
 
-      // ★追加：希望日時の近い順（日付順・昇順）にソート
+      // ★追加：希望日時の近い順（日付順・昇順）にソートしてデフォルト表示にする
       filtered.sort((a, b) => {
         const timeA = a.sortTime || (a.targetDate ? new Date(a.targetDate + ' ' + (a.targetTime || '00:00')).getTime() : 0);
         const timeB = b.sortTime || (b.targetDate ? new Date(b.targetDate + ' ' + (b.targetTime || '00:00')).getTime() : 0);
@@ -647,7 +647,7 @@
           (q.driverName && q.driverName.toLowerCase().includes(search))
         );
       }
-
+      
       if (filtered.length === 0) {
         container.innerHTML = "";
         empty.classList.remove("hidden");
