@@ -308,6 +308,67 @@
 
   <!-- ==================== モーダル群 ==================== -->
 
+  <!-- 0. 案件詳細・目安ルート・最寄りドライバー判定モーダル -->
+  <div id="questDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span id="modalQuestIdBadge" class="rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-bold text-blue-800">#----</span>
+          <h3 class="text-base font-black text-slate-900">案件詳細 ＆ 運行支援情報</h3>
+        </div>
+        <button type="button" onclick="closeQuestDetailModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- シート情報サマリー -->
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5 text-xs text-slate-700">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div><span class="text-slate-400">希望日時:</span> <strong id="modalQuestDateTime" class="text-slate-900 font-bold">--</strong></div>
+          <div><span class="text-slate-400">運行区分:</span> <strong id="modalQuestTripPlan" class="text-slate-900 font-bold">--</strong></div>
+          <div><span class="text-slate-400">ステータス:</span> <span id="modalQuestStatus" class="font-bold">--</span></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-200/60 pt-2">
+          <div>📍 <span class="text-slate-400">出発地:</span> <strong id="modalQuestPickup" class="text-slate-900">--</strong></div>
+          <div>🏁 <span class="text-slate-400">目的地:</span> <strong id="modalQuestDropoff" class="text-slate-900">--</strong></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-200/60 pt-2">
+          <div>👤 <span class="text-slate-400">利用者:</span> <strong id="modalQuestUserName" class="text-slate-900 font-bold">--</strong> 様</div>
+          <div>📝 <span class="text-slate-400">備考:</span> <span id="modalQuestNote">特になし</span></div>
+        </div>
+      </div>
+
+      <!-- 目安ルート地図表示エリア -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+          <span class="flex items-center gap-1.5"><i data-lucide="map" class="h-4 w-4 text-blue-600"></i>目安運行ルート（Leaflet地図）</span>
+          <span class="text-[11px] text-slate-400">※出発地・目的地および近隣ドライバーの位置を表示</span>
+        </div>
+        <div id="questDetailMap" class="h-64 sm:h-72 w-full rounded-xl border border-slate-200 bg-slate-100 z-0"></div>
+      </div>
+
+      <!-- 自宅が近いドライバーランキング（上位3位） -->
+      <div class="space-y-2 border-t border-slate-100 pt-3">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+            <i data-lucide="trophy" class="h-4 w-4 text-amber-500"></i>
+            <span>お迎え先（出発地）に近いドライバー（上位3名）</span>
+          </h4>
+          <span id="nearbyLoadingText" class="text-[11px] font-bold text-blue-600 hidden flex items-center gap-1">
+            <i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i>距離計算中...
+          </span>
+        </div>
+        <div id="nearbyDriversContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <!-- 動的描画 -->
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeQuestDetailModal()" class="rounded-xl border border-slate-200 bg-white px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">閉じる</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 1. ボランティアドライバー対面登録モーダル -->
   <div id="driverRegisterModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
@@ -745,7 +806,16 @@
               <div>👤 利用者: <strong>${q.userName || ''} 様</strong> | 区分: ${q.tripPlan || '往復'}</div>
             </div>
             ${isActionRequired ? `
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-amber-200/60">
+            <div class="flex items-center justify-end gap-2 pt-2 border-t ${isActionRequired ? 'border-amber-200/60' : 'border-slate-100'}">
+              <button
+                type="button"
+                onclick="openQuestDetailModal('${q.id}')"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+              >
+                <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600"></i>
+                <span>詳細・ルート確認</span>
+              </button>
+              ${isActionRequired ? `
               <button
                 type="button"
                 onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
@@ -754,8 +824,8 @@
                 <i data-lucide="copy" class="h-3.5 w-3.5"></i>
                 <span>LINE打診文をコピー</span>
               </button>
+              ` : ''}
             </div>
-            ` : ''}
           </div>
         `;
       }).join('');
@@ -960,6 +1030,163 @@
           </tr>
         `;
       }).join('');
+    }
+
+    // ==========================================
+    // 🗺️ 案件詳細モーダル ＆ 地図・最寄りドライバー描画
+    // ==========================================
+    let questMapInstance = null;
+    let questMapMarkers = [];
+    let questMapPolyline = null;
+
+    async function openQuestDetailModal(qid) {
+      const q = quests.find(item => item.id === qid);
+      if (!q) return;
+
+      document.getElementById('modalQuestIdBadge').textContent = `#${q.id}`;
+      document.getElementById('modalQuestDateTime').textContent = `${q.targetDate || ''} ${q.targetTime || ''}`;
+      document.getElementById('modalQuestTripPlan').textContent = q.tripPlan || '往復';
+      document.getElementById('modalQuestStatus').textContent = `[${q.status || '募集中'}]`;
+      document.getElementById('modalQuestPickup').textContent = q.pickup || '未指定';
+      document.getElementById('modalQuestDropoff').textContent = q.dropoff || '未指定';
+      document.getElementById('modalQuestUserName').textContent = q.userName || '登録利用者';
+      document.getElementById('modalQuestNote').textContent = q.note || '特になし';
+
+      const modal = document.getElementById('questDetailModal');
+      modal.classList.remove('hidden');
+      refreshLucide();
+
+      // 地図コンテナの初期化
+      setTimeout(() => {
+        initOrUpdateDetailMap(q);
+      }, 200);
+
+      // 最寄りドライバー上位3名の取得
+      fetchTopNearbyDrivers(q);
+    }
+
+    function closeQuestDetailModal() {
+      document.getElementById('questDetailModal').classList.add('hidden');
+    }
+
+    // Leaflet地図の初期化・プロット
+    async function initOrUpdateDetailMap(q) {
+      const mapContainer = document.getElementById('questDetailMap');
+      if (!mapContainer) return;
+
+      if (!questMapInstance) {
+        questMapInstance = L.map('questDetailMap').setView([35.58, 139.30], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '© OpenStreetMap'
+        }).addTo(questMapInstance);
+      } else {
+        questMapInstance.invalidateSize();
+      }
+
+      // 既存マーカークリア
+      questMapMarkers.forEach(m => questMapInstance.removeLayer(m));
+      questMapMarkers = [];
+      if (questMapPolyline) questMapInstance.removeLayer(questMapPolyline);
+
+      // ジオコーディング（Nominatim OpenStreetMap）
+      const geocode = async (addr) => {
+        if (!addr) return null;
+        try {
+          const qAddr = addr.includes('相模原') ? addr : `神奈川県相模原市${addr}`;
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(qAddr)}`);
+          const data = await res.json();
+          if (data && data.length > 0) {
+            return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          }
+        } catch (e) {}
+        return null;
+      };
+
+      const pickupCoord = await geocode(q.pickup);
+      const dropoffCoord = await geocode(q.dropoff);
+
+      const boundsCoords = [];
+
+      if (pickupCoord) {
+        const pMarker = L.marker(pickupCoord).addTo(questMapInstance).bindPopup(`<b>出発地:</b> ${q.pickup}`).openPopup();
+        questMapMarkers.push(pMarker);
+        boundsCoords.push(pickupCoord);
+      }
+      if (dropoffCoord) {
+        const dMarker = L.marker(dropoffCoord).addTo(questMapInstance).bindPopup(`<b>目的地:</b> ${q.dropoff}`);
+        questMapMarkers.push(dMarker);
+        boundsCoords.push(dropoffCoord);
+      }
+
+      if (pickupCoord && dropoffCoord) {
+        questMapPolyline = L.polyline([pickupCoord, dropoffCoord], { color: '#2563eb', weight: 4, dashArray: '6, 8' }).addTo(questMapInstance);
+      }
+
+      if (boundsCoords.length > 0) {
+        questMapInstance.fitBounds(boundsCoords, { padding: [40, 40] });
+      }
+    }
+
+    // 最寄りドライバー上位3名の取得と描画
+    async function fetchTopNearbyDrivers(q) {
+      const container = document.getElementById('nearbyDriversContainer');
+      const loader = document.getElementById('nearbyLoadingText');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="col-span-full py-4 text-center text-xs text-slate-400">
+          <i data-lucide="loader-2" class="h-4 w-4 animate-spin inline-block mr-1"></i>最寄りの登録ドライバーを計算中...
+        </div>`;
+      if (loader) loader.classList.remove('hidden');
+      refreshLucide();
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(q.pickup || '')}&targetDate=${encodeURIComponent(q.targetDate || '')}`);
+        const data = await res.json();
+        if (loader) loader.classList.add('hidden');
+
+        if (data && data.success && data.top3Drivers && data.top3Drivers.length > 0) {
+          const rankColors = ['bg-amber-100 text-amber-900 border-amber-300', 'bg-slate-200 text-slate-800 border-slate-300', 'bg-amber-50 text-amber-800 border-amber-200'];
+          const rankLabels = ['第1位', '第2位', '第3位'];
+
+          container.innerHTML = data.top3Drivers.map((d, idx) => {
+            const distText = (d.distanceKm !== null && d.distanceKm !== undefined) ? `${Number(d.distanceKm).toFixed(1)} km` : '距離不明';
+            return `
+              <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${rankColors[idx] || 'bg-slate-100'}">${rankLabels[idx] || `${idx+1}位`}</span>
+                  <span class="font-bold text-blue-600 font-mono">${distText}</span>
+                </div>
+                <div>
+                  <strong class="text-sm font-black text-slate-900">${d.name} 様</strong>
+                  <span class="text-slate-400 text-[11px] font-mono ml-1">#${d.id}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 truncate" title="${d.address || ''}">🏠 ${d.address || '住所未登録'}</div>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <a href="tel:${d.phone}" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
+                    <i data-lucide="phone" class="h-3 w-3"></i><span>${d.phone}</span>
+                  </a>
+                  <button
+                    type="button"
+                    onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
+                    class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
+                    title="LINE打診文コピー"
+                  >
+                    打診文コピー
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-slate-400">近隣の登録ドライバー情報を取得できませんでした</div>`;
+        }
+      } catch (err) {
+        if (loader) loader.classList.add('hidden');
+        container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-rose-500">ドライバー距離の判定に失敗しました</div>`;
+      }
+      refreshLucide();
     }
 
     function openDriverRegisterModal() {
