@@ -483,8 +483,17 @@
       quests.forEach(q => {
         const card = document.createElement('div');
         
-        // ★追加：要対応・至急案件の判定（GAS側から isUrgent や isWarning、または直近フラグがある場合）
-        const isUrgent = q.isUrgent || q.isWarning || false;
+        // ★GASフラグに加え、備考欄のキーワードや文言からも自動判別
+        const noteText = String(q.note || '');
+        const dateText = String(q.dateText || '');
+        const isUrgent = Boolean(
+          q.isUrgent || 
+          q.isWarning || 
+          noteText.includes('至急') || 
+          noteText.includes('要対応') || 
+          noteText.includes('警告') ||
+          dateText.includes('至急')
+        );
         
         // 要対応時は背景色と枠線を目立つアンバー（警告）トーンに変更
         card.className = isUrgent
