@@ -322,8 +322,11 @@
     }
 
     async function executeAuth(targetId = null, targetPhone4 = null) {
-      const dId = targetId || document.getElementById('authDriverId').value.trim();
-      const p4 = targetPhone4 || document.getElementById('authPhone4').value.trim();
+      // 全角数字を半角に自動変換し、余分な空白を除去
+      const normalize = (str) => String(str || '').replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).trim();
+      
+      const dId = normalize(targetId || document.getElementById('authDriverId').value);
+      const p4 = normalize(targetPhone4 || document.getElementById('authPhone4').value);
 
       if (!dId || !p4) {
         showCustomAlert('入力エラー', '登録番号と電話番号の下4桁を入力してください。');
@@ -340,11 +343,21 @@
           lineUserId: lineUserId || ''
         };
 
-        const res = await fetch(`${GAS_API_URL}?action=authDriver`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
+        // GAS側のdoGet/doPostどちらの実装でも確実に届くようURLパラメータにも付与
+        const url = `${GAS_API_URL}?action=authDriver&driverId=${encodeURIComponent(dId)}&phone4=${encodeURIComponent(p4)}&lineUserId=${encodeURIComponent(lineUserId || '')}&_t=${Date.now()}`;
+
+        // まずPOSTで送信を試み、GAS側が対応していない場合はフォールバック
+        let res;
+        try {
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload)
+          });
+        } catch (postErr) {
+          // POSTがCORSや通信で弾かれた場合はGETでフォールバック
+          res = await fetch(url);
+        }
 
         if (!res.ok) {
           throw new Error(`HTTPエラー: ${res.status}`);
@@ -367,7 +380,7 @@
       } catch (err) {
         hideBlockingLoading();
         console.error("Auth execution error:", err);
-        showCustomAlert('通信エラー', 'サーバーとの通信に失敗しました。\n電波状況をご確認のうえ、再度お試しください。\n(' + err.message + ')');
+        showCustomAlert('通信エラー', 'サーバーとの通信に失敗しました。\n(' + err.message + ')');
       }
     }
 
