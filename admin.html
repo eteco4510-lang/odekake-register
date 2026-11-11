@@ -336,95 +336,122 @@
 
   <!-- ==================== モーダル群 ==================== -->
 
-  <!-- 0-2. 活動記録ログ数値修正モーダル（下部追従固定版） -->
-  <div id="editLogModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col overflow-hidden" style="height: 85vh; max-height: 85vh;">
-      <!-- 固定ヘッダー（スクロールせず常時表示） -->
-      <div class="flex items-center justify-between border-b border-slate-100 p-5 pb-3.5 flex-shrink-0">
-        <div class="flex items-center gap-2">
-          <span id="editLogQuestBadge" class="rounded-full bg-emerald-100 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-800">#----</span>
-          <h3 class="text-base font-black text-slate-900">活動実績ログの修正</h3>
-        </div>
-        <button type="button" onclick="closeEditLogModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
-          <i data-lucide="x" class="h-5 w-5"></i>
-        </button>
+  
+<!-- 活動記録ログ数値修正モーダル -->
+<div id="editLogModal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+
+  <!-- モーダル本体 -->
+  <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
+       style="display:flex; flex-direction:column; height:85vh; height:85dvh; max-height:85vh; max-height:85dvh;">
+
+    <!-- 固定ヘッダー -->
+    <div class="flex items-center justify-between border-b border-slate-100 p-5 pb-3.5"
+         style="flex-shrink:0;">
+
+      <div class="flex items-center gap-2">
+        <span id="editLogQuestBadge"
+              class="rounded-full bg-emerald-100 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-800">#----</span>
+        <h3 class="text-base font-black text-slate-900">活動実績ログの修正</h3>
       </div>
 
-      <!-- フォーム本体（内部でスクロール領域と固定フッターに完全分離） -->
-      <form id="editLogForm" onsubmit="event.preventDefault(); submitEditLog();" class="flex flex-col flex-1 min-h-0 overflow-hidden text-xs m-0">
-        <input type="hidden" id="editLogIndex" />
+      <button type="button"
+              onclick="closeEditLogModal()"
+              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+    </div>
 
-        <!-- スクロール可能領域（入力欄群） -->
-        <div class="flex-1 min-h-0 overflow-y-auto p-5 space-y-4" style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
-          <div class="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-500">
-            <div><span class="text-slate-400">担当ドライバー:</span> <strong id="editLogDriverName" class="text-slate-800 font-bold">--</strong></div>
-            <div><span class="text-slate-400">運行日時:</span> <span id="editLogDate" class="font-mono text-slate-700">--</span></div>
+    <!-- フォーム：CSS Gridで上下を分離 -->
+    <form id="editLogForm"
+          onsubmit="event.preventDefault(); submitEditLog();"
+          style="display:grid; grid-template-rows:minmax(0,1fr) auto; flex:1; min-height:0; overflow:hidden;">
+
+      <input type="hidden" id="editLogIndex" />
+
+      <!-- 中央：スクロール領域 -->
+      <div style="min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;"
+           class="p-5 space-y-4 text-xs">
+
+        <div class="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-500">
+          <div>
+            <span class="text-slate-400">担当ドライバー:</span>
+            <strong id="editLogDriverName" class="text-slate-800 font-bold">--</strong>
+          </div>
+          <div>
+            <span class="text-slate-400">運行日時:</span>
+            <span id="editLogDate" class="font-mono text-slate-700">--</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">走行距離 (km)</label>
+          <div class="relative">
+            <input type="number" id="editLogDistance"
+                   step="0.1" min="0" required
+                   oninput="recalcEditLogFee()"
+                   class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-slate-900 outline-none focus:border-blue-600" />
+            <span class="absolute right-3 top-2.5 font-bold text-slate-400">km</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">
+            ※距離を変更するとガソリン代（20円/km）が自動計算されます
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ガソリン代 (20円/km)</label>
+            <div class="relative">
+              <input type="number" id="editLogFuelFee"
+                     min="0" required
+                     oninput="recalcEditLogTotal()"
+                     class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-blue-600 outline-none focus:border-blue-600" />
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
+            </div>
           </div>
 
           <div>
-            <label class="block font-bold text-slate-700 mb-1">走行距離 (km)</label>
+            <label class="block font-bold text-slate-700 mb-1">実費支給 (有料道路等)</label>
             <div class="relative">
-              <input
-                type="number"
-                id="editLogDistance"
-                step="0.1"
-                min="0"
-                required
-                oninput="recalcEditLogFee()"
-                class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
-              />
-              <span class="absolute right-3 top-2.5 font-bold text-slate-400">km</span>
-            </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">※距離を変更するとガソリン代（20円/km）が自動計算されます</p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">ガソリン代 (20円/km)</label>
-              <div class="relative">
-                <input
-                  type="number"
-                  id="editLogFuelFee"
-                  min="0"
-                  required
-                  oninput="recalcEditLogTotal()"
-                  class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-blue-600 outline-none focus:border-blue-600"
-                />
-                <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
-              </div>
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">実費支給 (有料道路等)</label>
-              <div class="relative">
-                <input
-                  type="number"
-                  id="editLogOtherExpense"
-                  min="0"
-                  value="0"
-                  oninput="recalcEditLogTotal()"
-                  class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-amber-600 outline-none focus:border-blue-600"
-                />
-                <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
-              </div>
+              <input type="number" id="editLogOtherExpense"
+                     min="0" value="0"
+                     oninput="recalcEditLogTotal()"
+                     class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-amber-600 outline-none focus:border-blue-600" />
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
             </div>
           </div>
         </div>
 
-        <!-- 追従固定フッター（常に最下部に浮き上がり、スクロールせず即押せる） -->
-        <div class="flex-shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-xs p-4 sm:p-5 space-y-3 shadow-lg">
-          <div class="bg-blue-50/80 p-3 rounded-xl border border-blue-100 flex items-center justify-between">
-            <span class="font-bold text-slate-700">修正後 支給総額:</span>
-            <span id="editLogTotalDisplay" class="font-mono text-base font-black text-blue-700">0 円</span>
-          </div>
+      </div>
 
-          <div class="flex justify-end gap-2">
-            <button type="button" onclick="closeEditLogModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50 transition">キャンセル</button>
-            <button type="submit" class="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 shadow-xs transition">修正を反映する</button>
-          </div>
+      <!-- 下部：常時表示する固定フッター -->
+      <div class="border-t border-slate-200 bg-white p-4 sm:p-5 space-y-3 shadow-lg"
+           style="position:relative; z-index:2;">
+
+        <div class="bg-blue-50/80 p-3 rounded-xl border border-blue-100 flex items-center justify-between">
+          <span class="font-bold text-slate-700">修正後 支給総額:</span>
+          <span id="editLogTotalDisplay"
+                class="font-mono text-base font-black text-blue-700">0 円</span>
         </div>
-      </form>
-    </div>
+
+        <div class="flex justify-end gap-2">
+          <button type="button"
+                  onclick="closeEditLogModal()"
+                  class="rounded-xl border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50 transition">
+            キャンセル
+          </button>
+
+          <button type="submit"
+                  class="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 shadow-xs transition">
+            修正を反映する
+          </button>
+        </div>
+      </div>
+
+    </form>
   </div>
+</div>
+
 
   <!-- 0. 案件詳細・目安ルート・最寄りドライバー判定モーダル -->
   <div id="questDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
