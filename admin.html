@@ -246,18 +246,22 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <div class="text-xs font-bold text-slate-500">期間内総運行回数</div>
-            <div id="finTotalRuns" class="mt-1 text-2xl font-black text-slate-900">0 回</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+            <div class="text-xs font-bold text-slate-500">運行回数 / 走行距離</div>
+            <div class="mt-1 font-black text-slate-900 text-lg"><span id="finTotalRuns">0 回</span> <span class="text-xs font-normal text-slate-400">/</span> <span id="finTotalKm" class="text-base text-slate-700">0.0 km</span></div>
           </div>
-          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <div class="text-xs font-bold text-slate-500">期間内総走行距離</div>
-            <div id="finTotalKm" class="mt-1 text-2xl font-black text-slate-900">0.0 km</div>
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+            <div class="text-xs font-bold text-slate-500">ガソリン代 合計</div>
+            <div id="finTotalFuel" class="mt-1 text-lg font-black text-blue-600">0 円</div>
           </div>
-          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <div class="text-xs font-bold text-slate-500">期間内実費支給総額</div>
-            <div id="finTotalYen" class="mt-1 text-2xl font-black text-blue-600">0 円</div>
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+            <div class="text-xs font-bold text-slate-500">実費支給 合計 (その他)</div>
+            <div id="finTotalOther" class="mt-1 text-lg font-black text-amber-600">0 円</div>
+          </div>
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+            <div class="text-xs font-bold text-slate-500">支給総額 (総合計)</div>
+            <div id="finTotalYen" class="mt-1 text-lg font-black text-slate-900">0 円</div>
           </div>
         </div>
 
@@ -270,7 +274,9 @@
                 <th class="py-2.5 px-3 font-bold">ドライバー名</th>
                 <th class="py-2.5 px-3 font-bold text-right">運行回数</th>
                 <th class="py-2.5 px-3 font-bold text-right">総走行距離</th>
-                <th class="py-2.5 px-3 font-bold text-right">支給合計額</th>
+                <th class="py-2.5 px-3 font-bold text-right">ガソリン代</th>
+                <th class="py-2.5 px-3 font-bold text-right">実費支給</th>
+                <th class="py-2.5 px-3 font-bold text-right">支給総額</th>
               </tr>
             </thead>
             <tbody id="financeTableBody" class="divide-y divide-slate-100 text-slate-700">
@@ -327,7 +333,6 @@
 
   </main>
 
-  <!-- ==================== モーダル群 ==================== -->
 
   <!-- ==================== モーダル群 ==================== -->
 
@@ -371,7 +376,7 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">支給実費 (ガソリン代)</label>
+            <label class="block font-bold text-slate-700 mb-1">ガソリン代 (20円/km)</label>
             <div class="relative">
               <input
                 type="number"
@@ -385,6 +390,20 @@
             </div>
           </div>
           <div>
+            <label class="block font-bold text-slate-700 mb-1">実費支給 (有料道路・駐車場等)</label>
+            <div class="relative">
+              <input
+                type="number"
+                id="editLogOtherExpense"
+                min="0"
+                value="0"
+                oninput="recalcEditLogTotal()"
+                class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-amber-600 outline-none focus:border-blue-600"
+              />
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
+            </div>
+          </div>
+        </div>
             <label class="block font-bold text-slate-700 mb-1">その他実費 (立替金)</label>
             <div class="relative">
               <input
@@ -1101,19 +1120,22 @@ try {
               <div class="sm:col-span-2"><span class="text-slate-400">到着地 (地図):</span> ${arrLink}</div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-xs">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
               <div>
                 <span class="text-slate-400 block text-[11px]">実走距離</span>
                 <strong class="font-mono text-sm text-slate-900">${Number(l.roundTripDistance || 0).toFixed(1)} km</strong>
               </div>
               <div>
-                <span class="text-slate-400 block text-[11px]">支給実費 (ガソリン)</span>
-                <strong class="font-mono text-sm text-blue-600">${fuelFeeNum.toLocaleString()} 円</strong>
+                <span class="text-slate-400 block text-[11px]">ガソリン代</span>
+                <strong class="font-mono text-sm text-blue-600 font-bold">${fuelFeeNum.toLocaleString()} 円</strong>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">実費支給 (その他)</span>
+                <strong class="font-mono text-sm ${(otherExpenseNum > 0) ? 'text-amber-600 font-bold' : 'text-slate-500'}">${otherExpenseNum.toLocaleString()} 円</strong>
               </div>
               <div>
                 <span class="text-slate-400 block text-[11px]">支給総額</span>
                 <strong class="font-mono text-sm font-black text-slate-900">${totalPayout.toLocaleString()} 円</strong>
-                ${(otherExpenseNum > 0) ? `<span class="text-[10px] text-amber-600 ml-1">(他: ${otherExpenseNum.toLocaleString()}円)</span>` : ''}
               </div>
             </div>
           </div>
@@ -1229,6 +1251,8 @@ try {
       const targetRecords = getFilteredRecords();
       let totalRuns = targetRecords.length;
       let totalKm = 0;
+      let totalFuel = 0;
+      let totalOther = 0;
       let totalYen = 0;
 
       const driverMap = {};
@@ -1236,32 +1260,46 @@ try {
         const dId = r.driverId || 'UNKNOWN';
         const dName = r.driverName || '不明ドライバー';
         if (!driverMap[dId]) {
-          driverMap[dId] = { id: dId, name: dName, trips: 0, distance: 0, totalAmt: 0 };
+          driverMap[dId] = { id: dId, name: dName, trips: 0, distance: 0, fuelAmt: 0, otherAmt: 0, totalAmt: 0 };
         }
         driverMap[dId].trips += 1;
         driverMap[dId].distance += Number(r.roundTripDistance || 0);
-        const amt = Number(r.fuelFee || 0) + Number(r.otherExpense || 0);
-        driverMap[dId].totalAmt += amt;
+
+        const fuel = Number(r.fuelFee || 0);
+        const other = Number(r.otherExpense || 0);
+        const total = fuel + other;
+
+        driverMap[dId].fuelAmt += fuel;
+        driverMap[dId].otherAmt += other;
+        driverMap[dId].totalAmt += total;
 
         totalKm += Number(r.roundTripDistance || 0);
-        totalYen += amt;
+        totalFuel += fuel;
+        totalOther += other;
+        totalYen += total;
       });
 
-      // 1円未満を四捨五入
+      // 四捨五入整形
+      totalFuel = Math.round(totalFuel);
+      totalOther = Math.round(totalOther);
       totalYen = Math.round(totalYen);
       Object.keys(driverMap).forEach(k => {
+        driverMap[k].fuelAmt = Math.round(driverMap[k].fuelAmt);
+        driverMap[k].otherAmt = Math.round(driverMap[k].otherAmt);
         driverMap[k].totalAmt = Math.round(driverMap[k].totalAmt);
       });
       
-      document.getElementById('finTotalRuns').textContent = totalRuns + ' 回';
-      document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
-      document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
+      if (document.getElementById('finTotalRuns')) document.getElementById('finTotalRuns').textContent = totalRuns + ' 回';
+      if (document.getElementById('finTotalKm')) document.getElementById('finTotalKm').textContent = totalKm.toFixed(1) + ' km';
+      if (document.getElementById('finTotalFuel')) document.getElementById('finTotalFuel').textContent = totalFuel.toLocaleString() + ' 円';
+      if (document.getElementById('finTotalOther')) document.getElementById('finTotalOther').textContent = totalOther.toLocaleString() + ' 円';
+      if (document.getElementById('finTotalYen')) document.getElementById('finTotalYen').textContent = totalYen.toLocaleString() + ' 円';
 
       const tbody = document.getElementById('financeTableBody');
       if (!tbody) return;
       const driverKeys = Object.keys(driverMap);
       if (driverKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">指定期間内の実費精算対象データはありません</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">指定期間内の実費精算対象データはありません</td></tr>`;
         return;
       }
 
@@ -1273,12 +1311,13 @@ try {
             <td class="py-3 px-3 font-bold text-slate-900">${d.name} 様</td>
             <td class="py-3 px-3 text-right font-mono">${d.trips} 回</td>
             <td class="py-3 px-3 text-right font-mono">${d.distance.toFixed(1)} km</td>
-            <td class="py-3 px-3 text-right font-mono font-bold text-blue-600">${d.totalAmt.toLocaleString()} 円</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-blue-600">${d.fuelAmt.toLocaleString()} 円</td>
+            <td class="py-3 px-3 text-right font-mono ${(d.otherAmt > 0) ? 'font-bold text-amber-600' : 'text-slate-400'}">${d.otherAmt.toLocaleString()} 円</td>
+            <td class="py-3 px-3 text-right font-mono font-black text-slate-900">${d.totalAmt.toLocaleString()} 円</td>
           </tr>
         `;
       }).join('');
     }
-
     // ==========================================
     // 🗺️ 案件詳細モーダル ＆ 地図・最寄りドライバー描画
     // ==========================================
