@@ -338,7 +338,7 @@
 
   <!-- 0-2. 活動記録ログ数値修正モーダル（下部追従固定版） -->
   <div id="editLogModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
-    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col overflow-hidden" style="max-height: 85vh;">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col overflow-hidden" style="height: 85vh; max-height: 85vh;">
       <!-- 固定ヘッダー（スクロールせず常時表示） -->
       <div class="flex items-center justify-between border-b border-slate-100 p-5 pb-3.5 flex-shrink-0">
         <div class="flex items-center gap-2">
@@ -351,11 +351,11 @@
       </div>
 
       <!-- フォーム本体（内部でスクロール領域と固定フッターに完全分離） -->
-      <form id="editLogForm" onsubmit="event.preventDefault(); submitEditLog();" class="flex flex-col flex-1 min-h-0 text-xs m-0">
+      <form id="editLogForm" onsubmit="event.preventDefault(); submitEditLog();" class="flex flex-col flex-1 min-h-0 overflow-hidden text-xs m-0">
         <input type="hidden" id="editLogIndex" />
 
         <!-- スクロール可能領域（入力欄群） -->
-        <div class="flex-1 overflow-y-auto p-5 space-y-4" style="overscroll-behavior: contain;">
+        <div class="flex-1 min-h-0 overflow-y-auto p-5 space-y-4" style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
           <div class="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-500">
             <div><span class="text-slate-400">担当ドライバー:</span> <strong id="editLogDriverName" class="text-slate-800 font-bold">--</strong></div>
             <div><span class="text-slate-400">運行日時:</span> <span id="editLogDate" class="font-mono text-slate-700">--</span></div>
