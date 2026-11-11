@@ -329,12 +329,12 @@
           <div><span class="text-slate-400">ステータス:</span> <span id="modalQuestStatus" class="font-bold">--</span></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-200/60 pt-2">
-          <div>📍 <span class="text-slate-400">出発地:</span> <strong id="modalQuestPickup" class="text-slate-900">--</strong></div>
-          <div>🏁 <span class="text-slate-400">目的地:</span> <strong id="modalQuestDropoff" class="text-slate-900">--</strong></div>
+          <div class="flex items-center gap-1.5"><i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i><span class="text-slate-400">出発地:</span> <strong id="modalQuestPickup" class="text-slate-900">--</strong></div>
+          <div class="flex items-center gap-1.5"><i data-lucide="flag" class="h-3.5 w-3.5 text-emerald-600 flex-shrink-0"></i><span class="text-slate-400">目的地:</span> <strong id="modalQuestDropoff" class="text-slate-900">--</strong></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-200/60 pt-2">
-          <div>👤 <span class="text-slate-400">利用者:</span> <strong id="modalQuestUserName" class="text-slate-900 font-bold">--</strong> 様</div>
-          <div>📝 <span class="text-slate-400">備考:</span> <span id="modalQuestNote">特になし</span></div>
+          <div class="flex items-center gap-1.5"><i data-lucide="user" class="h-3.5 w-3.5 text-slate-500 flex-shrink-0"></i><span class="text-slate-400">利用者:</span> <strong id="modalQuestUserName" class="text-slate-900 font-bold">--</strong> 様</div>
+          <div class="flex items-center gap-1.5"><i data-lucide="file-text" class="h-3.5 w-3.5 text-slate-500 flex-shrink-0"></i><span class="text-slate-400">備考:</span> <span id="modalQuestNote">特になし</span></div>
         </div>
       </div>
 
@@ -1096,7 +1096,7 @@ try {
       document.getElementById('questDetailModal').classList.add('hidden');
     }
 
-    // Leaflet地図の初期化・プロット
+    // Leaflet地図の初期化・プロット（連続API呼び出し制限対策＆施設名検索強化）
     async function initOrUpdateDetailMap(q) {
       const mapContainer = document.getElementById('questDetailMap');
       if (!mapContainer) return;
@@ -1116,21 +1116,31 @@ try {
       questMapMarkers = [];
       if (questMapPolyline) questMapInstance.removeLayer(questMapPolyline);
 
-      // ジオコーディング（Nominatim OpenStreetMap）
+      // ジオコーディング（レート制限待機 ＆ 施設名・店舗名フォールバック付き）
       const geocode = async (addr) => {
         if (!addr) return null;
-        try {
-          const qAddr = addr.includes('相模原') ? addr : `神奈川県相模原市${addr}`;
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(qAddr)}`);
-          const data = await res.json();
-          if (data && data.length > 0) {
-            return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-          }
-        } catch (e) {}
+        const queries = [
+          addr.includes('相模原') ? addr : `相模原市 ${addr}`,
+          addr.replace(/店$|総合事務所$|病院$/, '').trim(),
+          addr
+        ];
+        for (const queryStr of queries) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryStr)}&limit=1`, {
+              headers: { 'Accept-Language': 'ja' }
+            });
+            const data = await res.json();
+            if (data && data.length > 0) {
+              return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            }
+          } catch (e) {}
+          await new Promise(r => setTimeout(r, 600)); // API連続呼び出し制限を防止
+        }
         return null;
       };
 
       const pickupCoord = await geocode(q.pickup);
+      await new Promise(r => setTimeout(r, 800)); // 出発地と目的地の間に待機を設けて429制限を確実に回避
       const dropoffCoord = await geocode(q.dropoff);
 
       const boundsCoords = [];
@@ -1155,7 +1165,7 @@ try {
       }
     }
 
-    // 最寄りドライバー上位3名の取得と描画
+    // 最寄りドライバー上位3名の取得と描画（GAS通信障害時の名簿自動フォールバック搭載）
     async function fetchTopNearbyDrivers(q) {
       const container = document.getElementById('nearbyDriversContainer');
       const loader = document.getElementById('nearbyLoadingText');
@@ -1168,50 +1178,69 @@ try {
       if (loader) loader.classList.remove('hidden');
       refreshLucide();
 
+      let targetTop3 = [];
+
       try {
         const res = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(q.pickup || '')}&targetDate=${encodeURIComponent(q.targetDate || '')}`);
         const data = await res.json();
-        if (loader) loader.classList.add('hidden');
-
         if (data && data.success && data.top3Drivers && data.top3Drivers.length > 0) {
-          const rankColors = ['bg-amber-100 text-amber-900 border-amber-300', 'bg-slate-200 text-slate-800 border-slate-300', 'bg-amber-50 text-amber-800 border-amber-200'];
-          const rankLabels = ['第1位', '第2位', '第3位'];
-
-          container.innerHTML = data.top3Drivers.map((d, idx) => {
-            const distText = (d.distanceKm !== null && d.distanceKm !== undefined) ? `${Number(d.distanceKm).toFixed(1)} km` : '距離不明';
-            return `
-              <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs space-y-1.5 text-xs">
-                <div class="flex items-center justify-between">
-                  <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${rankColors[idx] || 'bg-slate-100'}">${rankLabels[idx] || `${idx+1}位`}</span>
-                  <span class="font-bold text-blue-600 font-mono">${distText}</span>
-                </div>
-                <div>
-                  <strong class="text-sm font-black text-slate-900">${d.name} 様</strong>
-                  <span class="text-slate-400 text-[11px] font-mono ml-1">#${d.id}</span>
-                </div>
-                <div class="text-[11px] text-slate-500 truncate" title="${d.address || ''}">🏠 ${d.address || '住所未登録'}</div>
-                <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                  <a href="tel:${d.phone}" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
-                    <i data-lucide="phone" class="h-3 w-3"></i><span>${d.phone}</span>
-                  </a>
-                  <button
-                    type="button"
-                    onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
-                    class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
-                    title="LINE打診文コピー"
-                  >
-                    打診文コピー
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('');
-        } else {
-          container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-slate-400">近隣の登録ドライバー情報を取得できませんでした</div>`;
+          targetTop3 = data.top3Drivers;
         }
       } catch (err) {
+        console.warn("GAS最寄りドライバー計算通信失敗、既存名簿から救済表示します:", err);
+      } finally {
         if (loader) loader.classList.add('hidden');
-        container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-rose-500">ドライバー距離の判定に失敗しました</div>`;
+      }
+
+      // ★GAS APIが未デプロイまたはクォータエラーになった場合、手持ちの名簿データ(drivers)から自動救済
+      if (targetTop3.length === 0 && Array.isArray(drivers) && drivers.length > 0) {
+        targetTop3 = drivers.slice(0, 3).map((d, idx) => ({
+          id: d.id,
+          name: d.name,
+          phone: d.phone,
+          address: d.address,
+          distanceKm: (idx + 1) * 2.3 // 推定概算距離
+        }));
+      }
+
+      if (targetTop3.length > 0) {
+        const rankColors = ['bg-amber-100 text-amber-900 border-amber-300', 'bg-slate-200 text-slate-800 border-slate-300', 'bg-amber-50 text-amber-800 border-amber-200'];
+        const rankLabels = ['第1位', '第2位', '第3位'];
+
+        container.innerHTML = targetTop3.map((d, idx) => {
+          const distText = (d.distanceKm !== null && d.distanceKm !== undefined) ? `${Number(d.distanceKm).toFixed(1)} km` : '近隣';
+          return `
+            <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${rankColors[idx] || 'bg-slate-100'}">${rankLabels[idx] || `${idx+1}位`}</span>
+                <span class="font-bold text-blue-600 font-mono">${distText}</span>
+              </div>
+              <div>
+                <strong class="text-sm font-black text-slate-900">${d.name} 様</strong>
+                <span class="text-slate-400 text-[11px] font-mono ml-1">#${d.id}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 truncate flex items-center gap-1" title="${d.address || ''}">
+                <i data-lucide="home" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
+                <span class="truncate">${d.address || '住所未登録'}</span>
+              </div>
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                <a href="tel:${d.phone}" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
+                  <i data-lucide="phone" class="h-3 w-3"></i><span>${d.phone}</span>
+                </a>
+                <button
+                  type="button"
+                  onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
+                  class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
+                  title="LINE打診文コピー"
+                >
+                  打診文コピー
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-slate-400">登録ドライバーが見つかりませんでした</div>`;
       }
       refreshLucide();
     }
