@@ -56,7 +56,7 @@
         </div>
         <div class="flex items-baseline gap-2 min-w-0">
           <h1 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 whitespace-nowrap">事務局管理ページ</h1>
-          <span id="codeUpdateDate" class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 whitespace-nowrap">更新: --/-- --:--</span>
+          <span id="codeUpdateDate" class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 whitespace-nowrap">更新: 11/11 10:30</span>
         </div>
       </div>
       
@@ -1632,8 +1632,27 @@ try {
       });
     });
 
+    // コード更新日時（ファイルの最終更新日時）を自動反映する関数
+    function updateCodeVersionDate() {
+      const badge = document.getElementById('codeUpdateDate');
+      if (!badge) return;
+      try {
+        const lastMod = new Date(document.lastModified);
+        if (!isNaN(lastMod.getTime())) {
+          const m = String(lastMod.getMonth() + 1).padStart(2, '0');
+          const d = String(lastMod.getDate()).padStart(2, '0');
+          const h = String(lastMod.getHours()).padStart(2, '0');
+          const min = String(lastMod.getMinutes()).padStart(2, '0');
+          badge.textContent = `更新: ${m}/${d} ${h}:${min}`;
+          return;
+        }
+      } catch (e) {}
+      badge.textContent = '更新: 11/11 10:30';
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       refreshLucide();
+      updateCodeVersionDate();
       fetchDashboardData(false);
     });
   </script>
