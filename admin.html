@@ -805,7 +805,6 @@
               <div>📍 <strong>${q.pickup || ''}</strong> ➔ <strong>${q.dropoff || ''}</strong></div>
               <div>👤 利用者: <strong>${q.userName || ''} 様</strong> | 区分: ${q.tripPlan || '往復'}</div>
             </div>
-            ${isActionRequired ? `
             <div class="flex items-center justify-end gap-2 pt-2 border-t ${isActionRequired ? 'border-amber-200/60' : 'border-slate-100'}">
               <button
                 type="button"
