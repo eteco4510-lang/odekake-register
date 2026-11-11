@@ -787,6 +787,10 @@ try {
         return diffHours <= 72;
       };
 
+            // 本日の日付（yyyy-MM-dd）をローカル時間で取得
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
       let filtered = quests.filter(q => {
         const status = q.status || '';
         // 募集中タブ：通常の募集中および要対応の案件を含める
@@ -795,11 +799,15 @@ try {
         if (currentOpsFilter === 'action_required') {
           return status === '要対応' || ((status === '募集中') && (checkWithin72h(q) || q.isUrgent || q.isWarning));
         }
-        if (currentOpsFilter === 'today') return status === '受注済' || status === '運行完了';
+        // 本日の運行：運行日が本日 かつ マッチング成立済み（受注済・運行完了）の案件のみ
+        if (currentOpsFilter === 'today') {
+          return q.targetDate === todayStr && (status === '受注済' || status === '運行完了');
+        }
         if (currentOpsFilter === 'unreported') return status === '運行完了' && !q.hasReported;
         if (currentOpsFilter === 'unestablished') return status === 'マッチング不成立';
         return true;
       });
+
 
       // ★追加：希望日時の近い順（日付順・昇順）にソートしてデフォルト表示にする
       filtered.sort((a, b) => {
