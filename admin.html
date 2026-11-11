@@ -329,6 +329,90 @@
 
   <!-- ==================== モーダル群 ==================== -->
 
+  <!-- ==================== モーダル群 ==================== -->
+
+  <!-- 0-2. 活動記録ログ数値修正モーダル -->
+  <div id="editLogModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span id="editLogQuestBadge" class="rounded-full bg-emerald-100 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-800">#----</span>
+          <h3 class="text-base font-black text-slate-900">活動実績ログの修正</h3>
+        </div>
+        <button type="button" onclick="closeEditLogModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-500 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <div><span class="text-slate-400">担当ドライバー:</span> <strong id="editLogDriverName" class="text-slate-800 font-bold">--</strong></div>
+        <div><span class="text-slate-400">運行日時:</span> <span id="editLogDate" class="font-mono text-slate-700">--</span></div>
+      </div>
+
+      <form id="editLogForm" onsubmit="event.preventDefault(); submitEditLog();" class="space-y-3.5 text-xs">
+        <input type="hidden" id="editLogIndex" />
+        
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">走行距離 (km)</label>
+          <div class="relative">
+            <input
+              type="number"
+              id="editLogDistance"
+              step="0.1"
+              min="0"
+              required
+              oninput="recalcEditLogFee()"
+              class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-slate-900 outline-none focus:border-blue-600"
+            />
+            <span class="absolute right-3 top-2.5 font-bold text-slate-400">km</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">※距離を変更すると支給実費（20円/km）が自動計算されます</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">支給実費 (ガソリン代)</label>
+            <div class="relative">
+              <input
+                type="number"
+                id="editLogFuelFee"
+                min="0"
+                required
+                oninput="recalcEditLogTotal()"
+                class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-blue-600 outline-none focus:border-blue-600"
+              />
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
+            </div>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">その他実費 (立替金)</label>
+            <div class="relative">
+              <input
+                type="number"
+                id="editLogOtherExpense"
+                min="0"
+                value="0"
+                oninput="recalcEditLogTotal()"
+                class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm font-bold text-slate-800 outline-none focus:border-blue-600"
+              />
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400">円</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 flex items-center justify-between">
+          <span class="font-bold text-slate-700">修正後 支給総額:</span>
+          <span id="editLogTotalDisplay" class="font-mono text-base font-black text-blue-700">0 円</span>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeEditLogModal()" class="rounded-xl border border-slate-200 bg-white px-4 py-2 font-bold text-slate-700 hover:bg-slate-50">キャンセル</button>
+          <button type="submit" class="rounded-xl bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 shadow-xs">修正を反映する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 0. 案件詳細・目安ルート・最寄りドライバー判定モーダル -->
   <div id="questDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
     <div class="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
@@ -958,26 +1042,83 @@ try {
         return;
       }
 
-      container.innerHTML = logs.map(l => `
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-2">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
-              <span class="text-xs font-bold text-slate-800">${l.recordDate || ''}</span>
+      container.innerHTML = logs.map(l => {
+        // 元の records 配列におけるインデックスを取得
+        const recordIndex = records.indexOf(l);
+
+        // 案件マスタ(quests)と紐付けて、同乗者・迎え場所・目的地を正確に取得
+        const cleanQid = String(l.questId || '').replace(/[^0-9]/g, '');
+        const q = quests.find(item => String(item.id).replace(/[^0-9]/g, '') === cleanQid);
+
+        // 同乗者の補正（病院名や施設名が入っている場合はマスタの利用者名を最優先）
+        let passengerName = '登録利用者 様';
+        if (q && q.userName) {
+          passengerName = `${q.userName} 様`;
+        } else if (l.passengers && !l.passengers.includes('病院') && !l.passengers.includes('店')) {
+          passengerName = l.passengers;
+        }
+
+        const pickupPlace = q ? q.pickup : '迎え場所未登録';
+        const dropoffPlace = q ? q.dropoff : '行先未登録';
+
+        // 地図ハイパーリンクの生成
+        const depLink = l.depMapUrl 
+          ? `<a href="${l.depMapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>${pickupPlace}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+          : `<span class="text-slate-700">${pickupPlace}</span>`;
+
+        const arrLink = l.arrMapUrl 
+          ? `<a href="${l.arrMapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>${dropoffPlace}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+          : `<span class="text-slate-700">${dropoffPlace}</span>`;
+
+        const fuelFeeNum = Number(l.fuelFee || 0);
+        const otherExpenseNum = Number(l.otherExpense || 0);
+        const totalPayout = fuelFeeNum + otherExpenseNum;
+
+        return `
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-800">#${l.questId || '----'}</span>
+                <span class="text-xs font-bold text-slate-800 font-mono">${l.recordDate || ''}</span>
+                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">${l.tripType || '往復'}</span>
+                ${(otherExpenseNum > 0) ? '<span class="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">要レシート照合</span>' : ''}
+              </div>
+              <button
+                type="button"
+                onclick="openEditLogModal(${recordIndex})"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+              >
+                <i data-lucide="pencil" class="h-3.5 w-3.5 text-blue-600"></i>
+                <span>修正</span>
+              </button>
             </div>
-            <div class="flex items-center gap-1.5">
-              ${(Number(l.otherExpense || 0) > 0) ? '<span class="rounded bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">要レシート照合</span>' : ''}
-              <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">${l.tripType || '往復'}</span>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+              <div><span class="text-slate-400">担当ドライバー:</span> <strong class="text-slate-900">${l.driverName || '不明'}</strong> <span class="font-mono text-slate-400">(#${l.driverId || '----'})</span></div>
+              <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-900">${passengerName}</strong></div>
+              <div><span class="text-slate-400">迎え場所:</span> <strong class="text-slate-800">${pickupPlace}</strong></div>
+              <div><span class="text-slate-400">出発地 (地図):</span> ${depLink}</div>
+              <div class="sm:col-span-2"><span class="text-slate-400">到着地 (地図):</span> ${arrLink}</div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-xs">
+              <div>
+                <span class="text-slate-400 block text-[11px]">実走距離</span>
+                <strong class="font-mono text-sm text-slate-900">${Number(l.roundTripDistance || 0).toFixed(1)} km</strong>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">支給実費 (ガソリン)</span>
+                <strong class="font-mono text-sm text-blue-600">${fuelFeeNum.toLocaleString()} 円</strong>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">支給総額</span>
+                <strong class="font-mono text-sm font-black text-slate-900">${totalPayout.toLocaleString()} 円</strong>
+                ${(otherExpenseNum > 0) ? `<span class="text-[10px] text-amber-600 ml-1">(他: ${otherExpenseNum.toLocaleString()}円)</span>` : ''}
+              </div>
             </div>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1 text-slate-600">
-            <div><span class="text-slate-400">担当:</span> <strong class="text-slate-800">${l.driverName || ''}</strong> (#${l.driverId || ''})</div>
-            <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-800">${l.passengers || ''}</strong></div>
-            <div><span class="text-slate-400">距離:</span> <strong class="text-slate-800">${l.roundTripDistance || 0} km</strong></div>
-            <div><span class="text-slate-400">支給実費:</span> <strong class="text-blue-600">${((Number(l.fuelFee || 0)) + Number(l.otherExpense || 0)).toLocaleString()} 円</strong></div>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
       refreshLucide();
     }
     function switchRosterTab(tab) {
@@ -1432,6 +1573,97 @@ try {
       if (env[50] > 0) parts.push(`50:${env[50]}枚`);
       if (env[10] > 0) parts.push(`10:${env[10]}枚`);
       return parts.length > 0 ? parts.join(' / ') : 'なし';
+    }
+
+    // ==========================================
+    // ✏️ 活動記録ログ修正モーダル制御 ＆ 即時再計算
+    // ==========================================
+    function openEditLogModal(index) {
+      if (index === undefined || index < 0 || !records[index]) return;
+      const log = records[index];
+
+      document.getElementById('editLogIndex').value = index;
+      document.getElementById('editLogQuestBadge').textContent = `#${log.questId || '----'}`;
+      document.getElementById('editLogDriverName').textContent = `${log.driverName || '不明'} 様 (#${log.driverId || ''})`;
+      document.getElementById('editLogDate').textContent = log.recordDate || '';
+
+      const dist = Number(log.roundTripDistance || 0);
+      const fuel = Number(log.fuelFee || 0);
+      const other = Number(log.otherExpense || 0);
+
+      document.getElementById('editLogDistance').value = dist;
+      document.getElementById('editLogFuelFee').value = fuel;
+      document.getElementById('editLogOtherExpense').value = other;
+
+      recalcEditLogTotal();
+
+      document.getElementById('editLogModal').classList.remove('hidden');
+      refreshLucide();
+    }
+
+    function closeEditLogModal() {
+      document.getElementById('editLogModal').classList.add('hidden');
+    }
+
+    // 距離入力時に実費（20円/km）を自動計算
+    function recalcEditLogFee() {
+      const dist = parseFloat(document.getElementById('editLogDistance').value) || 0;
+      const fuelFee = Math.round(dist * 20);
+      document.getElementById('editLogFuelFee').value = fuelFee;
+      recalcEditLogTotal();
+    }
+
+    // 支給総額（実費 + その他実費）の表示更新
+    function recalcEditLogTotal() {
+      const fuel = parseFloat(document.getElementById('editLogFuelFee').value) || 0;
+      const other = parseFloat(document.getElementById('editLogOtherExpense').value) || 0;
+      const total = Math.round(fuel + other);
+      document.getElementById('editLogTotalDisplay').textContent = `${total.toLocaleString()} 円`;
+    }
+
+    // 修正内容の保存実行
+    async function submitEditLog() {
+      const index = parseInt(document.getElementById('editLogIndex').value, 10);
+      if (isNaN(index) || !records[index]) return;
+
+      const newDist = parseFloat(document.getElementById('editLogDistance').value) || 0;
+      const newFuel = parseFloat(document.getElementById('editLogFuelFee').value) || 0;
+      const newOther = parseFloat(document.getElementById('editLogOtherExpense').value) || 0;
+      const newTotal = Math.round(newFuel + newOther);
+
+      // 1. ローカル配列データを即時更新
+      records[index].roundTripDistance = newDist;
+      records[index].fuelFee = newFuel;
+      records[index].otherExpense = newOther;
+      records[index].totalFee = newTotal;
+
+      // 2. 表示中の一覧および「④ 清算・受領書印刷」の集計データを即時再レンダリング
+      renderLogsList();
+      renderFinanceSummary();
+      closeEditLogModal();
+      showToast(`案件 #${records[index].questId} の活動記録を修正しました`);
+
+      // 3. バックグラウンドでGAS（スプレッドシート）にも更新を非同期保存
+      try {
+        const payload = {
+          action: 'updateActivityRecord',
+          questId: records[index].questId,
+          recordDate: records[index].recordDate,
+          driverId: records[index].driverId,
+          roundTripDistance: newDist,
+          fuelFee: newFuel,
+          otherExpense: newOther,
+          totalFee: newTotal
+        };
+
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.warn('GASへの活動記録修正送信バックグラウンド失敗:', err));
+      } catch (e) {
+        console.warn('通信例外:', e);
+      }
     }
 
     function printVouchers() {
