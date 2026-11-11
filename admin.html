@@ -660,8 +660,35 @@
       if (overlay) overlay.style.display = 'none';
     }
 
-    function showToast(msg) {
-      console.log("Toast:", msg);
+    // デジタル庁デザインシステム準拠 トースト通知UI
+    function showToast(msg, type = 'success') {
+      let container = document.getElementById('toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none';
+        document.body.appendChild(container);
+      }
+
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 text-xs font-bold text-slate-800 shadow-xl backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0';
+      toast.innerHTML = `
+        <i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="h-4 w-4 ${type === 'success' ? 'text-emerald-600' : 'text-amber-600'} flex-shrink-0"></i>
+        <span>${msg}</span>
+      `;
+      container.appendChild(toast);
+      refreshLucide();
+
+      // アニメーション表示（スライドイン・フェードイン）
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      // 3.5秒後に自動フェードアウト消去
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
     }
 
     // ★追加：要対応案件の個別依頼用LINE文面をクリップボードにコピーする関数
@@ -1680,7 +1707,9 @@ try {
       renderLogsList();
       renderFinanceSummary();
       closeEditLogModal();
-      showToast(`案件 #${records[index].questId} の活動記録を修正しました`);
+
+      // 指定の完了トーストを即時表示
+      showToast('修正を反映しました');
 
       // 3. バックグラウンドでGAS（スプレッドシート）にも更新を非同期保存
       try {
@@ -1699,12 +1728,20 @@ try {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload)
-        }).catch(err => console.warn('GASへの活動記録修正送信バックグラウンド失敗:', err));
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && !data.success) {
+            showToast('スプレッドシートへの保存に失敗しました: ' + (data.message || ''), 'warning');
+          }
+        })
+        .catch(err => {
+          console.warn('GASへの活動記録修正送信バックグラウンド失敗:', err);
+        });
       } catch (e) {
         console.warn('通信例外:', e);
       }
     }
-
     function printVouchers() {
       const targetRecords = getFilteredRecords();
       if (targetRecords.length === 0) {
