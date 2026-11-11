@@ -179,12 +179,33 @@
             <input type="text" id="logSearchInput" placeholder="案件番号、ドライバー名で検索..." oninput="renderLogsList()" class="h-9 rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs outline-none focus:border-blue-600" />
           </div>
         </div>
+
+        <!-- ログ期間指定コントロールバー -->
+        <div class="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700">
+            <span class="flex items-center gap-1 text-slate-500 whitespace-nowrap">
+              <i data-lucide="calendar-range" class="h-4 w-4 text-slate-400 flex-shrink-0"></i>
+              <span>表示期間:</span>
+            </span>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <input type="date" id="logStartDate" onchange="renderLogsList()" class="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 outline-none focus:border-blue-600" />
+              <span class="text-slate-400">〜</span>
+              <input type="date" id="logEndDate" onchange="renderLogsList()" class="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 outline-none focus:border-blue-600" />
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <button type="button" onclick="setLogRange('currentMonth')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">今月</button>
+            <button type="button" onclick="setLogRange('lastMonth')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">先月</button>
+            <button type="button" onclick="setLogRange('allYear')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">今年度</button>
+            <button type="button" onclick="setLogRange('clear')" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 transition whitespace-nowrap flex-shrink-0">全期間</button>
+          </div>
+        </div>
+
         <div id="logsListContainer" class="space-y-3">
           <!-- 動的描画 -->
         </div>
       </div>
     </div>
-
     <!-- ==================== タブ3: 精算・受領書印刷 ==================== -->
     <div id="tabContentFinance" class="space-y-6 hidden">
       <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
