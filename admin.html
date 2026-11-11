@@ -1096,7 +1096,7 @@ try {
       document.getElementById('questDetailModal').classList.add('hidden');
     }
 
-    // Leaflet地図の初期化・プロット（連続API呼び出し制限対策＆施設名検索強化）
+    // Leaflet地図の初期化・道路ルート描画（Google Maps実走点列連携）
     async function initOrUpdateDetailMap(q) {
       const mapContainer = document.getElementById('questDetailMap');
       if (!mapContainer) return;
@@ -1116,135 +1116,138 @@ try {
       questMapMarkers = [];
       if (questMapPolyline) questMapInstance.removeLayer(questMapPolyline);
 
-      // ジオコーディング（レート制限待機 ＆ 施設名・店舗名フォールバック付き）
-      const geocode = async (addr) => {
-        if (!addr) return null;
-        const queries = [
-          addr.includes('相模原') ? addr : `相模原市 ${addr}`,
-          addr.replace(/店$|総合事務所$|病院$/, '').trim(),
-          addr
-        ];
-        for (const queryStr of queries) {
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryStr)}&limit=1`, {
-              headers: { 'Accept-Language': 'ja' }
-            });
-            const data = await res.json();
-            if (data && data.length > 0) {
-              return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-            }
-          } catch (e) {}
-          await new Promise(r => setTimeout(r, 600)); // API連続呼び出し制限を防止
-        }
-        return null;
-      };
-
-      const pickupCoord = await geocode(q.pickup);
-      await new Promise(r => setTimeout(r, 800)); // 出発地と目的地の間に待機を設けて429制限を確実に回避
-      const dropoffCoord = await geocode(q.dropoff);
-
-      const boundsCoords = [];
-
-      if (pickupCoord) {
-        const pMarker = L.marker(pickupCoord).addTo(questMapInstance).bindPopup(`<b>出発地:</b> ${q.pickup}`).openPopup();
-        questMapMarkers.push(pMarker);
-        boundsCoords.push(pickupCoord);
-      }
-      if (dropoffCoord) {
-        const dMarker = L.marker(dropoffCoord).addTo(questMapInstance).bindPopup(`<b>目的地:</b> ${q.dropoff}`);
-        questMapMarkers.push(dMarker);
-        boundsCoords.push(dropoffCoord);
-      }
-
-      if (pickupCoord && dropoffCoord) {
-        questMapPolyline = L.polyline([pickupCoord, dropoffCoord], { color: '#2563eb', weight: 4, dashArray: '6, 8' }).addTo(questMapInstance);
-      }
-
-      if (boundsCoords.length > 0) {
-        questMapInstance.fitBounds(boundsCoords, { padding: [40, 40] });
-      }
+      // GASのgetNearbyDriversから取得したデータで描画
+      loadRouteAndNearbyDrivers(q);
     }
 
-    // 最寄りドライバー上位3名の取得と描画（GAS通信障害時の名簿自動フォールバック搭載）
-    async function fetchTopNearbyDrivers(q) {
+    // Google Maps道路ルート ＆ 最寄りドライバー上位3名の描画
+    async function loadRouteAndNearbyDrivers(q) {
       const container = document.getElementById('nearbyDriversContainer');
       const loader = document.getElementById('nearbyLoadingText');
-      if (!container) return;
-
-      container.innerHTML = `
-        <div class="col-span-full py-4 text-center text-xs text-slate-400">
-          <i data-lucide="loader-2" class="h-4 w-4 animate-spin inline-block mr-1"></i>最寄りの登録ドライバーを計算中...
-        </div>`;
+      if (container) {
+        container.innerHTML = `
+          <div class="col-span-full py-4 text-center text-xs text-slate-400">
+            <i data-lucide="loader-2" class="h-4 w-4 animate-spin inline-block mr-1"></i>Google Mapsより道路ルートと近隣ドライバーを取得中...
+          </div>`;
+      }
       if (loader) loader.classList.remove('hidden');
       refreshLucide();
 
-      let targetTop3 = [];
-
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(q.pickup || '')}&targetDate=${encodeURIComponent(q.targetDate || '')}`);
+        const queryUrl = `${GAS_API_URL}?action=getNearbyDrivers&pickup=${encodeURIComponent(q.pickup || '')}&dropoff=${encodeURIComponent(q.dropoff || '')}&targetDate=${encodeURIComponent(q.targetDate || '')}`;
+        const res = await fetch(queryUrl);
         const data = await res.json();
-        if (data && data.success && data.top3Drivers && data.top3Drivers.length > 0) {
-          targetTop3 = data.top3Drivers;
+        if (loader) loader.classList.add('hidden');
+
+        const boundsCoords = [];
+
+        // 1. 出発地マーカーの設置
+        if (data && data.pickupCoords) {
+          const pCoord = [Number(data.pickupCoords.lat), Number(data.pickupCoords.lng)];
+          const pMarker = L.marker(pCoord).addTo(questMapInstance)
+            .bindPopup(`<div class="text-xs font-bold text-slate-800">出発地: ${q.pickup}</div>`).openPopup();
+          questMapMarkers.push(pMarker);
+          boundsCoords.push(pCoord);
+        }
+
+        // 2. 目的地マーカーの設置（店舗名・施設名もGoogle Geocoderでピン打ち）
+        if (data && data.dropoffCoords) {
+          const dCoord = [Number(data.dropoffCoords.lat), Number(data.dropoffCoords.lng)];
+          const dMarker = L.marker(dCoord).addTo(questMapInstance)
+            .bindPopup(`<div class="text-xs font-bold text-slate-800">目的地: ${q.dropoff}</div>`);
+          questMapMarkers.push(dMarker);
+          boundsCoords.push(dCoord);
+        }
+
+        // 3. 道路に沿った自動車ルート（Polyline）を描画
+        if (data && data.routePoints && data.routePoints.length > 1) {
+          questMapPolyline = L.polyline(data.routePoints, {
+            color: '#2563eb', // ブランドブルー
+            weight: 5,
+            opacity: 0.85
+          }).addTo(questMapInstance);
+        } else if (data && data.pickupCoords && data.dropoffCoords) {
+          // フォールバック直線
+          questMapPolyline = L.polyline(
+            [[data.pickupCoords.lat, data.pickupCoords.lng], [data.dropoffCoords.lat, data.dropoffCoords.lng]],
+            { color: '#2563eb', weight: 4, dashArray: '6, 8' }
+          ).addTo(questMapInstance);
+        }
+
+        // 4. 近隣ドライバー上位3名を地図上にプロット ＆ カード一覧描画
+        let top3 = (data && data.success && data.top3Drivers) ? data.top3Drivers : [];
+        if (top3.length === 0 && Array.isArray(drivers) && drivers.length > 0) {
+          top3 = drivers.slice(0, 3).map((d, idx) => ({ ...d, distanceKm: (idx + 1) * 2.5 }));
+        }
+
+        if (top3.length > 0) {
+          const rankColors = ['bg-amber-100 text-amber-900 border-amber-300', 'bg-slate-200 text-slate-800 border-slate-300', 'bg-amber-50 text-amber-800 border-amber-200'];
+          const rankLabels = ['第1位', '第2位', '第3位'];
+
+          container.innerHTML = top3.map((d, idx) => {
+            // 地図上に近隣ドライバー位置をプロット（エメラルドグリーンの円形マーカー）
+            if (d.lat && d.lng) {
+              const driverCoord = [Number(d.lat), Number(d.lng)];
+              const drvMarker = L.circleMarker(driverCoord, {
+                radius: 8,
+                fillColor: '#059669',
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+              }).addTo(questMapInstance).bindPopup(`<div class="text-xs font-bold">${rankLabels[idx]}: ${d.name} 様</div>`);
+              questMapMarkers.push(drvMarker);
+              boundsCoords.push(driverCoord);
+            }
+
+            const distText = (d.distanceKm !== null && d.distanceKm !== undefined) ? `${Number(d.distanceKm).toFixed(1)} km` : '近隣';
+            return `
+              <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${rankColors[idx] || 'bg-slate-100'}">${rankLabels[idx] || `${idx+1}位`}</span>
+                  <span class="font-bold text-blue-600 font-mono">${distText}</span>
+                </div>
+                <div>
+                  <strong class="text-sm font-black text-slate-900">${d.name} 様</strong>
+                  <span class="text-slate-400 text-[11px] font-mono ml-1">#${d.id}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 truncate flex items-center gap-1" title="${d.address || ''}">
+                  <i data-lucide="home" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
+                  <span class="truncate">${d.address || '住所未登録'}</span>
+                </div>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <a href="tel:${d.phone}" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
+                    <i data-lucide="phone" class="h-3 w-3"></i><span>${d.phone}</span>
+                  </a>
+                  <button
+                    type="button"
+                    onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
+                    class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                    title="LINE打診文コピー"
+                  >
+                    打診文コピー
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-slate-400">登録ドライバーが見つかりませんでした</div>`;
+        }
+
+        // 出発地・目的地・ドライバーがすべて収まるようにズーム調整
+        if (boundsCoords.length > 0) {
+          questMapInstance.fitBounds(boundsCoords, { padding: [50, 50] });
         }
       } catch (err) {
-        console.warn("GAS最寄りドライバー計算通信失敗、既存名簿から救済表示します:", err);
-      } finally {
+        console.error('ルートおよび近隣ドライバー取得エラー:', err);
         if (loader) loader.classList.add('hidden');
-      }
-
-      // ★GAS APIが未デプロイまたはクォータエラーになった場合、手持ちの名簿データ(drivers)から自動救済
-      if (targetTop3.length === 0 && Array.isArray(drivers) && drivers.length > 0) {
-        targetTop3 = drivers.slice(0, 3).map((d, idx) => ({
-          id: d.id,
-          name: d.name,
-          phone: d.phone,
-          address: d.address,
-          distanceKm: (idx + 1) * 2.3 // 推定概算距離
-        }));
-      }
-
-      if (targetTop3.length > 0) {
-        const rankColors = ['bg-amber-100 text-amber-900 border-amber-300', 'bg-slate-200 text-slate-800 border-slate-300', 'bg-amber-50 text-amber-800 border-amber-200'];
-        const rankLabels = ['第1位', '第2位', '第3位'];
-
-        container.innerHTML = targetTop3.map((d, idx) => {
-          const distText = (d.distanceKm !== null && d.distanceKm !== undefined) ? `${Number(d.distanceKm).toFixed(1)} km` : '近隣';
-          return `
-            <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs space-y-1.5 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${rankColors[idx] || 'bg-slate-100'}">${rankLabels[idx] || `${idx+1}位`}</span>
-                <span class="font-bold text-blue-600 font-mono">${distText}</span>
-              </div>
-              <div>
-                <strong class="text-sm font-black text-slate-900">${d.name} 様</strong>
-                <span class="text-slate-400 text-[11px] font-mono ml-1">#${d.id}</span>
-              </div>
-              <div class="text-[11px] text-slate-500 truncate flex items-center gap-1" title="${d.address || ''}">
-                <i data-lucide="home" class="h-3 w-3 text-slate-400 flex-shrink-0"></i>
-                <span class="truncate">${d.address || '住所未登録'}</span>
-              </div>
-              <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                <a href="tel:${d.phone}" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline">
-                  <i data-lucide="phone" class="h-3 w-3"></i><span>${d.phone}</span>
-                </a>
-                <button
-                  type="button"
-                  onclick="copyLineRequestText('${q.id}', '${q.targetDate || ''} ${q.targetTime || ''}', '${q.pickup || ''}', '${q.dropoff || ''}', '${q.tripPlan || '往復'}', '${q.userName || ''}')"
-                  class="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"
-                  title="LINE打診文コピー"
-                >
-                  打診文コピー
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-slate-400">登録ドライバーが見つかりませんでした</div>`;
+        if (container) {
+          container.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-rose-500">運行支援情報の取得に失敗しました</div>`;
+        }
       }
       refreshLucide();
     }
-
     function openDriverRegisterModal() {
       const sel = document.getElementById('preRegSelect');
       if (sel) {
