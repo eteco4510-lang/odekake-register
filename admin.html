@@ -624,11 +624,16 @@
       try {
         const cacheBuster = `&_t=${Date.now()}`;
         const res = await fetch(`${GAS_API_URL}?action=getAdminDashboardData${cacheBuster}`, {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        
-        const textRes = await res.text();
+  signal: controller.signal
+});
+
+// レスポンス本文を最後まで受信するまでタイムアウト監視を継続する
+const textRes = await res.text();
+clearTimeout(timeoutId);
+
+if (!res.ok) {
+  throw new Error(`運行データ取得に失敗しました (HTTP ${res.status})`);
+}
         let data;
         try {
           data = JSON.parse(textRes);
@@ -665,19 +670,41 @@
             };
           }
 
-          try {
-            const preRes = await fetch(`${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`);
-            const preData = await preRes.json();
-            if (preData && preData.success) {
-              preRegList = preData.preRegistrations || [];
-              if (preData.nextDriverId) {
-                document.getElementById('regDriverId').value = preData.nextDriverId;
-              }
-            }
-          } catch (e) {
-            console.warn("事前登録データの取得に失敗しました:", e);
-          }
+          // 事前登録データの取得にも独立したタイムアウトを設定する
+const preController = new AbortController();
+const preTimeoutId = setTimeout(
+  () => preController.abort(),
+  15000
+);
 
+try {
+  const preRes = await fetch(
+    `${GAS_API_URL}?action=getDriverPreRegistrations&_t=${Date.now()}`,
+    {
+      signal: preController.signal
+    }
+  );
+
+  if (!preRes.ok) {
+    throw new Error(
+      `事前登録データ取得に失敗しました (HTTP ${preRes.status})`
+    );
+  }
+
+  const preData = await preRes.json();
+
+  if (preData && preData.success) {
+    preRegList = preData.preRegistrations || [];
+    if (preData.nextDriverId) {
+      document.getElementById('regDriverId').value =
+        preData.nextDriverId;
+    }
+  }
+} catch (e) {
+  console.warn("事前登録データの取得に失敗しました:", e);
+} finally {
+  clearTimeout(preTimeoutId);
+}
           initDefaultDateRange();
           updateMetricsUI();
           renderOpsList();
@@ -700,9 +727,10 @@
         }
         showToast("通信エラーが発生しました。コンソールをご確認ください。");
       } finally {
-        hideBlockingLoading();
-        if (skeleton) skeleton.classList.add("hidden");
-      }
+  clearTimeout(timeoutId);
+  hideBlockingLoading();
+  if (skeleton) skeleton.classList.add("hidden");
+　　　}
     }
 
     function updateMetricsUI() {
