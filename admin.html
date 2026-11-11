@@ -1141,16 +1141,18 @@ try {
         }
 
         const pickupPlace = q ? q.pickup : '迎え場所未登録';
-        const dropoffPlace = q ? q.dropoff : '行先未登録';
 
-        // 地図ハイパーリンクの生成
-        const depLink = l.depMapUrl 
-          ? `<a href="${l.depMapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>${pickupPlace}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
-          : `<span class="text-slate-700">${pickupPlace}</span>`;
+        // スプレッドシートのGPS情報（地図URLまたは緯度経度）からハイパーリンクを生成
+        const depGpsUrl = l.depMapUrl || ((l.depLat && l.depLng) ? `https://www.google.com/maps/search/?api=1&query=${l.depLat},${l.depLng}` : '');
+        const arrGpsUrl = l.arrMapUrl || ((l.arrLat && l.arrLng) ? `https://www.google.com/maps/search/?api=1&query=${l.arrLat},${l.arrLng}` : '');
 
-        const arrLink = l.arrMapUrl 
-          ? `<a href="${l.arrMapUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>${dropoffPlace}</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
-          : `<span class="text-slate-700">${dropoffPlace}</span>`;
+        const depLink = depGpsUrl
+          ? `<a href="${depGpsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>登録出発地</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+          : `<span class="text-slate-400 font-medium" title="GPS未記録">登録出発地</span>`;
+
+        const arrLink = arrGpsUrl
+          ? `<a href="${arrGpsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>登録到着地</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+          : `<span class="text-slate-400 font-medium" title="GPS未記録">登録到着地</span>`;
 
         const fuelFeeNum = Number(l.fuelFee || 0);
         const otherExpenseNum = Number(l.otherExpense || 0);
@@ -1179,10 +1181,13 @@ try {
               <div><span class="text-slate-400">担当ドライバー:</span> <strong class="text-slate-900">${l.driverName || '不明'}</strong> <span class="font-mono text-slate-400">(#${l.driverId || '----'})</span></div>
               <div><span class="text-slate-400">同乗者:</span> <strong class="text-slate-900">${passengerName}</strong></div>
               <div><span class="text-slate-400">迎え場所:</span> <strong class="text-slate-800">${pickupPlace}</strong></div>
-              <div><span class="text-slate-400">出発地 (地図):</span> ${depLink}</div>
-              <div class="sm:col-span-2"><span class="text-slate-400">到着地 (地図):</span> ${arrLink}</div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-slate-400">GPS記録:</span>
+                ${depLink}
+                <i data-lucide="arrow-right" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
+                ${arrLink}
+              </div>
             </div>
-
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
               <div>
                 <span class="text-slate-400 block text-[11px]">実走距離</span>
