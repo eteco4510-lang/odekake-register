@@ -1160,18 +1160,43 @@ try {
         }
 
         // 3. 道路に沿った自動車ルート（Polyline）を描画
-        if (data && data.routePoints && data.routePoints.length > 1) {
-          questMapPolyline = L.polyline(data.routePoints, {
-            color: '#2563eb', // ブランドブルー
-            weight: 5,
-            opacity: 0.85
-          }).addTo(questMapInstance);
-        } else if (data && data.pickupCoords && data.dropoffCoords) {
-          // フォールバック直線
-          questMapPolyline = L.polyline(
-            [[data.pickupCoords.lat, data.pickupCoords.lng], [data.dropoffCoords.lat, data.dropoffCoords.lng]],
-            { color: '#2563eb', weight: 4, dashArray: '6, 8' }
-          ).addTo(questMapInstance);
+        // 3. 道路に沿った自動車ルート（実走道路形状）を描画
+        if (data && data.pickupCoords && data.dropoffCoords) {
+          const pLat = Number(data.pickupCoords.lat);
+          const pLng = Number(data.pickupCoords.lng);
+          const dLat = Number(data.dropoffCoords.lat);
+          const dLng = Number(data.dropoffCoords.lng);
+
+          try {
+            // OSRMドライブルーティングAPIで道路形状の点列（GeoJSON）を取得
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pLng},${pLat};${dLng},${dLat}?overview=full&geometries=geojson`;
+            const routeRes = await fetch(osrmUrl);
+            const routeData = await routeRes.json();
+
+            if (routeData && routeData.routes && routeData.routes.length > 0) {
+              // [lng, lat] を Leaflet用の [lat, lng] に変換
+              const latLngs = routeData.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+              questMapPolyline = L.polyline(latLngs, {
+                color: '#2563eb', // デジタル庁・ブランドブルー
+                weight: 5,
+                opacity: 0.85,
+                lineJoin: 'round'
+              }).addTo(questMapInstance);
+            } else {
+              throw new Error('OSRMルート点列なし');
+            }
+          } catch (routeErr) {
+            // フォールバック：GASのroutePointsまたは直線
+            const fallbackPoints = (data.routePoints && data.routePoints.length > 1)
+              ? data.routePoints
+              : [[pLat, pLng], [dLat, dLng]];
+            questMapPolyline = L.polyline(fallbackPoints, {
+              color: '#2563eb',
+              weight: 4,
+              opacity: 0.8,
+              dashArray: '6, 8'
+            }).addTo(questMapInstance);
+          }
         }
 
         // 4. 近隣ドライバー上位3名を地図上にプロット ＆ カード一覧描画
