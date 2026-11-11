@@ -833,10 +833,23 @@ if (!res.ok) {
           users = data.users || [];
 
           if (data.metrics) {
+            const nowDate = new Date();
+            const todayStrVal = `${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}-${String(nowDate.getDate()).padStart(2, '0')}`;
+
+            // 本日の運行：日付が本日 かつ マッチング済み（受注済・運行完了）
+            const todayMatchedCount = quests.filter(q =>
+              q.targetDate === todayStrVal && (q.status === '受注済' || q.status === '運行完了')
+            ).length;
+
+            // 実績未報告：日付が過ぎている（本日より前）が「運行完了」になっていない受注済案件
+            const unreportedPastCount = quests.filter(q =>
+              q.targetDate && q.targetDate < todayStrVal && q.status === '受注済'
+            ).length;
+
             metrics = {
               actionRequiredCount: data.metrics.actionRequiredCount || 0,
-              unreportedCount: data.metrics.unreportedCount || 0,
-              todayRunningCount: data.metrics.todayRunningCount || 0,
+              unreportedCount: unreportedPastCount,
+              todayRunningCount: todayMatchedCount,
               openCount: data.metrics.openCount || 0
             };
           }
@@ -950,15 +963,17 @@ try {
         if (currentOpsFilter === 'action_required') {
           return status === '要対応' || ((status === '募集中') && (checkWithin72h(q) || q.isUrgent || q.isWarning));
         }
-        // 本日の運行：運行日が本日 かつ マッチング成立済み（受注済・運行完了）の案件のみ
+        // 本日の運行：日付が本日 かつ マッチング成立済み（受注済・運行完了）の案件
         if (currentOpsFilter === 'today') {
           return q.targetDate === todayStr && (status === '受注済' || status === '運行完了');
         }
-        if (currentOpsFilter === 'unreported') return status === '運行完了' && !q.hasReported;
+        // 実績未報告：日付が過ぎている（本日より前）が「運行完了」になっていない受注済案件
+        if (currentOpsFilter === 'unreported') {
+          return Boolean(q.targetDate) && q.targetDate < todayStr && status === '受注済';
+        }
         if (currentOpsFilter === 'unestablished') return status === 'マッチング不成立';
         return true;
       });
-
 
       // ★追加：希望日時の近い順（日付順・昇順）にソートしてデフォルト表示にする
       filtered.sort((a, b) => {
