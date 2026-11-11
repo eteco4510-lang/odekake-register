@@ -336,9 +336,31 @@
 
   <!-- ==================== モーダル群 ==================== -->
 
-  
-<!-- 活動記録ログ数値修正モーダル -->
-<div id="editLogModal"
+  <!-- GPS位置確認用 吹き出し小ウィンドウ（全ログ共通で1つを使い回し） -->
+  <div id="gpsMapPopover" class="fixed z-50 w-72 sm:w-80 rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden hidden">
+    <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/90 px-3.5 py-2">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <i data-lucide="map-pin" class="h-3.5 w-3.5 text-blue-600 flex-shrink-0"></i>
+        <span id="gpsPopoverTitle" class="text-xs font-bold text-slate-800 truncate">GPS位置確認</span>
+      </div>
+      <div class="flex items-center gap-1 flex-shrink-0">
+        <a id="gpsPopoverExtLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition">
+          <span>Google Maps</span>
+          <i data-lucide="external-link" class="h-2.5 w-2.5"></i>
+        </a>
+        <button type="button" onclick="closeGpsPopover()" class="rounded-lg p-1 text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 transition">
+          <i data-lucide="x" class="h-3.5 w-3.5"></i>
+        </button>
+      </div>
+    </div>
+    <div id="gpsMiniMap" class="h-44 w-full bg-slate-100 z-0"></div>
+    <div id="gpsPopoverCoordsText" class="px-3 py-1.5 bg-white border-t border-slate-100 font-mono text-[10px] text-slate-400 text-right">
+      --
+    </div>
+  </div>
+
+  <!-- 活動記録ログ数値修正モーダル -->
+  <div id="editLogModal"
      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs hidden">
 
   <!-- モーダル本体 -->
@@ -1142,18 +1164,30 @@ try {
 
         const pickupPlace = q ? q.pickup : '迎え場所未登録';
 
-        // スプレッドシートのGPS情報（地図URLまたは緯度経度）からハイパーリンクを生成
-        const depGpsUrl = l.depMapUrl || ((l.depLat && l.depLng) ? `https://www.google.com/maps/search/?api=1&query=${l.depLat},${l.depLng}` : '');
-        const arrGpsUrl = l.arrMapUrl || ((l.arrLat && l.arrLng) ? `https://www.google.com/maps/search/?api=1&query=${l.arrLat},${l.arrLng}` : '');
+        // 緯度経度の抽出（数値カラムまたはマップURLのqueryパラメータから取得）
+        const extractCoords = (lat, lng, url) => {
+          if (lat && lng && Number(lat) !== 0 && Number(lng) !== 0) {
+            return { lat: Number(lat), lng: Number(lng) };
+          }
+          if (url) {
+            const match = String(url).match(/query=([-0-9.]+),([-0-9.]+)/);
+            if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+          }
+          return null;
+        };
 
-        const depLink = depGpsUrl
-          ? `<a href="${depGpsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>登録出発地</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+        const depCoord = extractCoords(l.depLat, l.depLng, l.depMapUrl);
+        const arrCoord = extractCoords(l.arrLat, l.arrLng, l.arrMapUrl);
+        const depGpsUrl = l.depMapUrl || (depCoord ? `https://www.google.com/maps/search/?api=1&query=${depCoord.lat},${depCoord.lng}` : '');
+        const arrGpsUrl = l.arrMapUrl || (arrCoord ? `https://www.google.com/maps/search/?api=1&query=${arrCoord.lat},${arrCoord.lng}` : '');
+
+        const depLink = depCoord
+          ? `<button type="button" onclick="openGpsPopover(event, '登録出発地 (#${l.questId || ''})', ${depCoord.lat}, ${depCoord.lng}, '${depGpsUrl}')" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:text-blue-800 hover:underline transition"><span>登録出発地</span><i data-lucide="map-pin" class="h-3 w-3"></i></button>`
           : `<span class="text-slate-400 font-medium" title="GPS未記録">登録出発地</span>`;
 
-        const arrLink = arrGpsUrl
-          ? `<a href="${arrGpsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"><span>登録到着地</span><i data-lucide="external-link" class="h-3 w-3"></i></a>`
+        const arrLink = arrCoord
+          ? `<button type="button" onclick="openGpsPopover(event, '登録到着地 (#${l.questId || ''})', ${arrCoord.lat}, ${arrCoord.lng}, '${arrGpsUrl}')" class="inline-flex items-center gap-1 font-bold text-blue-600 hover:text-blue-800 hover:underline transition"><span>登録到着地</span><i data-lucide="map-pin" class="h-3 w-3"></i></button>`
           : `<span class="text-slate-400 font-medium" title="GPS未記録">登録到着地</span>`;
-
         const fuelFeeNum = Number(l.fuelFee || 0);
         const otherExpenseNum = Number(l.otherExpense || 0);
         const totalPayout = fuelFeeNum + otherExpenseNum;
@@ -1712,6 +1746,77 @@ try {
       document.getElementById('editLogModal').classList.add('hidden');
     }
 
+    // ==========================================
+    // 📍 GPS吹き出し小ウィンドウ制御（単一インスタンス使い回し）
+    // ==========================================
+    let gpsMiniMapInstance = null;
+    let gpsMiniMapMarker = null;
+
+    function openGpsPopover(event, title, lat, lng, extUrl) {
+      event.stopPropagation();
+      const popover = document.getElementById('gpsMapPopover');
+      if (!popover) return;
+
+      document.getElementById('gpsPopoverTitle').textContent = title;
+      document.getElementById('gpsPopoverExtLink').href = extUrl || `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      document.getElementById('gpsPopoverCoordsText').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+      // クリック位置の近くに吹き出しを配置（画面端からはみ出さないよう自動補正）
+      popover.classList.remove('hidden');
+      const rect = event.currentTarget.getBoundingClientRect();
+      const popWidth = popover.offsetWidth || 300;
+      const popHeight = popover.offsetHeight || 240;
+
+      let left = rect.left;
+      if (left + popWidth > window.innerWidth - 16) {
+        left = window.innerWidth - popWidth - 16;
+      }
+      if (left < 16) left = 16;
+
+      let top = rect.bottom + 8;
+      if (top + popHeight > window.innerHeight - 16) {
+        top = Math.max(16, rect.top - popHeight - 8);
+      }
+
+      popover.style.left = `${left}px`;
+      popover.style.top = `${top}px`;
+      refreshLucide();
+
+      // Leafletミニ地図の初回のみ生成・2回目以降は座標移動のみ
+      setTimeout(() => {
+        if (!gpsMiniMapInstance) {
+          gpsMiniMapInstance = L.map('gpsMiniMap', {
+            zoomControl: true,
+            attributionControl: false
+          }).setView([lat, lng], 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18
+          }).addTo(gpsMiniMapInstance);
+        } else {
+          gpsMiniMapInstance.invalidateSize();
+          gpsMiniMapInstance.setView([lat, lng], 15);
+        }
+
+        if (gpsMiniMapMarker) {
+          gpsMiniMapInstance.removeLayer(gpsMiniMapMarker);
+        }
+        gpsMiniMapMarker = L.marker([lat, lng]).addTo(gpsMiniMapInstance);
+      }, 50);
+    }
+
+    function closeGpsPopover() {
+      const popover = document.getElementById('gpsMapPopover');
+      if (popover) popover.classList.add('hidden');
+    }
+
+    // 吹き出しの外側をクリックしたら自動で閉じる
+    document.addEventListener('click', (e) => {
+      const popover = document.getElementById('gpsMapPopover');
+      if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target)) {
+        closeGpsPopover();
+      }
+    });
+    
     // 距離入力時に実費（20円/km）を自動計算
     function recalcEditLogFee() {
       const dist = parseFloat(document.getElementById('editLogDistance').value) || 0;
