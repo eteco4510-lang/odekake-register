@@ -879,12 +879,57 @@ try {
       refreshLucide();
     }
 
+    // 活動記録ログのクイック期間セット関数
+    function setLogRange(type) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      let start = '', end = '';
+
+      if (type === 'currentMonth') {
+        start = new Date(y, m, 1).toISOString().split('T')[0];
+        end = new Date(y, m + 1, 0).toISOString().split('T')[0];
+      } else if (type === 'lastMonth') {
+        start = new Date(y, m - 1, 1).toISOString().split('T')[0];
+        end = new Date(y, m, 0).toISOString().split('T')[0];
+      } else if (type === 'allYear') {
+        const curM = now.getMonth();
+        const fyStartYear = (curM >= 3) ? y : y - 1;
+        start = `${fyStartYear}-04-01`;
+        end = `${fyStartYear + 1}-03-31`;
+      } else if (type === 'clear') {
+        start = '';
+        end = '';
+      }
+
+      const startEl = document.getElementById('logStartDate');
+      const endEl = document.getElementById('logEndDate');
+      if (startEl) startEl.value = start;
+      if (endEl) endEl.value = end;
+      renderLogsList();
+    }
+
     function renderLogsList() {
       const container = document.getElementById("logsListContainer");
       const search = document.getElementById("logSearchInput") ? document.getElementById("logSearchInput").value.toLowerCase() : "";
+      const startStr = document.getElementById("logStartDate") ? document.getElementById("logStartDate").value : "";
+      const endStr = document.getElementById("logEndDate") ? document.getElementById("logEndDate").value : "";
       if (!container) return;
 
-      let logs = records;
+      let logs = [...records];
+
+      // 1. 指定期間（開始日〜終了日）による絞り込み
+      if (startStr || endStr) {
+        logs = logs.filter(l => {
+          if (!l.recordDate) return false;
+          const dPart = l.recordDate.split(' ')[0].replace(/\//g, '-');
+          if (startStr && dPart < startStr) return false;
+          if (endStr && dPart > endStr) return false;
+          return true;
+        });
+      }
+
+      // 2. キーワード検索（案件番号・ドライバー名・同乗者名）
       if (search) {
         logs = logs.filter(l => 
           (l.questId && l.questId.toLowerCase().includes(search)) ||
@@ -893,8 +938,15 @@ try {
         );
       }
 
+      // 3. 日付が近い順（新しい順・降順）をデフォルトとしてソート
+      logs.sort((a, b) => {
+        const timeA = a.recordDate ? new Date(a.recordDate.replace(/-/g, '/')).getTime() : 0;
+        const timeB = b.recordDate ? new Date(b.recordDate.replace(/-/g, '/')).getTime() : 0;
+        return timeB - timeA; // 降順（最新の日付が上）
+      });
+
       if (logs.length === 0) {
-        container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">活動記録ログがありません</div>`;
+        container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-400">該当する活動記録ログがありません</div>`;
         return;
       }
 
@@ -920,7 +972,6 @@ try {
       `).join('');
       refreshLucide();
     }
-
     function switchRosterTab(tab) {
       currentRosterTab = tab;
       const btnDrivers = document.getElementById('subTabDrivers');
