@@ -687,6 +687,8 @@
   <!-- スクリプト制御 -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxrw8HzRBcMOQsHLp5mkKXisYkDl2IocZVF1glMmAGPkwsXSnOcNv6-jGWg9gBxl6jH/exec";
+    // ★運行掲示板（board.html または LIFF URL）のベースURLを設定してください
+    const BOARD_URL_BASE = "https://liff.line.me/2011784961-W35tl30H";
 
     let quests = [];
     let records = [];
@@ -749,20 +751,23 @@
 
     // ★追加：要対応案件の個別依頼用LINE文面をクリップボードにコピーする関数
     function copyLineRequestText(qid, dateTime, pickup, dropoff, tripPlan, userName) {
+      const cleanQid = String(qid || '').replace(/[^0-9]/g, '');
+      const questUrl = `${BOARD_URL_BASE}?qid=${encodeURIComponent(cleanQid)}`;
+
       const text = `【至急・運行のお願い】おでかけサポート事務局
 
 お疲れ様です。直前で担当が決まっていない案件がございます。お近くですので、お時間のご都合がつきましたらぜひお願いいたします。
 
 ■ 案件番号：# ${qid}
 ■ 日時：${dateTime}
-■ 区間：${pickup} ➔ ${dropoff} （ ${tripPlan} ）
+■ 区間：${pickup} -> ${dropoff} （ ${tripPlan} ）
 ■ 利用者：${userName} 様
 
-▼お引き受けいただける場合
-運行掲示板より受託をお願いします。
+▼お引き受けいただける場合（運行掲示板）
+${questUrl}
 
 お忙しいところ恐縮ですがよろしくお願いいたします。`;
-
+    
       navigator.clipboard.writeText(text).then(() => {
         showToast("LINE打診用の文章をコピーしました！");
         alert("LINE打診用の文章をコピーしました。公式LINE等に貼り付けて送信してください。");
