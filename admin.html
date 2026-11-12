@@ -12,16 +12,29 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
+    /* 画面表示時：老眼の方でも読みやすいよう基準フォントサイズを拡大（標準16px → 19px） */
+    html {
+      font-size: 19px;
+    }
     body {
       font-feature-settings: "tnum";
       font-variant-numeric: tabular-nums;
       -webkit-tap-highlight-color: transparent;
+      line-height: 1.6;
+    }
+    /* 極小テキスト（10px/11px指定）も視認性の高いサイズへ底上げ */
+    [class*="text-[10px]"],
+    [class*="text-[11px]"] {
+      font-size: 0.75rem !important;
+      line-height: 1.45 !important;
     }
     .lucide { stroke-width: 2; }
     input[type="date"] { font-family: inherit; }
     button, select, span, a { white-space: nowrap !important; }
 
     @media print {
+      /* A4受領書・実績報告書の印刷レイアウトを維持するため基準サイズをリセット */
+      html { font-size: 16px !important; }
       body * { visibility: hidden !important; }
       #printPreviewModal, #printPreviewModal *, 
       #annualReportModal, #annualReportModal * {
