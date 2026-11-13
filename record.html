@@ -138,7 +138,7 @@
       </section>
 
       <!-- STEP 2: 運行ステップ（GPS測位） -->
-      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+      <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-5">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">2</span>
@@ -147,50 +147,72 @@
           <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">必須</span>
         </div>
 
-        <!-- 出発時 -->
-        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-              <i data-lucide="navigation" class="h-4 w-4 text-blue-600"></i>
-              <span>1. 出発時記録</span>
-            </span>
+        <!-- 出発時セクション（メイン記録枠 ＋ 枠外の押し忘れボタン） -->
+        <div class="space-y-2">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="navigation" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
+                <span>1. 出発時記録</span>
+              </span>
+              <button
+                type="button"
+                id="btnDep"
+                onclick="recordDeparture()"
+                class="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+              >
+                出発地を記録する
+              </button>
+            </div>
+            <div class="text-xs">
+              <span id="depStatus" class="text-slate-500">未記録</span>
+            </div>
+          </div>
+
+          <!-- 枠の外に出した手動入力ボタン -->
+          <div class="flex justify-end">
             <button
               type="button"
-              id="btnDep"
-              onclick="recordDeparture()"
-              class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+              onclick="manualRecordDeparture()"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition shadow-2xs"
             >
-              出発地を記録する
-            </button>
-          </div>
-          <div class="flex items-center justify-between text-xs">
-            <span id="depStatus" class="text-slate-500">未記録</span>
-            <button type="button" onclick="manualRecordDeparture()" class="text-blue-600 font-semibold underline hover:text-blue-800">
-              ※時刻を手動セット
+              <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
+              <span>押し忘れたらこちらのボタン</span>
             </button>
           </div>
         </div>
 
-        <!-- 到着時 -->
-        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-              <i data-lucide="map-pin" class="h-4 w-4 text-blue-600"></i>
-              <span>2. 到着時記録</span>
-            </span>
+        <!-- 到着時セクション（メイン記録枠 ＋ 枠外の押し忘れボタン） -->
+        <div class="space-y-2 pt-1">
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="map-pin" class="h-4 w-4 text-blue-600 flex-shrink-0"></i>
+                <span>2. 到着時記録</span>
+              </span>
+              <button
+                type="button"
+                id="btnArr"
+                onclick="recordArrival()"
+                class="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+              >
+                到着地を記録する
+              </button>
+            </div>
+            <div class="text-xs">
+              <span id="arrStatus" class="text-slate-500">未記録</span>
+            </div>
+          </div>
+
+          <!-- 枠の外に出した手動入力ボタン -->
+          <div class="flex justify-end">
             <button
               type="button"
-              id="btnArr"
-              onclick="recordArrival()"
-              class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+              onclick="manualRecordArrival()"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition shadow-2xs"
             >
-              到着地を記録する
-            </button>
-          </div>
-          <div class="flex items-center justify-between text-xs">
-            <span id="arrStatus" class="text-slate-500">未記録</span>
-            <button type="button" onclick="manualRecordArrival()" class="text-blue-600 font-semibold underline hover:text-blue-800">
-              ※時刻を手動セット
+              <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400 flex-shrink-0"></i>
+              <span>押し忘れたらこちらのボタン</span>
             </button>
           </div>
         </div>
@@ -429,7 +451,7 @@
       runLog.depTimestamp = now.getTime();
       
       const btn = document.getElementById('btnDep');
-      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs";
       btn.textContent = `出発記録済 (${runLog.depTime})`;
       
       const status = document.getElementById('depStatus');
@@ -461,7 +483,7 @@
       runLog.depTimestamp = now.getTime();
       
       const btn = document.getElementById('btnDep');
-      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs";
       btn.textContent = `出発記録済 (${runLog.depTime})`;
       
       const status = document.getElementById('depStatus');
@@ -477,7 +499,7 @@
       runLog.arrTimestamp = now.getTime();
       
       const btn = document.getElementById('btnArr');
-      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs";
       btn.textContent = `到着記録済 (${runLog.arrTime})`;
       
       const status = document.getElementById('arrStatus');
@@ -509,7 +531,7 @@
       runLog.arrTimestamp = now.getTime();
       
       const btn = document.getElementById('btnArr');
-      btn.className = "rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs";
+      btn.className = "rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs";
       btn.textContent = `到着記録済 (${runLog.arrTime})`;
       
       const status = document.getElementById('arrStatus');
