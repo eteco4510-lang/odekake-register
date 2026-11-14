@@ -106,13 +106,23 @@
         <div class="text-xs text-slate-500 font-bold">発行された案件番号</div>
         <div id="issuedQuestId" class="text-2xl font-black font-mono text-blue-600 mt-1">#----</div>
       </div>
-      <button
-        type="button"
-        onclick="handleCloseWindow()"
-        class="w-full rounded-xl bg-slate-900 py-3.5 text-base font-bold text-white shadow-sm hover:bg-slate-800"
-      >
-        画面を閉じる
-      </button>
+      <div class="space-y-2.5 pt-2">
+        <button
+          type="button"
+          onclick="handleNewRequest()"
+          class="w-full rounded-xl bg-blue-600 py-3.5 text-base font-black text-white shadow-sm hover:bg-blue-700 active:scale-98 transition flex items-center justify-center gap-2"
+        >
+          <i data-lucide="plus-circle" class="h-5 w-5"></i>
+          <span>他の依頼を申し込む</span>
+        </button>
+        <button
+          type="button"
+          onclick="handleCloseWindow()"
+          class="w-full rounded-xl border border-slate-200 bg-slate-100 py-3.5 text-base font-bold text-slate-700 hover:bg-slate-200 active:scale-98 transition"
+        >
+          閉じる
+        </button>
+      </div>
     </div>
   </div>
 
@@ -535,14 +545,32 @@
       }
     }
 
-    function handleCloseWindow() {
-      if (window.liff && liff.isInClient()) {
-        liff.closeWindow();
-      } else {
-        window.close();
-      }
+    // 「他の依頼を申し込む」ボタンの処理（利用者番号は維持して入力欄をリセット）
+    function handleNewRequest() {
+      document.getElementById('completeModalOverlay').classList.add('hidden');
+      document.getElementById('pickupLocation').value = '';
+      document.getElementById('dropoffLocation').value = '';
+      document.getElementById('requestNote').value = '';
+      document.getElementById('tripPlan').selectedIndex = 0;
+      document.getElementById('passengersCount').selectedIndex = 0;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // 「閉じる」ボタンの処理（ポップアップを確実に閉じ、LINE内ならウィンドウも閉じる）
+    function handleCloseWindow() {
+      document.getElementById('completeModalOverlay').classList.add('hidden');
+      try {
+        if (window.liff && liff.isInClient()) {
+          liff.closeWindow();
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        window.open('', '_self').close();
+        window.close();
+      } catch (e) {}
+    }
     window.addEventListener('DOMContentLoaded', async () => {
       refreshLucide();
       try {
