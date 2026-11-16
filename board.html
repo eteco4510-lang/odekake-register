@@ -553,7 +553,7 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-500 font-bold whitespace-nowrap">依頼者名:</span>
-              <strong class="text-slate-900 text-right truncate max-w-[180px]">${escapeHtml(q.userNameMasked)}</strong>
+              <strong class="text-slate-900 text-right truncate max-w-[180px]">${escapeHtml(q.userName || q.userNameMasked)} 様</strong>
             </div>
             ${q.note ? `<div class="pt-2 text-slate-600 border-t border-slate-200 leading-snug break-words">備考: ${escapeHtml(q.note)}</div>` : ''}
           </div>
