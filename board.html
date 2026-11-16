@@ -658,7 +658,7 @@
       const startTimeFormatted = formatGCalTime(startDateTime);
       const endTimeFormatted = formatGCalTime(endDateTime);
 
-      const title = encodeURIComponent(`【おでかけ送迎】#${quest.id} ${quest.userNameMasked || '利用者'} 様`);
+      const title = encodeURIComponent(`【おでかけ送迎】#${quest.id} ${quest.userName || quest.userNameMasked || '利用者'} 様`);
       const location = encodeURIComponent(quest.pickup || '指定場所');
       const details = encodeURIComponent(
         `行先: ${quest.dropoff}\n片道・往復: ${quest.tripPlan || '往復'}\n乗車人数: ${quest.passengers || '1名'}\n備考: ${quest.note || '特になし'}\n\nおでかけサポート運行管理`
